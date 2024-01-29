@@ -1,0 +1,10 @@
+# Sys files
+**/.DS_Store
+
+# Scarb and Starknet Foundry
+**/target
+.snfoundry_cache/
+
+# Starkli
+**/account.json
+**/keystore.json
