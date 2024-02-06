@@ -2,7 +2,7 @@
 //!
 //!
 
-mod Errors {
+mod errors {
     const INVALID_ADDRESS: felt252 = 'Config: invalid address';
 }
 
