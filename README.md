@@ -12,6 +12,20 @@
 
 Starknet Core Contract components in Cairo.
 
+## Repository architecture
+
+The different tasks of the Starknet Core Contract are here mapped to what we can call an "Appchain" Core Contract.
+
+The functionalities of the core contract are split over several components. Each component is usually placed into a directory, event if it is simple. Doing so allow a good separation of additional files that may be written in the context of a component.
+
+Due to a limitation of `starknet foundry`, we can't declare a contract that is defined under the `tests` directory. For this reason, `mock` contract are defined in their respective component location. This is also a good way for the component write to illustrate the minimum required to use the component.
+
+* `appchain.cairo`: core contract of the appchain on Starknet.
+
+* `config`: base configuration for the core contract.
+
+* `messaging`: messaging between Appchain - Starknet.
+
 ## Build
 
 To build the project, run:
@@ -27,3 +41,34 @@ To test the project, run:
 ```bash
 snforge test
 ```
+
+## Code style (cairo)
+
+* Use `snake_case` for module name and not `PascalCase`.
+
+* Don't import directly a function from a module.
+```rust
+// Prefer that:
+let addr = starknet::contract_address_const::<0>();
+
+// Instead of:
+use starknet::contract_address_const;
+let addr = contract_address_const::<0>();
+```
+
+* Order import as much as you can (and avoid relative import, if not inside tests).
+```rust
+// Core or built-in plugins like starknet.
+use starknet::...;
+
+// Third party modules
+use openzeppelin::...;
+
+// Package
+use piltover::...;
+
+// Relative
+super::...;
+```
+
+* Document functions inside the trait, and add details if needed in the implementation.
