@@ -3,23 +3,21 @@ mod interface;
 
 // Components
 mod config {
-    mod interface;
-    use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
-
     mod component;
-    use component::config_cpt;
-
+    mod interface;
     mod mock;
+
+    use component::config_cpt;
+    use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
     use mock::config_mock;
 }
 
 mod messaging {
-    mod interface;
-    use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
-
     mod component;
-    use component::messaging_cpt;
-
+    mod interface;
     mod mock;
+
+    use component::messaging_cpt;
+    use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
     use mock::messaging_mock;
 }

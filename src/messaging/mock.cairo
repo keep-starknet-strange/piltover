@@ -1,10 +1,9 @@
 #[starknet::contract]
 mod messaging_mock {
-    use starknet::ContractAddress;
-
     use piltover::messaging::{
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging
     };
+    use starknet::ContractAddress;
 
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
 

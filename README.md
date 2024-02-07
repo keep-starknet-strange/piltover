@@ -57,20 +57,4 @@ use starknet::contract_address_const;
 let addr = contract_address_const::<0>();
 ```
 
-- Order import as much as you can (and avoid relative import, if not inside tests).
-
-```rust
-// Core or built-in plugins like starknet.
-use starknet::...;
-
-// Third party modules
-use openzeppelin::...;
-
-// Package
-use piltover::...;
-
-// Relative
-super::...;
-```
-
 - Document functions inside the trait, and add details if needed in the implementation.

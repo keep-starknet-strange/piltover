@@ -1,12 +1,10 @@
 #[starknet::contract]
 mod config_mock {
-    use starknet::ContractAddress;
-
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal
     };
-
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
+    use starknet::ContractAddress;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: config_cpt, storage: config, event: ConfigEvent);

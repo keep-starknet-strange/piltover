@@ -13,15 +13,12 @@ mod errors {
 /// only editable by contract's owner.
 #[starknet::component]
 mod config_cpt {
-    use starknet::ContractAddress;
-
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable,
     };
-
     use piltover::config::interface::IConfig;
-
+    use starknet::ContractAddress;
     use super::errors;
 
     #[storage]

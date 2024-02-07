@@ -1,13 +1,10 @@
-use starknet::ContractAddress;
-
-use snforge_std as snf;
-use snforge_std::{CheatTarget, ContractClassTrait};
-
 use piltover::config::{
     config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig, IConfigDispatcherTrait,
     IConfigDispatcher, config_mock
 };
-
+use snforge_std as snf;
+use snforge_std::{CheatTarget, ContractClassTrait};
+use starknet::ContractAddress;
 use super::constants as c;
 
 fn deploy_mock() -> IConfigDispatcher {

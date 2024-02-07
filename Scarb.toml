@@ -11,3 +11,6 @@ openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", ta
 [[target.starknet-contract]]
 casm = true
 sierra = true
+
+[tool.fmt]
+sort-module-level-items = true

@@ -36,15 +36,12 @@ mod errors {
 #[starknet::component]
 mod messaging_cpt {
     use core::zeroable::Zeroable;
-    use starknet::ContractAddress;
-
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable,
     };
-
     use piltover::messaging::interface::IMessaging;
-
+    use starknet::ContractAddress;
     use super::errors;
 
     #[storage]
