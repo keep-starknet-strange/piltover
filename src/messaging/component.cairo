@@ -26,7 +26,12 @@
 
 /// Errors.
 mod errors {
+    const INVALID_NONCE: felt252 = 'INVALID_NONCE';
     const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
+    const NO_MESSAGE_TO_CANCEL: felt252 = 'NO_MESSAGE_TO_CANCEL';
+    const CANCELLATION_NOT_REQUESTED: felt252 = 'CANCELLATION_NOT_REQUESTED';
+    const CANCELLATION_NOT_ALLOWED_YET: felt252 = 'CANCELLATION_NOT_ALLOWED_YET';
+    const CANCEL_ALLOWED_TIME_OVERFLOW: felt252 = 'CANCEL_ALLOWED_TIME_OVERFLOW';
 }
 
 /// Messaging component.
@@ -44,15 +49,22 @@ mod messaging_cpt {
     use starknet::ContractAddress;
     use super::errors;
 
+    type MessageHash = felt252;
+    type Nonce = felt252;
+
     #[storage]
     struct Storage {
+        /// Cancellation delay in seconds for message from Starknet to Appchain.
+        cancellation_delay_secs: u64,
+        /// Ledger of messages from Starknet to Appchain that are being cancelled.
+        sn_to_appc_cancellations: LegacyMap::<MessageHash, u64>,
         /// The nonce for messages sent to the Appchain from Starknet.
-        sn_to_appc_nonce: felt252,
+        sn_to_appc_nonce: Nonce,
         /// Ledger of messages hashes sent from Starknet to the appchain.
-        sn_to_appc_messages: LegacyMap::<felt252, felt252>,
-        /// Ledger of messages hashes registered from the appchain and a refcount
+        sn_to_appc_messages: LegacyMap::<MessageHash, Nonce>,
+        /// Ledger of messages hashes registered from the Appchain and a refcount
         /// associated to it to control messages consumption.
-        appc_to_sn_messages: LegacyMap::<felt252, felt252>,
+        appc_to_sn_messages: LegacyMap::<MessageHash, felt252>,
     }
 
     #[event]
@@ -60,30 +72,58 @@ mod messaging_cpt {
     enum Event {
         MessageSent: MessageSent,
         MessageConsumed: MessageConsumed,
+        MessageCancellationStarted: MessageCancellationStarted,
+        MessageCanceled: MessageCanceled,
     }
 
     #[derive(Drop, starknet::Event)]
     struct MessageSent {
         #[key]
-        message_hash: felt252,
+        message_hash: MessageHash,
         #[key]
         from: ContractAddress,
         #[key]
         to: ContractAddress,
         selector: felt252,
-        nonce: felt252,
+        nonce: Nonce,
         payload: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
     struct MessageConsumed {
         #[key]
-        message_hash: felt252,
+        message_hash: MessageHash,
         #[key]
         from: ContractAddress,
         #[key]
         to: ContractAddress,
         payload: Span<felt252>,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct MessageCancellationStarted {
+        #[key]
+        message_hash: MessageHash,
+        #[key]
+        from: ContractAddress,
+        #[key]
+        to: ContractAddress,
+        selector: felt252,
+        payload: Span<felt252>,
+        nonce: Nonce,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct MessageCanceled {
+        #[key]
+        message_hash: MessageHash,
+        #[key]
+        from: ContractAddress,
+        #[key]
+        to: ContractAddress,
+        selector: felt252,
+        payload: Span<felt252>,
+        nonce: Nonce,
     }
 
     #[embeddable_as(MessagingImpl)]
@@ -95,9 +135,10 @@ mod messaging_cpt {
             to_address: ContractAddress,
             selector: felt252,
             payload: Span<felt252>
-        ) -> (felt252, felt252) {
-            let nonce = self.sn_to_appc_nonce.read();
-            self.sn_to_appc_nonce.write(nonce + 1);
+        ) -> (MessageHash, Nonce) {
+            // Starts by +1 to avoid 0 as a valid nonce.
+            let nonce = self.sn_to_appc_nonce.read() + 1;
+            self.sn_to_appc_nonce.write(nonce);
 
             let message_hash = self
                 .compute_message_hash_sn_to_appc(nonce, to_address, selector, payload);
@@ -114,8 +155,6 @@ mod messaging_cpt {
                     }
                 );
 
-            // L1 starknet core contract stores the msg.value + 1.
-            // TODO: is the nonce a good thing to keep here then?
             self.sn_to_appc_messages.write(message_hash, nonce);
             (message_hash, nonce)
         }
@@ -124,7 +163,7 @@ mod messaging_cpt {
             ref self: ComponentState<TContractState>,
             from_address: ContractAddress,
             payload: Span<felt252>
-        ) -> felt252 {
+        ) -> MessageHash {
             let to_address = starknet::get_caller_address();
 
             let message_hash = self
@@ -142,12 +181,87 @@ mod messaging_cpt {
 
             message_hash
         }
+
+        fn start_message_cancellation(
+            ref self: ComponentState<TContractState>,
+            to_address: ContractAddress,
+            selector: felt252,
+            payload: Span<felt252>,
+            nonce: Nonce,
+        ) -> MessageHash {
+            assert(nonce.is_non_zero(), errors::INVALID_NONCE);
+            let from = starknet::get_caller_address();
+
+            let message_hash = self
+                .compute_message_hash_sn_to_appc(nonce, to_address, selector, payload);
+
+            assert(
+                self.sn_to_appc_messages.read(message_hash) == nonce, errors::NO_MESSAGE_TO_CANCEL
+            );
+
+            self.sn_to_appc_cancellations.write(message_hash, starknet::get_block_timestamp());
+
+            self
+                .emit(
+                    MessageCancellationStarted {
+                        message_hash, from, to: to_address, selector, payload, nonce
+                    }
+                );
+
+            return message_hash;
+        }
+
+        fn cancel_message(
+            ref self: ComponentState<TContractState>,
+            to_address: ContractAddress,
+            selector: felt252,
+            payload: Span<felt252>,
+            nonce: felt252,
+        ) -> MessageHash {
+            let from = starknet::get_caller_address();
+
+            let message_hash = self
+                .compute_message_hash_sn_to_appc(nonce, to_address, selector, payload);
+
+            assert(
+                self.sn_to_appc_messages.read(message_hash) == nonce, errors::NO_MESSAGE_TO_CANCEL
+            );
+
+            let request_time = self.sn_to_appc_cancellations.read(message_hash);
+            assert(request_time.is_non_zero(), errors::CANCELLATION_NOT_REQUESTED);
+
+            let cancel_allowed_time = request_time + self.cancellation_delay_secs.read();
+            assert(cancel_allowed_time >= request_time, errors::CANCEL_ALLOWED_TIME_OVERFLOW);
+            assert(
+                starknet::get_block_timestamp() >= cancel_allowed_time,
+                errors::CANCELLATION_NOT_ALLOWED_YET
+            );
+
+            self
+                .emit(
+                    MessageCanceled { message_hash, from, to: to_address, selector, payload, nonce }
+                );
+
+            // Once canceled, no more operation can be done on this message.
+            self.sn_to_appc_messages.write(message_hash, 0);
+
+            return message_hash;
+        }
     }
 
     #[generate_trait]
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>, +Drop<TContractState>
     > of InternalTrait<TContractState> {
+        /// Initializes the messaging component.
+        ///
+        /// # Arguments
+        ///
+        /// * `cancellation_delay_secs` - The delay in seconds for message cancellation window.
+        fn initialize(ref self: ComponentState<TContractState>, cancellation_delay_secs: u64) {
+            self.cancellation_delay_secs.write(cancellation_delay_secs);
+        }
+
         /// Computes the hash of a message that is sent from Starknet to the Appchain.
         ///
         /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L88>
@@ -165,11 +279,11 @@ mod messaging_cpt {
         /// The hash of the message from Starknet to the Appchain.
         fn compute_message_hash_sn_to_appc(
             ref self: ComponentState<TContractState>,
-            nonce: felt252,
+            nonce: Nonce,
             to_address: ContractAddress,
             selector: felt252,
             payload: Span<felt252>
-        ) -> felt252 {
+        ) -> MessageHash {
             let mut hash_data = array![nonce, to_address.into(), selector,];
 
             let mut i = 0_usize;
@@ -202,7 +316,7 @@ mod messaging_cpt {
             from_address: ContractAddress,
             to_address: ContractAddress,
             payload: Span<felt252>
-        ) -> felt252 {
+        ) -> MessageHash {
             let mut hash_data: Array<felt252> = array![
                 from_address.into(), to_address.into(), payload.len().into(),
             ];

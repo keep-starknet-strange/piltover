@@ -14,6 +14,10 @@ fn contract_b() -> ContractAddress {
     starknet::contract_address_const::<'CONTRACT_B'>()
 }
 
+fn contract_c() -> ContractAddress {
+    starknet::contract_address_const::<'CONTRACT_C'>()
+}
+
 fn owner() -> ContractAddress {
     starknet::contract_address_const::<'OWNER'>()
 }

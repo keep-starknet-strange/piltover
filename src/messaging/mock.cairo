@@ -24,5 +24,7 @@ mod messaging_mock {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState) {}
+    fn constructor(ref self: ContractState, cancellation_delay_secs: u64) {
+        self.messaging.initialize(cancellation_delay_secs);
+    }
 }
