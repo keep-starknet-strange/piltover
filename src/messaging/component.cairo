@@ -28,6 +28,7 @@
 mod errors {
     const INVALID_NONCE: felt252 = 'INVALID_NONCE';
     const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
+    const INVALID_MESSAGE_TO_SEAL: felt252 = 'INVALID_MESSAGE_TO_SEAL';
     const NO_MESSAGE_TO_CANCEL: felt252 = 'NO_MESSAGE_TO_CANCEL';
     const CANCELLATION_NOT_REQUESTED: felt252 = 'CANCELLATION_NOT_REQUESTED';
     const CANCELLATION_NOT_ALLOWED_YET: felt252 = 'CANCELLATION_NOT_ALLOWED_YET';
@@ -45,7 +46,9 @@ mod messaging_cpt {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable,
     };
-    use piltover::messaging::interface::IMessaging;
+    use piltover::messaging::{
+        hash, interface::IMessaging, output_process::{MessageToStarknet, MessageToAppchain},
+    };
     use starknet::ContractAddress;
     use super::errors;
 
@@ -74,6 +77,8 @@ mod messaging_cpt {
         MessageConsumed: MessageConsumed,
         MessageCancellationStarted: MessageCancellationStarted,
         MessageCanceled: MessageCanceled,
+        MessageToStarknetReceived: MessageToStarknetReceived,
+        MessageToAppchainSealed: MessageToAppchainSealed,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -126,6 +131,30 @@ mod messaging_cpt {
         nonce: Nonce,
     }
 
+    #[derive(Drop, starknet::Event)]
+    struct MessageToStarknetReceived {
+        #[key]
+        message_hash: MessageHash,
+        #[key]
+        from: ContractAddress,
+        #[key]
+        to: ContractAddress,
+        payload: Span<felt252>,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct MessageToAppchainSealed {
+        #[key]
+        message_hash: MessageHash,
+        #[key]
+        from: ContractAddress,
+        #[key]
+        to: ContractAddress,
+        selector: felt252,
+        nonce: Nonce,
+        payload: Span<felt252>,
+    }
+
     #[embeddable_as(MessagingImpl)]
     impl Messaging<
         TContractState, +HasComponent<TContractState>, +Drop<TContractState>
@@ -140,8 +169,9 @@ mod messaging_cpt {
             let nonce = self.sn_to_appc_nonce.read() + 1;
             self.sn_to_appc_nonce.write(nonce);
 
-            let message_hash = self
-                .compute_message_hash_sn_to_appc(nonce, to_address, selector, payload);
+            let message_hash = hash::compute_message_hash_sn_to_appc(
+                nonce, to_address, selector, payload
+            );
 
             self
                 .emit(
@@ -166,8 +196,9 @@ mod messaging_cpt {
         ) -> MessageHash {
             let to_address = starknet::get_caller_address();
 
-            let message_hash = self
-                .compute_message_hash_appc_to_sn(from_address, to_address, payload);
+            let message_hash = hash::compute_message_hash_appc_to_sn(
+                from_address, to_address, payload
+            );
 
             let count = self.appc_to_sn_messages.read(message_hash);
             assert(count.is_non_zero(), errors::INVALID_MESSAGE_TO_CONSUME);
@@ -192,8 +223,9 @@ mod messaging_cpt {
             assert(nonce.is_non_zero(), errors::INVALID_NONCE);
             let from = starknet::get_caller_address();
 
-            let message_hash = self
-                .compute_message_hash_sn_to_appc(nonce, to_address, selector, payload);
+            let message_hash = hash::compute_message_hash_sn_to_appc(
+                nonce, to_address, selector, payload
+            );
 
             assert(
                 self.sn_to_appc_messages.read(message_hash) == nonce, errors::NO_MESSAGE_TO_CANCEL
@@ -220,8 +252,9 @@ mod messaging_cpt {
         ) -> MessageHash {
             let from = starknet::get_caller_address();
 
-            let message_hash = self
-                .compute_message_hash_sn_to_appc(nonce, to_address, selector, payload);
+            let message_hash = hash::compute_message_hash_sn_to_appc(
+                nonce, to_address, selector, payload
+            );
 
             assert(
                 self.sn_to_appc_messages.read(message_hash) == nonce, errors::NO_MESSAGE_TO_CANCEL
@@ -262,75 +295,76 @@ mod messaging_cpt {
             self.cancellation_delay_secs.write(cancellation_delay_secs);
         }
 
-        /// Computes the hash of a message that is sent from Starknet to the Appchain.
-        ///
-        /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L88>
+        /// Processes the messages to Starknet from StarknetOS output.
+        /// Once processed, messages are ready to be consumed using
+        /// `consume_message_from_appchain` entry point.
         ///
         /// # Arguments
         ///
-        /// * `nonce` - Nonce of the message.
-        /// * `to_address` - Contract address to send the message to on the Appchain.
-        /// * `selector` - The `l1_handler` function selector of the contract on the Appchain
-        ///                to execute.
-        /// * `payload` - The message payload.
-        ///
-        /// # Returns
-        ///
-        /// The hash of the message from Starknet to the Appchain.
-        fn compute_message_hash_sn_to_appc(
-            ref self: ComponentState<TContractState>,
-            nonce: Nonce,
-            to_address: ContractAddress,
-            selector: felt252,
-            payload: Span<felt252>
-        ) -> MessageHash {
-            let mut hash_data = array![nonce, to_address.into(), selector,];
+        /// * `messages` - The messages to Starknet.
+        fn process_messages_to_starknet(
+            ref self: ComponentState<TContractState>, messages: Span<MessageToStarknet>,
+        ) {
+            let mut messages = messages;
 
-            let mut i = 0_usize;
             loop {
-                if i == payload.len() {
-                    break;
-                }
-                hash_data.append((*payload[i]));
-                i += 1;
-            };
+                match messages.pop_front() {
+                    Option::Some(m) => {
+                        let from = *m.from_address;
+                        let to = *m.to_address;
+                        let payload = *m.payload;
 
-            core::poseidon::poseidon_hash_span(hash_data.span())
+                        let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
+
+                        self.emit(MessageToStarknetReceived { message_hash, from, to, payload });
+
+                        let ref_count = self.appc_to_sn_messages.read(message_hash);
+                        self.appc_to_sn_messages.write(message_hash, ref_count + 1);
+                    },
+                    Option::None => { break; },
+                };
+            };
         }
 
-        /// Computes the hash of a message that is sent from the Appchain to Starknet.
-        ///
-        /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L137>
+        /// Processes the messages to Appchain from StarknetOS output.
         ///
         /// # Arguments
         ///
-        /// * `from_address` - Contract address of the message sender on the Appchain.
-        /// * `to_address` - Contract address to send the message to on the Appchain.
-        /// * `payload` - The message payload.
-        ///
-        /// # Returns
-        ///
-        /// The hash of the message from the Appchain to Starknet.
-        fn compute_message_hash_appc_to_sn(
-            ref self: ComponentState<TContractState>,
-            from_address: ContractAddress,
-            to_address: ContractAddress,
-            payload: Span<felt252>
-        ) -> MessageHash {
-            let mut hash_data: Array<felt252> = array![
-                from_address.into(), to_address.into(), payload.len().into(),
-            ];
+        /// * `messages` - The messages to Appchain.
+        fn process_messages_to_appchain(
+            ref self: ComponentState<TContractState>, messages: Span<MessageToAppchain>,
+        ) {
+            let mut messages = messages;
 
-            let mut i = 0_usize;
             loop {
-                if i == payload.len() {
-                    break;
-                }
-                hash_data.append((*payload[i]));
-                i += 1;
-            };
+                match messages.pop_front() {
+                    Option::Some(m) => {
+                        let from = *m.from_address;
+                        let to = *m.to_address;
+                        let payload = *m.payload;
+                        let selector = *m.selector;
+                        let nonce = *m.nonce;
 
-            core::poseidon::poseidon_hash_span(hash_data.span())
+                        let message_hash = hash::compute_message_hash_sn_to_appc(
+                            nonce, to, selector, payload
+                        );
+                        assert(
+                            self.sn_to_appc_messages.read(message_hash).is_non_zero(),
+                            errors::INVALID_MESSAGE_TO_SEAL
+                        );
+
+                        self.sn_to_appc_messages.write(message_hash, 0);
+
+                        self
+                            .emit(
+                                MessageToAppchainSealed {
+                                    message_hash, from, to, selector, payload, nonce
+                                }
+                            );
+                    },
+                    Option::None => { break; },
+                };
+            };
         }
     }
 }
