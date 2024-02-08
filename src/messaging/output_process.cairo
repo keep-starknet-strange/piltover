@@ -52,7 +52,9 @@ const MESSAGE_TO_APPCHAIN_HEADER_SIZE: usize = 5;
 ///
 /// A tuple with the messages to Starknet and messages to Appchain
 /// deserialized.
-fn gather_messages_from_output(output_messages: Span<felt252>) -> (Span<MessageToStarknet>, Span<MessageToAppchain>) {
+fn gather_messages_from_output(
+    output_messages: Span<felt252>
+) -> (Span<MessageToStarknet>, Span<MessageToAppchain>) {
     let mut messages_to_starknet = array![];
     let mut messages_to_appchain = array![];
 
@@ -68,7 +70,7 @@ fn gather_messages_from_output(output_messages: Span<felt252>) -> (Span<MessageT
 
     loop {
         if offset >= segment_end {
-            break; 
+            break;
         }
 
         if offset + MESSAGE_TO_STARKNET_HEADER_SIZE > segment_end {
@@ -76,7 +78,9 @@ fn gather_messages_from_output(output_messages: Span<felt252>) -> (Span<MessageT
         }
 
         // +2 due to fields arrangement.
-        let payload_size: usize = (*output_messages[offset + 2]).try_into().expect('invalid size sn');
+        let payload_size: usize = (*output_messages[offset + 2])
+            .try_into()
+            .expect('invalid size sn');
 
         // +1 for payload size and +2 for remaining fields.
         let mut slice = output_messages.slice(offset, payload_size + 1 + 2);
@@ -101,7 +105,7 @@ fn gather_messages_from_output(output_messages: Span<felt252>) -> (Span<MessageT
 
     loop {
         if offset >= segment_end {
-            break; 
+            break;
         }
 
         if offset + MESSAGE_TO_APPCHAIN_HEADER_SIZE > segment_end {
@@ -109,7 +113,9 @@ fn gather_messages_from_output(output_messages: Span<felt252>) -> (Span<MessageT
         }
 
         // +4 due to fields arrangement.
-        let payload_size: usize = (*output_messages[offset + 4]).try_into().expect('invalid size appc');
+        let payload_size: usize = (*output_messages[offset + 4])
+            .try_into()
+            .expect('invalid size appc');
 
         // +1 for payload size and +4 for remaining fields.
         let mut slice = output_messages.slice(offset, payload_size + 1 + 4);

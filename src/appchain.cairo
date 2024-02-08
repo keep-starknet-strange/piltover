@@ -15,8 +15,7 @@ mod appchain {
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::messaging::{
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
-        output_process,
-        output_process::{MessageToStarknet, MessageToAppchain},
+        output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
     use starknet::ContractAddress;
     use super::errors;
@@ -92,7 +91,10 @@ mod appchain {
 
         let mut messages_segments = program_output.slice(offset, program_output.len() - offset);
 
-        let (messages_to_starknet, messages_to_appchain) = output_process::gather_messages_from_output(messages_segments);
+        let (messages_to_starknet, messages_to_appchain) =
+            output_process::gather_messages_from_output(
+            messages_segments
+        );
 
         self.messaging.process_messages_to_starknet(messages_to_starknet);
         self.messaging.process_messages_to_appchain(messages_to_appchain);

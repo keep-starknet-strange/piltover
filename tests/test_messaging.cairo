@@ -93,7 +93,6 @@ fn get_messages_segments() -> Span<felt252> {
         917360325178274450223200079540424150242461675748,
         300000000000000,
         0,
-
         // message to l2 (appchain in this context).
         8,
         993696174272377493693496825928908586134624850969,
@@ -104,7 +103,6 @@ fn get_messages_segments() -> Span<felt252> {
         1905350129216923298156817020930524704572804705313566176282348575247442538663,
         100000000000000000,
         0,
-
     ]
         .span()
 }
@@ -339,7 +337,9 @@ fn cancel_message_cancellation_not_allowed_yet() {
 #[test]
 fn gather_messages_from_output_ok() {
     let felts = get_messages_segments();
-    let (messages_to_starknet, messages_to_appchain) = output_process::gather_messages_from_output(felts);
+    let (messages_to_starknet, messages_to_appchain) = output_process::gather_messages_from_output(
+        felts
+    );
 
     assert(messages_to_starknet.len() == 1, 'missing msgs to sn');
     assert(messages_to_appchain.len() == 1, 'missing msgs to appc');
@@ -411,11 +411,8 @@ fn consume_message_from_appchain_ok() {
 
     let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
 
-    let messages = array![MessageToStarknet {
-        from_address: from,
-        to_address: to,
-        payload,
-    }].span();
+    let messages = array![MessageToStarknet { from_address: from, to_address: to, payload, }]
+        .span();
 
     mock.process_messages_to_starknet(messages);
 
