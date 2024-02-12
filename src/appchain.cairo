@@ -11,7 +11,7 @@ mod errors {
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
 mod appchain {
-    use openzeppelin::access::ownable::{OwnableComponent as ownable_cpt, interface::IOwnable};
+    use openzeppelin::access::ownable::{OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal, interface::IOwnable};
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::messaging::{
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
@@ -28,6 +28,8 @@ mod appchain {
 
     #[abi(embed_v0)]
     impl ConfigImpl = config_cpt::ConfigImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl MessagingImpl = messaging_cpt::MessagingImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -57,7 +59,7 @@ mod appchain {
     /// * `address` - The contract address of the owner.
     #[constructor]
     fn constructor(ref self: ContractState, owner: ContractAddress) {
-        self.ownable.transfer_ownership(owner);
+        self.ownable.initializer(owner);
 
         let cancellation_delay_secs = 432000;
         self.messaging.initialize(cancellation_delay_secs);
