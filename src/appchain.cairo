@@ -21,6 +21,8 @@ mod appchain {
     use super::errors;
 
     const SNOS_OUTPUT_HEADER_SIZE: usize = 5;
+    // The default cancellation delay of 5 days.
+    const CANCELLATION_DELAY_SECS: u64 = 432000;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: config_cpt, storage: config, event: ConfigEvent);
@@ -60,9 +62,7 @@ mod appchain {
     #[constructor]
     fn constructor(ref self: ContractState, owner: ContractAddress) {
         self.ownable.initializer(owner);
-
-        let cancellation_delay_secs = 432000;
-        self.messaging.initialize(cancellation_delay_secs);
+        self.messaging.initialize(CANCELLATION_DELAY_SECS);
     }
 
     /// Updates the states of the Appchain on Starknet,
