@@ -9,6 +9,7 @@
 //! Solidity code related to message processing:
 //! <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/Output.sol>.
 //!
+use piltover::snos_output;
 use starknet::ContractAddress;
 
 /// Message to Starknet.
@@ -36,9 +37,6 @@ struct MessageToAppchain {
     /// Payload size.
     payload: Span<felt252>,
 }
-
-const MESSAGE_TO_STARKNET_HEADER_SIZE: usize = 3;
-const MESSAGE_TO_APPCHAIN_HEADER_SIZE: usize = 5;
 
 /// Function to gather the messages from SNOS output.
 /// TODO: this must be removed if SNOS output is changed to use messages
@@ -73,7 +71,7 @@ fn gather_messages_from_output(
             break;
         }
 
-        if offset + MESSAGE_TO_STARKNET_HEADER_SIZE > segment_end {
+        if offset + snos_output::MESSAGE_TO_STARKNET_HEADER_SIZE > segment_end {
             core::panic_with_felt252('invalid message sn');
         }
 
@@ -108,7 +106,7 @@ fn gather_messages_from_output(
             break;
         }
 
-        if offset + MESSAGE_TO_APPCHAIN_HEADER_SIZE > segment_end {
+        if offset + snos_output::MESSAGE_TO_APPCHAIN_HEADER_SIZE > segment_end {
             core::panic_with_felt252('invalid message appc');
         }
 

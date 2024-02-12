@@ -21,11 +21,11 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
+    use piltover::snos_output;
     use starknet::ContractAddress;
     use super::errors;
 
-    const SNOS_OUTPUT_HEADER_SIZE: usize = 5;
-    // The default cancellation delay of 5 days.
+    /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
@@ -80,11 +80,11 @@ mod appchain {
 
             // Header size + 2 messages segments len.
             assert(
-                program_output.len() > SNOS_OUTPUT_HEADER_SIZE + 2,
+                program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
 
-            let mut offset = SNOS_OUTPUT_HEADER_SIZE;
+            let mut offset = snos_output::HEADER_SIZE;
 
             // TODO: We should update SNOS output to have the messages count
             // instead of the messages segment len.

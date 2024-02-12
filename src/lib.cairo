@@ -1,5 +1,6 @@
 mod appchain;
 mod interface;
+mod snos_output;
 
 // Components
 mod config {
