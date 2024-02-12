@@ -8,9 +8,13 @@ snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v
 starknet = "=2.4.4"
 openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v0.8.1" }
 
+[scripts]
+test = "snforge test"
+
 [[target.starknet-contract]]
 casm = true
 sierra = true
 
 [tool.fmt]
 sort-module-level-items = true
+
