@@ -11,6 +11,11 @@ mod config {
     use component::config_cpt;
     use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
     use mock::config_mock;
+
+    #[cfg(test)]
+    mod tests {
+        mod test_config;
+    }
 }
 
 mod messaging {
@@ -23,4 +28,9 @@ mod messaging {
     use component::messaging_cpt;
     use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
     use mock::messaging_mock;
+
+    #[cfg(test)]
+    mod tests {
+        mod test_messaging;
+    }
 }

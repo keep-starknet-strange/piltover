@@ -1,3 +1,5 @@
+use core::zeroable::Zeroable;
+use openzeppelin::tests::utils::constants as c;
 use piltover::messaging::{
     messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
     IMessagingDispatcherTrait, IMessagingDispatcher, messaging_mock,
@@ -12,7 +14,6 @@ use snforge_std::{
     CheatTarget, ContractClassTrait, SpyOn, EventSpy, cheatcodes::events::EventAssertions,
 };
 use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
-use super::constants as c;
 
 /// Deploys the mock with a specific cancellation delay.
 fn deploy_mock_with_delay(cancellation_delay_secs: u64) -> (IMessagingDispatcher, EventSpy) {
@@ -158,12 +159,12 @@ fn message_to_appchain_deser() {
 fn send_message_ok() {
     let (mock, mut spy) = deploy_mock();
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::contract_a());
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     assert(message_hash.is_non_zero(), 'invalid message hash');
@@ -180,12 +181,12 @@ fn send_message_ok() {
 fn start_cancellation_ok() {
     let (mock, mut spy) = deploy_mock();
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::contract_a());
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
@@ -213,8 +214,8 @@ fn start_cancellation_ok() {
 fn start_cancellation_invalid_nonce() {
     let (mock, _) = deploy_mock();
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
     let nonce = 0;
@@ -227,8 +228,8 @@ fn start_cancellation_invalid_nonce() {
 fn start_cancellation_no_message_to_cancel() {
     let (mock, _) = deploy_mock();
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
     let nonce = 1;
@@ -241,12 +242,12 @@ fn cancel_message_ok() {
     let delay_secs = 10;
     let (mock, mut spy) = deploy_mock_with_delay(delay_secs);
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::contract_a());
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // The block timestamp must not be 0 for the protocol to be valid.
@@ -285,7 +286,7 @@ fn cancel_message_ok() {
 fn cancel_message_no_message_to_cancel() {
     let (mock, _) = deploy_mock();
 
-    let to = c::contract_b();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
     let nonce = 1;
@@ -299,12 +300,12 @@ fn cancel_message_cancellation_not_requested() {
     let delay_secs = 10;
     let (mock, _) = deploy_mock_with_delay(delay_secs);
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::contract_a());
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // Don't start the cancellation.
@@ -319,12 +320,12 @@ fn cancel_message_cancellation_not_allowed_yet() {
     let delay_secs = 10;
     let (mock, _) = deploy_mock_with_delay(delay_secs);
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::contract_a());
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     snf::start_warp(CheatTarget::One(mock.contract_address), 1);
@@ -363,12 +364,12 @@ fn process_messages_to_starknet_ok() {
 fn process_messages_to_appchain_ok() {
     let mut mock = mock_state_testing();
 
-    let from = c::contract_a();
-    let to = c::contract_b();
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(starknet::get_contract_address()), c::contract_a());
+    snf::start_prank(CheatTarget::One(starknet::get_contract_address()), c::SPENDER());
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let m = MessageToAppchain {
@@ -405,7 +406,7 @@ fn process_messages_to_appchain_no_seal() {
 fn consume_message_from_appchain_ok() {
     let mut mock = mock_state_testing();
 
-    let from = c::contract_a();
+    let from = c::SPENDER();
     let to = starknet::get_contract_address();
     let payload = array![1, 2, 3].span();
 
@@ -426,7 +427,7 @@ fn consume_message_from_appchain_ok() {
 fn consume_message_from_appchain_invalid_to_consume() {
     let mut mock = mock_state_testing();
 
-    let from = c::contract_a();
+    let from = c::SPENDER();
     let to = starknet::get_contract_address();
     let payload = array![1, 2, 3].span();
 
