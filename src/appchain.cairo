@@ -11,8 +11,12 @@ mod errors {
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
 mod appchain {
-    use openzeppelin::access::ownable::{OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal, interface::IOwnable};
+    use openzeppelin::access::ownable::{
+        OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
+        interface::IOwnable
+    };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
+    use piltover::interface::IAppchain;
     use piltover::messaging::{
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
@@ -65,40 +69,35 @@ mod appchain {
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
     }
 
-    /// Updates the states of the Appchain on Starknet,
-    /// based on a proof of the StarknetOS that the state transition
-    /// is valid.
-    ///
-    /// # Arguments
-    ///
-    /// * `program_output` - The StarknetOS state update output.
-    /// TODO: DA + facts.
-    fn update_state(ref self: ContractState, program_output: Span<felt252>) {
-        self.config.is_owner_or_operator(starknet::get_caller_address());
+    #[abi(embed_v0)]
+    impl Appchain of IAppchain<ContractState> {
+        fn update_state(ref self: ContractState, program_output: Span<felt252>) {
+            self.config.is_owner_or_operator(starknet::get_caller_address());
 
-        // TODO: reentrancy guard.
-        // TODO: facts verification.
-        // TODO: update the current state (component needed).
+            // TODO: reentrancy guard.
+            // TODO: facts verification.
+            // TODO: update the current state (component needed).
 
-        // Header size + 2 messages segments len.
-        assert(
-            program_output.len() > SNOS_OUTPUT_HEADER_SIZE + 2,
-            errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
-        );
+            // Header size + 2 messages segments len.
+            assert(
+                program_output.len() > SNOS_OUTPUT_HEADER_SIZE + 2,
+                errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
+            );
 
-        let mut offset = SNOS_OUTPUT_HEADER_SIZE;
+            let mut offset = SNOS_OUTPUT_HEADER_SIZE;
 
-        // TODO: We should update SNOS output to have the messages count
-        // instead of the messages segment len.
+            // TODO: We should update SNOS output to have the messages count
+            // instead of the messages segment len.
 
-        let mut messages_segments = program_output.slice(offset, program_output.len() - offset);
+            let mut messages_segments = program_output.slice(offset, program_output.len() - offset);
 
-        let (messages_to_starknet, messages_to_appchain) =
-            output_process::gather_messages_from_output(
-            messages_segments
-        );
+            let (messages_to_starknet, messages_to_appchain) =
+                output_process::gather_messages_from_output(
+                messages_segments
+            );
 
-        self.messaging.process_messages_to_starknet(messages_to_starknet);
-        self.messaging.process_messages_to_appchain(messages_to_appchain);
+            self.messaging.process_messages_to_starknet(messages_to_starknet);
+            self.messaging.process_messages_to_appchain(messages_to_appchain);
+        }
     }
 }
