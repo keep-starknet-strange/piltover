@@ -72,7 +72,7 @@ mod appchain {
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
         fn update_state(ref self: ContractState, program_output: Span<felt252>) {
-            self.config.is_owner_or_operator(starknet::get_caller_address());
+            self.config.assert_only_owner_or_operator();
 
             // TODO: reentrancy guard.
             // TODO: facts verification.
