@@ -1,25 +1,36 @@
-#[starknet::interface]
-trait IHelloStarknet<TContractState> {
-    fn increase_balance(ref self: TContractState, amount: felt252);
-    fn get_balance(self: @TContractState) -> felt252;
+mod appchain;
+mod interface;
+mod snos_output;
+
+// Components
+mod config {
+    mod component;
+    mod interface;
+    mod mock;
+
+    use component::config_cpt;
+    use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
+    use mock::config_mock;
+
+    #[cfg(test)]
+    mod tests {
+        mod test_config;
+    }
 }
 
-#[starknet::contract]
-mod HelloStarknet {
-    #[storage]
-    struct Storage {
-        balance: felt252,
-    }
+mod messaging {
+    mod component;
+    mod hash;
+    mod interface;
+    mod mock;
+    mod output_process;
 
-    #[abi(embed_v0)]
-    impl HelloStarknetImpl of super::IHelloStarknet<ContractState> {
-        fn increase_balance(ref self: ContractState, amount: felt252) {
-            assert(amount != 0, 'Amount cannot be 0');
-            self.balance.write(self.balance.read() + amount);
-        }
+    use component::messaging_cpt;
+    use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
+    use mock::messaging_mock;
 
-        fn get_balance(self: @ContractState) -> felt252 {
-            self.balance.read()
-        }
+    #[cfg(test)]
+    mod tests {
+        mod test_messaging;
     }
 }
