@@ -85,5 +85,5 @@ fn snos_output_deser() {
 
 #[test]
 fn appchain_ctor_ok() {
-    let (appchain, _) = deploy_with_owner(c::OWNER().into());
+    let (_appchain, _spy) = deploy_with_owner(c::OWNER().into());
 }

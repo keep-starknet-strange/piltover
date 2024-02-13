@@ -164,7 +164,7 @@ fn send_message_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
+    snf::start_prank(CheatTarget::One(mock.contract_address), from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     assert(message_hash.is_non_zero(), 'invalid message hash');
@@ -186,7 +186,7 @@ fn start_cancellation_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
+    snf::start_prank(CheatTarget::One(mock.contract_address), from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
@@ -214,7 +214,6 @@ fn start_cancellation_ok() {
 fn start_cancellation_invalid_nonce() {
     let (mock, _) = deploy_mock();
 
-    let from = c::SPENDER();
     let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
@@ -228,7 +227,6 @@ fn start_cancellation_invalid_nonce() {
 fn start_cancellation_no_message_to_cancel() {
     let (mock, _) = deploy_mock();
 
-    let from = c::SPENDER();
     let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
@@ -247,7 +245,7 @@ fn cancel_message_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
+    snf::start_prank(CheatTarget::One(mock.contract_address), from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // The block timestamp must not be 0 for the protocol to be valid.
@@ -305,8 +303,8 @@ fn cancel_message_cancellation_not_requested() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
-    let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
+    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    let (_message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // Don't start the cancellation.
 
@@ -325,8 +323,8 @@ fn cancel_message_cancellation_not_allowed_yet() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), c::SPENDER());
-    let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
+    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    let (_message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     snf::start_warp(CheatTarget::One(mock.contract_address), 1);
     mock.start_message_cancellation(to, selector, payload.span(), nonce);
@@ -351,7 +349,7 @@ fn process_messages_to_starknet_ok() {
     let mut mock = mock_state_testing();
 
     let m = get_message_to_starknet();
-    let message_hash = hash::compute_message_hash_appc_to_sn(
+    let _message_hash = hash::compute_message_hash_appc_to_sn(
         m.from_address, m.to_address, m.payload
     );
 
@@ -369,14 +367,14 @@ fn process_messages_to_appchain_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(starknet::get_contract_address()), c::SPENDER());
-    let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
+    snf::start_prank(CheatTarget::One(starknet::get_contract_address()), from);
+    let (_message_hash, _nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let m = MessageToAppchain {
         from_address: from, to_address: to, nonce: 1, selector, payload: payload.span(),
     };
 
-    let message_hash = hash::compute_message_hash_sn_to_appc(
+    let _message_hash = hash::compute_message_hash_sn_to_appc(
         m.nonce, m.to_address, m.selector, m.payload
     );
 
@@ -393,10 +391,6 @@ fn process_messages_to_appchain_no_seal() {
     let m = get_message_to_appchain();
     // 'm' was never sent, nothing to seal.
 
-    let message_hash = hash::compute_message_hash_sn_to_appc(
-        m.nonce, m.to_address, m.selector, m.payload
-    );
-
     let messages = array![m].span();
 
     mock.process_messages_to_appchain(messages);
@@ -409,8 +403,6 @@ fn consume_message_from_appchain_ok() {
     let from = c::SPENDER();
     let to = starknet::get_contract_address();
     let payload = array![1, 2, 3].span();
-
-    let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
 
     let messages = array![MessageToStarknet { from_address: from, to_address: to, payload, }]
         .span();

@@ -39,7 +39,7 @@ mod config_cpt {
         +Drop<TContractState>
     > of IConfig<ComponentState<TContractState>> {
         fn set_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
-            get_dep_component!(self, Ownable).assert_only_owner();
+            get_dep_component!(@self, Ownable).assert_only_owner();
             self.operator.write(address)
         }
 
@@ -92,7 +92,7 @@ mod config_cpt {
         fn is_owner_or_operator(
             ref self: ComponentState<TContractState>, address: ContractAddress
         ) -> bool {
-            let owner = get_dep_component!(self, Ownable).owner();
+            let owner = get_dep_component!(@self, Ownable).owner();
             address == owner || address == self.operator.read()
         }
     }
