@@ -74,9 +74,9 @@ mod appchain {
         fn update_state(ref self: ContractState, program_output: Span<felt252>) {
             self.config.assert_only_owner_or_operator();
 
-            // TODO: reentrancy guard.
-            // TODO: facts verification.
-            // TODO: update the current state (component needed).
+            // TODO(#2): reentrancy guard.
+            // TODO(#3): facts verification.
+            // TODO(#4): update the current state (component needed).
 
             // Header size + 2 messages segments len.
             assert(
@@ -86,7 +86,7 @@ mod appchain {
 
             let mut offset = snos_output::HEADER_SIZE;
 
-            // TODO: We should update SNOS output to have the messages count
+            // TODO(#7): We should update SNOS output to have the messages count
             // instead of the messages segment len.
 
             let mut messages_segments = program_output.slice(offset, program_output.len() - offset);

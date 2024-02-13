@@ -24,6 +24,7 @@ mod config_cpt {
     #[storage]
     struct Storage {
         /// Appchain operator that is allowed to update the state.
+        // TODO(#9): Multiple Operators
         operator: ContractAddress,
         /// Program info (StarknetOS), with program hash and config hash.
         program_info: (felt252, felt252),
@@ -35,8 +36,7 @@ mod config_cpt {
     impl Config<
         TContractState,
         +HasComponent<TContractState>,
-        impl Ownable: ownable_cpt::HasComponent<TContractState>,
-        +Drop<TContractState>
+        impl Ownable: ownable_cpt::HasComponent<TContractState>
     > of IConfig<ComponentState<TContractState>> {
         fn set_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
             get_dep_component!(@self, Ownable).assert_only_owner();
@@ -52,6 +52,7 @@ mod config_cpt {
         ) {
             self.assert_only_owner_or_operator();
             self.program_info.write((program_hash, config_hash))
+        // TODO(#6): ProgramHashChanged Event
         }
 
         fn get_program_info(self: @ComponentState<TContractState>) -> (felt252, felt252) {
@@ -73,7 +74,6 @@ mod config_cpt {
         TContractState,
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>,
-        +Drop<TContractState>
     > of InternalTrait<TContractState> {
         /// Asserts if the caller is the owner of the contract or
         /// the authorized operator. Reverts otherwise.

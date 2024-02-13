@@ -157,7 +157,7 @@ mod messaging_cpt {
 
     #[embeddable_as(MessagingImpl)]
     impl Messaging<
-        TContractState, +HasComponent<TContractState>, +Drop<TContractState>
+        TContractState, +HasComponent<TContractState>
     > of IMessaging<ComponentState<TContractState>> {
         fn send_message_to_appchain(
             ref self: ComponentState<TContractState>,
@@ -284,7 +284,7 @@ mod messaging_cpt {
 
     #[generate_trait]
     impl InternalImpl<
-        TContractState, +HasComponent<TContractState>, +Drop<TContractState>
+        TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
         /// Initializes the messaging component.
         ///
