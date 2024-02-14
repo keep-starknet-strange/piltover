@@ -15,6 +15,8 @@ mod appchain {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
+    use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent;
+    use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent::InternalImpl as InternalReentrancyGuardImpl;
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::interface::IAppchain;
     use piltover::messaging::{
@@ -31,6 +33,9 @@ mod appchain {
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: config_cpt, storage: config, event: ConfigEvent);
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
+    component!(
+        path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
+    );
 
     #[abi(embed_v0)]
     impl ConfigImpl = config_cpt::ConfigImpl<ContractState>;
@@ -45,6 +50,8 @@ mod appchain {
         config: config_cpt::Storage,
         #[substorage(v0)]
         messaging: messaging_cpt::Storage,
+        #[substorage(v0)]
+        reentrancy_guard: ReentrancyGuardComponent::Storage,
     }
 
     #[event]
@@ -56,6 +63,8 @@ mod appchain {
         ConfigEvent: config_cpt::Event,
         #[flat]
         MessagingEvent: messaging_cpt::Event,
+        #[flat]
+        ReentrancyGuardEvent: ReentrancyGuardComponent::Event,
     }
 
     /// Initializes the contract.
@@ -74,7 +83,7 @@ mod appchain {
         fn update_state(ref self: ContractState, program_output: Span<felt252>) {
             self.config.assert_only_owner_or_operator();
 
-            // TODO(#2): reentrancy guard.
+            self.reentrancy_guard.start();
             // TODO(#3): facts verification.
             // TODO(#4): update the current state (component needed).
 
@@ -98,6 +107,7 @@ mod appchain {
 
             self.messaging.process_messages_to_starknet(messages_to_starknet);
             self.messaging.process_messages_to_appchain(messages_to_appchain);
+            self.reentrancy_guard.end();
         }
     }
 }
