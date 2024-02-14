@@ -18,7 +18,7 @@ mod config_cpt {
         interface::IOwnable,
     };
     use piltover::config::interface::IConfig;
-    use starknet::ContractAddress;
+    use starknet::{ContractAddress, get_caller_address};
     use super::errors;
 
     #[storage]
@@ -30,6 +30,19 @@ mod config_cpt {
         program_info: (felt252, felt252),
         /// Facts registry contract address.
         facts_registry: ContractAddress,
+    }
+
+    #[event]
+    #[derive(Copy, Drop, starknet::Event)]
+    enum Event {
+        ProgramHashChanged: ProgramHashChanged,
+    }
+
+    #[derive(Copy, Drop, starknet::Event)]
+    struct ProgramHashChanged {
+        changed_by: ContractAddress,
+        old_program_hash: felt252,
+        new_program_hash: felt252,
     }
 
     #[embeddable_as(ConfigImpl)]
@@ -51,8 +64,16 @@ mod config_cpt {
             ref self: ComponentState<TContractState>, program_hash: felt252, config_hash: felt252
         ) {
             self.assert_only_owner_or_operator();
-            self.program_info.write((program_hash, config_hash))
-        // TODO(#6): ProgramHashChanged Event
+            let (old_program_hash, _): (felt252, felt252) = self.program_info.read();
+            self.program_info.write((program_hash, config_hash));
+            self
+                .emit(
+                    ProgramHashChanged {
+                        changed_by: get_caller_address(),
+                        old_program_hash: old_program_hash,
+                        new_program_hash: program_hash,
+                    }
+                );
         }
 
         fn get_program_info(self: @ComponentState<TContractState>) -> (felt252, felt252) {
