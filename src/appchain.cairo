@@ -15,8 +15,10 @@ mod appchain {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
-    use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent;
-    use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent::InternalImpl as InternalReentrancyGuardImpl;
+    use openzeppelin::security::reentrancyguard::{
+        ReentrancyGuardComponent,
+        ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl
+    };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::interface::IAppchain;
     use piltover::messaging::{
@@ -81,9 +83,8 @@ mod appchain {
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
         fn update_state(ref self: ContractState, program_output: Span<felt252>) {
-            self.config.assert_only_owner_or_operator();
-
             self.reentrancy_guard.start();
+            self.config.assert_only_owner_or_operator();
             // TODO(#3): facts verification.
             // TODO(#4): update the current state (component needed).
 
