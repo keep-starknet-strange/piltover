@@ -71,7 +71,7 @@ mod appchain {
 
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
-        fn update_state(ref self: ContractState, program_output: Span<felt252>) {
+        fn update_state(ref self: ContractState, program_output: Span<felt252>, onchain_data_hash:felt252, onchain_data_size:u256) {
             self.config.assert_only_owner_or_operator();
 
             // TODO(#2): reentrancy guard.
