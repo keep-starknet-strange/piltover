@@ -7,6 +7,7 @@ mod config {
     mod component;
     mod interface;
     mod mock;
+    mod onchain_data_fact_tree_encoder;
 
     use component::config_cpt;
     use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};

@@ -24,7 +24,8 @@ mod appchain {
     use piltover::snos_output;
     use starknet::ContractAddress;
     use super::errors;
-
+    use piltover::config::onchain_data_fact_tree_encoder::OnchainDataFactTreeEncoder::{encode_fact_with_onchain_data, data_availability_fact};
+    use starknet::get_block_number;
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
 
@@ -71,8 +72,14 @@ mod appchain {
 
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
-        fn update_state(ref self: ContractState, program_output: Span<felt252>, onchain_data_hash:felt252, onchain_data_size:u256) {
+        fn update_state(
+            ref self: ContractState,
+            program_output: Span<felt252>,
+            onchain_data_hash: felt252,
+            onchain_data_size: u256
+        ) {
             self.config.assert_only_owner_or_operator();
+            let initial_block_number :u64 = get_block_number();
 
             // TODO(#2): reentrancy guard.
             // TODO(#3): facts verification.
@@ -83,7 +90,10 @@ mod appchain {
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
-
+            let value : data_availability_fact = data_availability_fact{
+                onchain_data_hash : onchain_data_hash, onchain_data_size : onchain_data_size
+            };
+            let state_transition_fact : u256 = encode_fact_with_onchain_data(program_output, value);
             let mut offset = snos_output::HEADER_SIZE;
 
             // TODO(#7): We should update SNOS output to have the messages count
