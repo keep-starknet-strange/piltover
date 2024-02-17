@@ -15,9 +15,6 @@ mod appchain {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
-    use piltover::config::onchain_data_fact_tree_encoder::OnchainDataFactTreeEncoder::{
-        encode_fact_with_onchain_data, data_availability_fact
-    };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::interface::IAppchain;
     use piltover::messaging::{
@@ -26,8 +23,9 @@ mod appchain {
     };
     use piltover::snos_output;
     use starknet::ContractAddress;
-    use starknet::get_block_number;
     use super::errors;
+    use piltover::config::onchain_data_fact_tree_encoder::OnchainDataFactTreeEncoder::{encode_fact_with_onchain_data, data_availability_fact};
+    use starknet::get_block_number;
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
 
@@ -72,8 +70,12 @@ mod appchain {
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
     }
 
-    #[abi(embed_v0)]
-    impl Appchain of IAppchain<ContractState> {
+    
+    
+    //Updates the state of the Starknet, based on a proof of the Starknet OS that the state transition is valid. 
+    //Data availability is provided on-chain.
+       impl Appchain of IAppchain<ContractState> {
+        #[abi(embed_v0)]
         fn update_state(
             ref self: ContractState,
             program_output: Span<felt252>,
@@ -81,7 +83,7 @@ mod appchain {
             onchain_data_size: u256
         ) {
             self.config.assert_only_owner_or_operator();
-            let initial_block_number: u64 = get_block_number();
+            let initial_block_number :u64 = get_block_number();
 
             // TODO(#2): reentrancy guard.
             // TODO(#3): facts verification.
@@ -92,10 +94,10 @@ mod appchain {
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
-            let value: data_availability_fact = data_availability_fact {
-                onchain_data_hash: onchain_data_hash, onchain_data_size: onchain_data_size
+            let value : data_availability_fact = data_availability_fact{
+                onchain_data_hash : onchain_data_hash, onchain_data_size : onchain_data_size
             };
-            let state_transition_fact: u256 = encode_fact_with_onchain_data(program_output, value);
+            let state_transition_fact : u256 = encode_fact_with_onchain_data(program_output, value);
             let mut offset = snos_output::HEADER_SIZE;
 
             // TODO(#7): We should update SNOS output to have the messages count
