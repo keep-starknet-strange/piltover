@@ -151,7 +151,7 @@ fn update_state_ok() {
     // and the message to appchain as sealed.
     let output = get_state_update();
     let onchain_data_hash = 0x0;
-    let onchain_data_size : u256 = 0;
+    let onchain_data_size: u256 = 0;
     snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
     appchain.update_state(output, onchain_data_hash, onchain_data_size);
 
