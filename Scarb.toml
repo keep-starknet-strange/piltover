@@ -7,7 +7,7 @@ edition = "2023_10"
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.16.0" }
 starknet = "2.5.3"
 openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v0.9.0" }
-alexandria_bytes = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+
 [scripts]
 test = "snforge test"
 

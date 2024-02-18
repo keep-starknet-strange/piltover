@@ -15,19 +15,19 @@ mod appchain {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
-    use piltover::config::onchain_data_fact_tree_encoder::OnchainDataFactTreeEncoder::{
-        encode_fact_with_onchain_data, data_availability_fact
-    };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::interface::IAppchain;
     use piltover::messaging::{
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
+    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::OnchainDataFactTreeEncoder::{
+        encode_fact_with_onchain_data, data_availability_fact
+    };
     use piltover::snos_output;
     use starknet::ContractAddress;
-    use starknet::get_block_number;
     use super::errors;
+
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
 
@@ -72,11 +72,13 @@ mod appchain {
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
     }
 
+    // Updates the state of the Starknet, based on a proof of the Starknet OS that the state transition is valid.
+    // Data availability is provided on-chain.
+    // programOutput - The main part of the StarkNet OS program output.
+    // data_availability_fact - An encoding of the on-chain data associated with the 'programOutput'.
 
-    //Updates the state of the Starknet, based on a proof of the Starknet OS that the state transition is valid. 
-    //Data availability is provided on-chain.
+    #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
-        #[abi(embed_v0)]
         fn update_state(
             ref self: ContractState,
             program_output: Span<felt252>,
@@ -84,7 +86,6 @@ mod appchain {
             onchain_data_size: u256
         ) {
             self.config.assert_only_owner_or_operator();
-            let initial_block_number: u64 = get_block_number();
 
             // TODO(#2): reentrancy guard.
             // TODO(#3): facts verification.

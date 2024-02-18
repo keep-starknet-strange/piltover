@@ -2,48 +2,6 @@
 version = 1
 
 [[package]]
-name = "alexandria_bytes"
-version = "0.1.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git#417c5a80ed2fef05ce159d643f3e34a5386ee06c"
-dependencies = [
- "alexandria_data_structures",
- "alexandria_math",
-]
-
-[[package]]
-name = "alexandria_data_structures"
-version = "0.2.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git#417c5a80ed2fef05ce159d643f3e34a5386ee06c"
-dependencies = [
- "alexandria_encoding",
-]
-
-[[package]]
-name = "alexandria_encoding"
-version = "0.1.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git#417c5a80ed2fef05ce159d643f3e34a5386ee06c"
-dependencies = [
- "alexandria_math",
- "alexandria_numeric",
-]
-
-[[package]]
-name = "alexandria_math"
-version = "0.2.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git#417c5a80ed2fef05ce159d643f3e34a5386ee06c"
-dependencies = [
- "alexandria_data_structures",
-]
-
-[[package]]
-name = "alexandria_numeric"
-version = "0.1.0"
-source = "git+https://github.com/keep-starknet-strange/alexandria.git#417c5a80ed2fef05ce159d643f3e34a5386ee06c"
-dependencies = [
- "alexandria_math",
-]
-
-[[package]]
 name = "openzeppelin"
 version = "0.9.0"
 source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.9.0#861fc416f87addbe23a3b47f9d19ab27c10d5dc8"
@@ -52,7 +10,6 @@ source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.9.0#861
 name = "piltover"
 version = "0.1.0"
 dependencies = [
- "alexandria_bytes",
  "openzeppelin",
  "snforge_std",
 ]

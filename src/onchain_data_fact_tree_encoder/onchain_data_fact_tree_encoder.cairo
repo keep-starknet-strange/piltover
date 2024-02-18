@@ -1,7 +1,4 @@
 mod OnchainDataFactTreeEncoder {
-    use alexandria_bytes::Bytes;
-    use alexandria_bytes::BytesTrait;
-
     #[derive(Copy, Drop, Serde)]
     struct data_availability_fact {
         onchain_data_hash: felt252,
@@ -27,13 +24,13 @@ mod OnchainDataFactTreeEncoder {
 
         //Compute the hash of the fact Merkle tree.
 
-        let mut bytes = BytesTrait::new_empty();
-        bytes.append_u256(main_public_input_len);
-        bytes.append_u256(main_public_input_hash);
-        bytes.append_felt252(fact_data.onchain_data_hash);
-        bytes.append_u256(main_public_input_len + fact_data.onchain_data_size);
-        let hash_result: u256 = bytes.sha256();
+        let mut keccak_input: Array<u256> = ArrayTrait::new();
+        keccak_input.append(main_public_input_len);
+        keccak_input.append(main_public_input_hash);
+        keccak_input.append(fact_data.onchain_data_hash.into());
+        keccak_input.append(main_public_input_len + fact_data.onchain_data_size);
 
+        let hash_result: u256 = keccak::keccak_u256s_le_inputs(keccak_input.span());
         // Add one to the hash to indicate it represents an inner node, rather than a leaf.
 
         return hash_result + 1;
@@ -41,16 +38,17 @@ mod OnchainDataFactTreeEncoder {
 
     //Hashes the main public input.
     fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
-        let mut bytes = BytesTrait::new_empty();
+        let mut keccak_input: Array<u256> = ArrayTrait::new();
         let mut i = 0;
         loop {
             if (i == program_output.len()) {
                 break;
             }
-            bytes.append_felt252(*program_output.at(i));
+            keccak_input.append((*program_output.at(i)).into());
             i += 1;
         };
 
-        bytes.sha256()
+        keccak::keccak_u256s_le_inputs(keccak_input.span())
     }
 }
+
