@@ -16,7 +16,7 @@ trait IConfig<T> {
     ///
     /// # Returns
     ///
-    /// True if this address is an operator
+    /// True if the address is an operator.
     fn get_operator(self: @T, address: ContractAddress) -> bool;
 
     /// Sets the information of the program that generates the
