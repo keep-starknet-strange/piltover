@@ -24,7 +24,7 @@ mod config_cpt {
     #[storage]
     struct Storage {
         /// Appchain operators that are allowed to update the state.
-        operator: LegacyMap<ContractAddress, bool>,
+        operators: LegacyMap<ContractAddress, bool>,
         /// Program info (StarknetOS), with program hash and config hash.
         program_info: (felt252, felt252),
         /// Facts registry contract address.
@@ -37,13 +37,13 @@ mod config_cpt {
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>
     > of IConfig<ComponentState<TContractState>> {
-        fn set_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
+        fn register_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
             get_dep_component!(@self, Ownable).assert_only_owner();
-            self.operator.write(address, true);
+            self.operators.write(address, true);
         }
 
-        fn get_operator(self: @ComponentState<TContractState>, address: ContractAddress) -> bool {
-            self.operator.read(address)
+        fn is_operator(self: @ComponentState<TContractState>, address: ContractAddress) -> bool {
+            self.operators.read(address)
         }
 
         fn set_program_info(
@@ -92,7 +92,7 @@ mod config_cpt {
             ref self: ComponentState<TContractState>, address: ContractAddress
         ) -> bool {
             let owner = get_dep_component!(@self, Ownable).owner();
-            address == owner || self.operator.read(address)
+            address == owner || self.operators.read(address)
         }
     }
 }

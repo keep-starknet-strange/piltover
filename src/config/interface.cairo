@@ -10,14 +10,14 @@ trait IConfig<T> {
     /// # Arguments
     ///
     /// * `address` - The operator account address.
-    fn set_operator(ref self: T, address: ContractAddress);
+    fn register_operator(ref self: T, address: ContractAddress);
 
     /// Gets an operator address.
     ///
     /// # Returns
     ///
     /// True if the address is an operator.
-    fn get_operator(self: @T, address: ContractAddress) -> bool;
+    fn is_operator(self: @T, address: ContractAddress) -> bool;
 
     /// Sets the information of the program that generates the
     /// state transition trace (namely StarknetOS).
