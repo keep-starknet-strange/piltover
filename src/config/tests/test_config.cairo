@@ -17,22 +17,22 @@ fn deploy_mock() -> IConfigDispatcher {
 #[test]
 fn config_set_operator_ok() {
     let mock = deploy_mock();
-    assert(mock.get_operator() == c::ZERO(), 'expect 0 addr');
+    assert(!mock.get_operator(c::OPERATOR()), 'expect 0 addr');
 
     snf::start_prank(CheatTarget::One(mock.contract_address), c::OWNER());
 
     mock.set_operator(c::OPERATOR());
-    assert(mock.get_operator() == c::OPERATOR(), 'expect operator');
+    assert(mock.get_operator(c::OPERATOR()), 'expect operator');
 }
 
 #[test]
 #[should_panic(expected: ('Caller is not the owner',))]
 fn config_set_operator_unauthorized() {
     let mock = deploy_mock();
-    assert(mock.get_operator() == c::ZERO(), 'expect 0 addr');
+    assert(!mock.get_operator(c::OPERATOR()), 'expect 0 addr');
 
     mock.set_operator(c::OPERATOR());
-    assert(mock.get_operator() == c::OPERATOR(), 'expect operator');
+    assert(mock.get_operator(c::OPERATOR()), 'expect operator');
 }
 
 #[test]

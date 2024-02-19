@@ -12,11 +12,11 @@ trait IConfig<T> {
     /// * `address` - The operator account address.
     fn set_operator(ref self: T, address: ContractAddress);
 
-    /// Gets all operator address.
+    /// Gets an operator address.
     ///
     /// # Returns
     ///
-    /// The operator's address.
+    /// True if this address is an operator
     fn get_operator(self: @T, address: ContractAddress) -> bool;
 
     /// Sets the information of the program that generates the
