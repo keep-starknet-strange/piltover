@@ -6,18 +6,18 @@ use starknet::ContractAddress;
 #[starknet::interface]
 trait IConfig<T> {
     /// Sets the operator that is in charge to push state updates.
-    ///
+    /// Multiple operators can be set.
     /// # Arguments
     ///
     /// * `address` - The operator account address.
     fn set_operator(ref self: T, address: ContractAddress);
 
-    /// Gets the operator address.
+    /// Gets all operator address.
     ///
     /// # Returns
     ///
     /// The operator's address.
-    fn get_operator(self: @T) -> ContractAddress;
+    fn get_operator(self: @T, address: ContractAddress) -> bool;
 
     /// Sets the information of the program that generates the
     /// state transition trace (namely StarknetOS).
