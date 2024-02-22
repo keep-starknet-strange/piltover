@@ -5,6 +5,7 @@
 mod errors {
     const INVALID_ADDRESS: felt252 = 'Config: invalid address';
     const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
+    const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
 }
 
@@ -92,6 +93,12 @@ mod appchain {
             assert(
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
+            );
+
+            let (_, config_hash): (felt252, felt252) = self.config.program_info.read();
+            assert(
+                *program_output.at(snos_output::CONFIG_HASH_OFFSET) == config_hash,
+                errors::SNOS_INVALID_CONFIG_HASH
             );
 
             let mut offset = snos_output::HEADER_SIZE;

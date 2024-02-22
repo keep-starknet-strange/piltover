@@ -1,6 +1,8 @@
 //! SNOS output related types and variables.
 //!
 
+/// Offset of the configuration hash value in the SNOS output.
+const CONFIG_HASH_OFFSET: usize = 4;
 /// Size of the header of the output of SNOS.
 const HEADER_SIZE: usize = 5;
 /// Size of the header of a message to Starknet, which is
