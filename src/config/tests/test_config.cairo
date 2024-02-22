@@ -17,7 +17,7 @@ fn deploy_mock() -> IConfigDispatcher {
 #[test]
 fn config_set_operator_ok() {
     let mock = deploy_mock();
-    assert(!mock.is_operator(c::OPERATOR()), 'expect 0 addr');
+    assert(!mock.is_operator(c::OPERATOR()), 'expect not operator');
 
     snf::start_prank(CheatTarget::One(mock.contract_address), c::OWNER());
 
@@ -28,8 +28,8 @@ fn config_set_operator_ok() {
 #[test]
 fn config_set_multiple_operators_ok() {
     let mock = deploy_mock();
-    assert(!mock.is_operator(c::OPERATOR()), 'expect 0 addr');
-    assert(!mock.is_operator(c::OTHER()), 'expect 0 addr');
+    assert(!mock.is_operator(c::OPERATOR()), 'expect not operator');
+    assert(!mock.is_operator(c::OTHER()), 'expect not operator');
 
     snf::start_prank(CheatTarget::One(mock.contract_address), c::OWNER());
 
