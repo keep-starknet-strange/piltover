@@ -1,6 +1,7 @@
 //! Appchain testing.
 //!
 use openzeppelin::tests::utils::constants as c;
+use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact};
 use piltover::config::{IConfig, IConfigDispatcherTrait, IConfigDispatcher};
 use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
 use piltover::messaging::{IMessaging, IMessagingDispatcherTrait, IMessagingDispatcher};
@@ -14,7 +15,7 @@ use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
     let contract = snf::declare('appchain');
-    let calldata = array![owner];
+    let calldata = array![owner, 0x0, 0x0, 0x0];
     let contract_address = contract.deploy(@calldata).unwrap();
 
     let mut spy = snf::spy_events(SpyOn::One(contract_address));
@@ -114,7 +115,7 @@ fn appchain_owner_only() {
 
 #[test]
 fn update_state_ok() {
-    let (appchain, _spy) = deploy_with_owner(c::OWNER().into());
+    let (appchain, mut _spy) = deploy_with_owner(c::OWNER().into());
 
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
 
@@ -148,11 +149,28 @@ fn update_state_ok() {
     imsg.send_message_to_appchain(contract_appc, selector_appc, payload_sn_to_appc);
 
     // Updating the state will register the message to starknet ready to be consumed
-    // and the message to appchain as sealed.
+    // and the message to appchain as seaEventFetcherled.
     let output = get_state_update();
 
     snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
     appchain.update_state(output);
+
+    let expected_log_state_update = LogStateUpdate {
+        global_root: 0x0, block_number: 0x0, block_hash: 0x0
+    };
+
+    let expected_state_transition_fact = LogStateTransitionFact { state_transition_fact: 0x0 };
+
+    _spy
+        .assert_emitted(
+            @array![
+                (appchain.contract_address, Event::LogStateUpdate(expected_log_state_update)),
+                (
+                    appchain.contract_address,
+                    Event::LogStateTransitionFact(expected_state_transition_fact)
+                )
+            ]
+        );
 
     snf::start_prank(CheatTarget::One(appchain.contract_address), contract_sn);
     imsg.consume_message_from_appchain(contract_appc, payload_appc_to_sn);

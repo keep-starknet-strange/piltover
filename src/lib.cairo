@@ -34,3 +34,18 @@ mod messaging {
         mod test_messaging;
     }
 }
+
+mod state {
+    mod component;
+    mod interface;
+    mod mock;
+
+    use component::state_cpt;
+    use interface::{IState, IStateDispatcher, IStateDispatcherTrait};
+    use mock::state_mock;
+
+    #[cfg(test)]
+    mod tests {
+        mod test_state;
+    }
+}
