@@ -26,8 +26,8 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
-    use piltover::snos_output;
     use piltover::snos_output::ProgramOutput;
+    use piltover::snos_output;
     use starknet::ContractAddress;
     use super::errors;
 
@@ -101,7 +101,8 @@ mod appchain {
                 .unwrap();
             let (_, current_config_hash): (felt252, felt252) = self.config.program_info.read();
             assert(
-                program_output_struct.config_hash == current_config_hash, errors::SNOS_INVALID_CONFIG_HASH
+                program_output_struct.config_hash == current_config_hash,
+                errors::SNOS_INVALID_CONFIG_HASH
             );
 
             let mut offset = snos_output::HEADER_SIZE;
