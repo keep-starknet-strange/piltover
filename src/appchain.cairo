@@ -27,6 +27,7 @@ mod appchain {
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
     use piltover::snos_output;
+    use piltover::snos_output::ProgramOutput;
     use starknet::ContractAddress;
     use super::errors;
 
@@ -95,10 +96,12 @@ mod appchain {
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
 
-            let (_, config_hash): (felt252, felt252) = self.config.program_info.read();
+            let mut program_output_mut = program_output;
+            let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
+                .unwrap();
+            let (_, current_config_hash): (felt252, felt252) = self.config.program_info.read();
             assert(
-                *program_output.at(snos_output::CONFIG_HASH_OFFSET) == config_hash,
-                errors::SNOS_INVALID_CONFIG_HASH
+                program_output_struct.config_hash == current_config_hash, errors::SNOS_INVALID_CONFIG_HASH
             );
 
             let mut offset = snos_output::HEADER_SIZE;

@@ -1,8 +1,6 @@
 //! SNOS output related types and variables.
 //!
 
-/// Offset of the configuration hash value in the SNOS output.
-const CONFIG_HASH_OFFSET: usize = 4;
 /// Size of the header of the output of SNOS.
 const HEADER_SIZE: usize = 5;
 /// Size of the header of a message to Starknet, which is
@@ -17,7 +15,7 @@ const MESSAGE_TO_APPCHAIN_HEADER_SIZE: usize = 5;
 /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/core/os/output.cairo#L52>.
 /// The names are taken from SNOS repository:
 /// <https://github.com/keep-starknet-strange/snos/blob/ad9a7df5fdbb63c813db285346eb667e032762e0/src/io/output.rs#L17>.
-#[derive(Serde)]
+#[derive(Drop, Serde)]
 struct ProgramOutput {
     /// The state commitment before this block.
     prev_state_root: felt252,
