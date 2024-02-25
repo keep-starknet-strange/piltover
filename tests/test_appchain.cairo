@@ -25,10 +25,10 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 
 /// Deploys the appchain contract.
 fn deploy_with_owner_and_state(
-    owner: felt252, global_root: felt252, block_number: felt252, block_hash: felt252,
+    owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
     let contract = snf::declare('appchain');
-    let calldata = array![owner, global_root, block_number, block_hash];
+    let calldata = array![owner, state_root, block_number, block_hash];
     let contract_address = contract.deploy(@calldata).unwrap();
 
     let mut spy = snf::spy_events(SpyOn::One(contract_address));
@@ -130,7 +130,7 @@ fn appchain_owner_only() {
 fn update_state_ok() {
     let (appchain, mut _spy) = deploy_with_owner_and_state(
         owner: c::OWNER().into(),
-        global_root: 2308509181970242579758367820250590423941246005755407149765148974993919671160,
+        state_root: 2308509181970242579758367820250590423941246005755407149765148974993919671160,
         block_number: 535682,
         block_hash: 0
     );
@@ -167,14 +167,14 @@ fn update_state_ok() {
     imsg.send_message_to_appchain(contract_appc, selector_appc, payload_sn_to_appc);
 
     // Updating the state will register the message to starknet ready to be consumed
-    // and the message to appchain as seaEventFetcherled.
+    // and the message to appchain as sealed.
     let output = get_state_update();
 
     snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
     appchain.update_state(output);
 
     let expected_log_state_update = LogStateUpdate {
-        global_root: 1400208033537979038273563301858781654076731580449174584651309975875760580865,
+        state_root: 1400208033537979038273563301858781654076731580449174584651309975875760580865,
         block_number: 535683,
         block_hash: 2885081770536693045243577840233106668867645710434679941076039698247255604327
     };

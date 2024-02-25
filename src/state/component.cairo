@@ -15,13 +15,13 @@ mod state_cpt {
     use piltover::state::interface::IState;
     use super::errors;
 
-    type GlobalRoot = felt252;
+    type StateRoot = felt252;
     type BlockNumber = felt252;
     type BlockHash = felt252;
 
     #[storage]
     struct Storage {
-        global_root: GlobalRoot,
+        state_root: StateRoot,
         block_number: BlockNumber,
         block_hash: BlockHash,
     }
@@ -48,17 +48,15 @@ mod state_cpt {
             self.block_hash.write(program_output.block_hash);
 
             assert(
-                self.global_root.read() == program_output.prev_state_root,
+                self.state_root.read() == program_output.prev_state_root,
                 errors::INVALID_PREVIOUS_ROOT
             );
 
-            self.global_root.write(program_output.new_state_root);
+            self.state_root.write(program_output.new_state_root);
         }
 
-        fn get_state(
-            self: @ComponentState<TContractState>
-        ) -> (GlobalRoot, BlockNumber, BlockHash) {
-            (self.global_root.read(), self.block_number.read(), self.block_hash.read())
+        fn get_state(self: @ComponentState<TContractState>) -> (StateRoot, BlockNumber, BlockHash) {
+            (self.state_root.read(), self.block_number.read(), self.block_hash.read())
         }
     }
 
@@ -69,16 +67,16 @@ mod state_cpt {
         /// Initialized the messaging component.
         /// # Arguments
         ///
-        /// * `global_root` - The global state root.
+        /// * `state_root` - The state root.
         /// * `block_number` - The current block number.
         /// * `block_hash` - The hash of the current block.
         fn initialize(
             ref self: ComponentState<TContractState>,
-            global_root: GlobalRoot,
+            state_root: StateRoot,
             block_number: BlockNumber,
             block_hash: BlockHash,
         ) {
-            self.global_root.write(global_root);
+            self.state_root.write(state_root);
             self.block_number.write(block_number);
             self.block_hash.write(block_hash);
         }

@@ -16,6 +16,6 @@ trait IState<T> {
     ///
     /// # Returns
     ///
-    /// The global root, the block number and the block hash.
+    /// The state root, the block number and the block hash.
     fn get_state(self: @T) -> (felt252, felt252, felt252);
 }

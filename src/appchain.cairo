@@ -83,7 +83,7 @@ mod appchain {
     #[derive(Drop, starknet::Event)]
     struct LogStateUpdate {
         #[key]
-        global_root: felt252,
+        state_root: felt252,
         #[key]
         block_number: felt252,
         #[key]
@@ -105,13 +105,13 @@ mod appchain {
     fn constructor(
         ref self: ContractState,
         owner: ContractAddress,
-        global_root: felt252,
+        state_root: felt252,
         block_number: felt252,
         block_hash: felt252,
     ) {
         self.ownable.initializer(owner);
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
-        self.state.initialize(global_root, block_number, block_hash);
+        self.state.initialize(state_root, block_number, block_hash);
     }
 
     #[abi(embed_v0)]
@@ -152,7 +152,7 @@ mod appchain {
             self
                 .emit(
                     LogStateUpdate {
-                        global_root: self.state.global_root.read(),
+                        state_root: self.state.state_root.read(),
                         block_number: self.state.block_number.read(),
                         block_hash: self.state.block_hash.read(),
                     }

@@ -22,8 +22,8 @@ mod state_mock {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, global_root: felt252, block_number: felt252, block_hash: felt252,
+        ref self: ContractState, state_root: felt252, block_number: felt252, block_hash: felt252,
     ) {
-        self.state.initialize(global_root, block_number, block_hash);
+        self.state.initialize(state_root, block_number, block_hash);
     }
 }
