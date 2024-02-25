@@ -15,7 +15,7 @@ use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
     let contract = snf::declare('appchain');
-    let calldata = array![owner, 0x0, 0x0, 0x0];
+    let calldata = array![owner, 0, 0, 0];
     let contract_address = contract.deploy(@calldata).unwrap();
 
     let mut spy = snf::spy_events(SpyOn::One(contract_address));
@@ -179,7 +179,7 @@ fn update_state_ok() {
         block_hash: 2885081770536693045243577840233106668867645710434679941076039698247255604327
     };
 
-    let expected_state_transition_fact = LogStateTransitionFact { state_transition_fact: 0x0 };
+    let expected_state_transition_fact = LogStateTransitionFact { state_transition_fact: 0 };
 
     _spy
         .assert_emitted(

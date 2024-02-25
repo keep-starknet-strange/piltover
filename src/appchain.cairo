@@ -121,7 +121,7 @@ mod appchain {
             self.config.assert_only_owner_or_operator();
             // TODO(#3): facts verification.
 
-            let state_transition_fact: felt252 = 0x0; // Done in another PR.
+            let state_transition_fact: felt252 = 0; // Done in another PR.
             self.emit(LogStateTransitionFact { state_transition_fact });
 
             // Perform state update
