@@ -10,6 +10,12 @@ trait IState<T> {
     /// # Arguments
     ///
     /// * `program_output` - The StarknetOS state update output.
-    /// TODO: Implement the logic to check for a successful state.
     fn update(ref self: T, program_output: Span<felt252>,);
+
+    /// Gets the current state.
+    ///
+    /// # Returns
+    ///
+    /// The global root, the block number and the block hash.
+    fn get_state(self: @T) -> (felt252, felt252, felt252);
 }
