@@ -20,3 +20,4 @@ trait IAppchain<T> {
         onchain_data_size: u256
     );
 }
+

@@ -21,8 +21,8 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
-    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::OnchainDataFactTreeEncoder::{
-        encode_fact_with_onchain_data, data_availability_fact
+    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::{
+        encode_fact_with_onchain_data, DataAvailabilityFact
     };
     use piltover::snos_output;
     use starknet::ContractAddress;
@@ -72,10 +72,6 @@ mod appchain {
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
     }
 
-    // Updates the state of the Starknet, based on a proof of the Starknet OS that the state transition is valid.
-    // Data availability is provided on-chain.
-    // programOutput - The main part of the StarkNet OS program output.
-    // data_availability_fact - An encoding of the on-chain data associated with the 'programOutput'.
 
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
@@ -96,7 +92,7 @@ mod appchain {
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
-            let value: data_availability_fact = data_availability_fact {
+            let value: DataAvailabilityFact = DataAvailabilityFact {
                 onchain_data_hash: onchain_data_hash, onchain_data_size: onchain_data_size
             };
             let state_transition_fact: u256 = encode_fact_with_onchain_data(program_output, value);
