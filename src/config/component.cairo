@@ -6,7 +6,7 @@
 mod errors {
     const INVALID_CALLER: felt252 = 'Config: not owner or operator';
     const ALREADY_REGISTERED: felt252 = 'Config: already operator';
-    const NOT_OPERATOR: felt252 = 'Config: not an operator';
+    const NOT_OPERATOR: felt252 = 'Config: not operator';
 }
 
 /// Configuration component.

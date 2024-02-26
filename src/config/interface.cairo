@@ -5,13 +5,17 @@ use starknet::ContractAddress;
 
 #[starknet::interface]
 trait IConfig<T> {
-    /// Sets the operator that is in charge to push state updates.
-    /// Multiple operators can be set.
+    /// Registers an operator that is in charge to push state updates.
+    /// Multiple operators can be registered.
     /// # Arguments
     ///
-    /// * `address` - The operator account address.
+    /// * `address` - The account address to register as an operator.
     fn register_operator(ref self: T, address: ContractAddress);
 
+    /// Unregisters an operator.
+    /// # Arguments
+    ///
+    /// * `address` - The operator account address to unregister.
     fn unregister_operator(ref self: T, address: ContractAddress);
 
     /// Verifies if the given address is an operator.
