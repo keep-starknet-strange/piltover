@@ -15,7 +15,7 @@ fn deploy_mock() -> IConfigDispatcher {
 }
 
 #[test]
-fn config_set_operator_ok() {
+fn config_register_operator_ok() {
     let mock = deploy_mock();
     assert(!mock.is_operator(c::OPERATOR()), 'expect not operator');
 
@@ -26,7 +26,7 @@ fn config_set_operator_ok() {
 }
 
 #[test]
-fn config_set_multiple_operators_ok() {
+fn config_register_multiple_operators_ok() {
     let mock = deploy_mock();
     assert(!mock.is_operator(c::OPERATOR()), 'expect not operator');
     assert(!mock.is_operator(c::OTHER()), 'expect not operator');
@@ -38,6 +38,37 @@ fn config_set_multiple_operators_ok() {
 
     assert(mock.is_operator(c::OPERATOR()), 'expect operator');
     assert(mock.is_operator(c::OTHER()), 'expect operator');
+}
+
+#[test]
+fn config_unregister_operator_ok() {
+    let mock = deploy_mock();
+
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::OWNER());
+
+    mock.register_operator(c::OPERATOR());
+    assert(mock.is_operator(c::OPERATOR()), 'expect operator');
+
+    mock.unregister_operator(c::OPERATOR());
+    assert(!mock.is_operator(c::OPERATOR()), 'expect not operator');
+}
+
+#[test]
+fn config_unregister_multiple_operators_ok() {
+    let mock = deploy_mock();
+
+    snf::start_prank(CheatTarget::One(mock.contract_address), c::OWNER());
+
+    mock.register_operator(c::OPERATOR());
+    mock.register_operator(c::OTHER());
+
+    assert(mock.is_operator(c::OPERATOR()), 'expect operator');
+    assert(mock.is_operator(c::OTHER()), 'expect operator');
+
+    mock.unregister_operator(c::OPERATOR());
+    mock.unregister_operator(c::OTHER());
+    assert(!mock.is_operator(c::OPERATOR()), 'expect not operator');
+    assert(!mock.is_operator(c::OTHER()), 'expect not operator');
 }
 
 #[test]

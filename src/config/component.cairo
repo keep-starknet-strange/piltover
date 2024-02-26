@@ -5,6 +5,8 @@
 /// Errors.
 mod errors {
     const INVALID_CALLER: felt252 = 'Config: not owner or operator';
+    const ALREADY_REGISTERED: felt252 = 'Config: already operator';
+    const NOT_OPERATOR: felt252 = 'Config: not an operator';
 }
 
 /// Configuration component.
@@ -39,7 +41,14 @@ mod config_cpt {
     > of IConfig<ComponentState<TContractState>> {
         fn register_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
             get_dep_component!(@self, Ownable).assert_only_owner();
+            assert(!self.operators.read(address), errors::ALREADY_REGISTERED);
             self.operators.write(address, true);
+        }
+
+        fn unregister_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
+            get_dep_component!(@self, Ownable).assert_only_owner();
+            assert(self.operators.read(address), errors::NOT_OPERATOR);
+            self.operators.write(address, false);
         }
 
         fn is_operator(self: @ComponentState<TContractState>, address: ContractAddress) -> bool {
@@ -92,7 +101,7 @@ mod config_cpt {
             ref self: ComponentState<TContractState>, address: ContractAddress
         ) -> bool {
             let owner = get_dep_component!(@self, Ownable).owner();
-            address == owner || self.operators.read(address)
+            address == owner || self.is_operator(address)
         }
     }
 }

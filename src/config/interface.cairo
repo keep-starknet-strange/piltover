@@ -12,6 +12,8 @@ trait IConfig<T> {
     /// * `address` - The operator account address.
     fn register_operator(ref self: T, address: ContractAddress);
 
+    fn unregister_operator(ref self: T, address: ContractAddress);
+
     /// Verifies if the given address is an operator.
     /// # Arguments
     ///
