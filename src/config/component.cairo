@@ -5,6 +5,8 @@
 /// Errors.
 mod errors {
     const INVALID_CALLER: felt252 = 'Config: not owner or operator';
+    const ALREADY_REGISTERED: felt252 = 'Config: already operator';
+    const NOT_OPERATOR: felt252 = 'Config: not operator';
 }
 
 /// Configuration component.
@@ -23,9 +25,8 @@ mod config_cpt {
 
     #[storage]
     struct Storage {
-        /// Appchain operator that is allowed to update the state.
-        // TODO(#9): Multiple Operators
-        operator: ContractAddress,
+        /// Appchain operators that are allowed to update the state.
+        operators: LegacyMap<ContractAddress, bool>,
         /// Program info (StarknetOS), with program hash and config hash.
         program_info: (felt252, felt252),
         /// Facts registry contract address.
@@ -53,13 +54,20 @@ mod config_cpt {
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>
     > of IConfig<ComponentState<TContractState>> {
-        fn set_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
+        fn register_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
             get_dep_component!(@self, Ownable).assert_only_owner();
-            self.operator.write(address)
+            assert(!self.operators.read(address), errors::ALREADY_REGISTERED);
+            self.operators.write(address, true);
         }
 
-        fn get_operator(self: @ComponentState<TContractState>) -> ContractAddress {
-            self.operator.read()
+        fn unregister_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
+            get_dep_component!(@self, Ownable).assert_only_owner();
+            assert(self.operators.read(address), errors::NOT_OPERATOR);
+            self.operators.write(address, false);
+        }
+
+        fn is_operator(self: @ComponentState<TContractState>, address: ContractAddress) -> bool {
+            self.operators.read(address)
         }
 
         fn set_program_info(
@@ -118,7 +126,7 @@ mod config_cpt {
             ref self: ComponentState<TContractState>, address: ContractAddress
         ) -> bool {
             let owner = get_dep_component!(@self, Ownable).owner();
-            address == owner || address == self.operator.read()
+            address == owner || self.is_operator(address)
         }
     }
 }
