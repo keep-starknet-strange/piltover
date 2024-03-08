@@ -26,6 +26,8 @@ mod appchain {
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
     use piltover::snos_output;
+    use piltover::state::component::state_cpt::HasComponent;
+    use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
     use starknet::ContractAddress;
     use super::errors;
 
@@ -35,6 +37,7 @@ mod appchain {
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: config_cpt, storage: config, event: ConfigEvent);
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
+    component!(path: state_cpt, storage: state, event: StateEvent);
     component!(
         path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
     );
@@ -43,6 +46,8 @@ mod appchain {
     impl ConfigImpl = config_cpt::ConfigImpl<ContractState>;
     #[abi(embed_v0)]
     impl MessagingImpl = messaging_cpt::MessagingImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl StateImpl = state_cpt::StateImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -54,6 +59,8 @@ mod appchain {
         messaging: messaging_cpt::Storage,
         #[substorage(v0)]
         reentrancy_guard: ReentrancyGuardComponent::Storage,
+        #[substorage(v0)]
+        state: state_cpt::Storage,
     }
 
     #[event]
@@ -67,6 +74,22 @@ mod appchain {
         MessagingEvent: messaging_cpt::Event,
         #[flat]
         ReentrancyGuardEvent: ReentrancyGuardComponent::Event,
+        #[flat]
+        StateEvent: state_cpt::Event,
+        LogStateUpdate: LogStateUpdate,
+        LogStateTransitionFact: LogStateTransitionFact,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct LogStateUpdate {
+        state_root: felt252,
+        block_number: felt252,
+        block_hash: felt252,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct LogStateTransitionFact {
+        state_transition_fact: felt252,
     }
 
     /// Initializes the contract.
@@ -75,9 +98,16 @@ mod appchain {
     ///
     /// * `address` - The contract address of the owner.
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {
+    fn constructor(
+        ref self: ContractState,
+        owner: ContractAddress,
+        state_root: felt252,
+        block_number: felt252,
+        block_hash: felt252,
+    ) {
         self.ownable.initializer(owner);
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
+        self.state.initialize(state_root, block_number, block_hash);
     }
 
     #[abi(embed_v0)]
@@ -86,7 +116,12 @@ mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
             // TODO(#3): facts verification.
-            // TODO(#4): update the current state (component needed).
+
+            let state_transition_fact: felt252 = 0; // Done in another PR.
+            self.emit(LogStateTransitionFact { state_transition_fact });
+
+            // Perform state update
+            self.state.update(program_output);
 
             // Header size + 2 messages segments len.
             assert(
@@ -109,6 +144,15 @@ mod appchain {
             self.messaging.process_messages_to_starknet(messages_to_starknet);
             self.messaging.process_messages_to_appchain(messages_to_appchain);
             self.reentrancy_guard.end();
+
+            self
+                .emit(
+                    LogStateUpdate {
+                        state_root: self.state.state_root.read(),
+                        block_number: self.state.block_number.read(),
+                        block_hash: self.state.block_hash.read(),
+                    }
+                );
         }
     }
 }
