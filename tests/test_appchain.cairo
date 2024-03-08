@@ -136,6 +136,7 @@ fn update_state_ok() {
     );
 
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
+    let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
 
     let contract_sn = starknet::contract_address_const::<
         993696174272377493693496825928908586134624850969
@@ -155,6 +156,13 @@ fn update_state_ok() {
         0, 917360325178274450223200079540424150242461675748, 300000000000000, 0,
     ]
         .span();
+
+    snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
+    iconfig
+        .set_program_info(
+            program_hash: 0x11,
+            config_hash: 2590421891839256512113614983194993186457498815986333310670788206383913888162
+        );
 
     // The state update contains a message to appchain, therefore, before
     // being sealed, it must be sent first.

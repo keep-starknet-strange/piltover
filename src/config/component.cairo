@@ -20,7 +20,7 @@ mod config_cpt {
         interface::IOwnable,
     };
     use piltover::config::interface::IConfig;
-    use starknet::{ContractAddress, get_caller_address};
+    use starknet::ContractAddress;
     use super::errors;
 
     #[storage]
@@ -79,7 +79,7 @@ mod config_cpt {
             self
                 .emit(
                     ProgramInfoChanged {
-                        changed_by: get_caller_address(),
+                        changed_by: starknet::get_caller_address(),
                         old_program_hash: old_program_hash,
                         new_program_hash: program_hash,
                         old_config_hash: old_config_hash,

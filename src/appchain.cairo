@@ -5,6 +5,7 @@
 mod errors {
     const INVALID_ADDRESS: felt252 = 'Config: invalid address';
     const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
+    const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
 }
 
@@ -25,6 +26,7 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
+    use piltover::snos_output::ProgramOutput;
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
@@ -127,6 +129,15 @@ mod appchain {
             assert(
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
+            );
+
+            let mut program_output_mut = program_output;
+            let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
+                .unwrap();
+            let (_, current_config_hash): (felt252, felt252) = self.config.program_info.read();
+            assert(
+                program_output_struct.config_hash == current_config_hash,
+                errors::SNOS_INVALID_CONFIG_HASH
             );
 
             let mut offset = snos_output::HEADER_SIZE;
