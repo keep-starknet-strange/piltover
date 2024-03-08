@@ -82,17 +82,13 @@ mod appchain {
 
     #[derive(Drop, starknet::Event)]
     struct LogStateUpdate {
-        #[key]
         state_root: felt252,
-        #[key]
         block_number: felt252,
-        #[key]
         block_hash: felt252,
     }
 
     #[derive(Drop, starknet::Event)]
     struct LogStateTransitionFact {
-        #[key]
         state_transition_fact: felt252,
     }
 
