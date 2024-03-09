@@ -7,11 +7,13 @@ mod errors {
     const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
     const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
+    const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
 }
 
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
 mod appchain {
+    use core::array::ArrayTrait;
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
@@ -26,6 +28,9 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
+    use piltover::mocks::{
+        IFactRegistryMockDispatcher, IFactRegistryMockDispatcherTrait
+    }; // To change when Herodotus finishes implementing FactRegistry.
     use piltover::snos_output::ProgramOutput;
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
@@ -117,9 +122,22 @@ mod appchain {
         fn update_state(ref self: ContractState, program_output: Span<felt252>) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
-            // TODO(#3): facts verification.
+
+            let (current_program_hash, current_config_hash): (felt252, felt252) = self
+                .config
+                .program_info
+                .read();
 
             let state_transition_fact: felt252 = 0; // Done in another PR.
+            let sharp_fact: u256 = keccak::keccak_u256s_be_inputs(
+                array![current_program_hash.into(), state_transition_fact.into()].span()
+            );
+            assert(
+                IFactRegistryMockDispatcher { contract_address: self.config.get_facts_registry() }
+                    .is_valid(sharp_fact),
+                errors::NO_STATE_TRANSITION_PROOF
+            );
+
             self.emit(LogStateTransitionFact { state_transition_fact });
 
             // Perform state update
@@ -134,7 +152,6 @@ mod appchain {
             let mut program_output_mut = program_output;
             let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
                 .unwrap();
-            let (_, current_config_hash): (felt252, felt252) = self.config.program_info.read();
             assert(
                 program_output_struct.config_hash == current_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH
