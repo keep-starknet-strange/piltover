@@ -13,7 +13,6 @@ mod errors {
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
 mod appchain {
-    use core::array::ArrayTrait;
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
