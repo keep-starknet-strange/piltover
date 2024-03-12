@@ -25,7 +25,7 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
-    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::{
+    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::{
         encode_fact_with_onchain_data, DataAvailabilityFact
     };
     use piltover::snos_output;
@@ -102,10 +102,12 @@ mod appchain {
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
-            let value: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash: onchain_data_hash, onchain_data_size: onchain_data_size
+            let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
+                onchain_data_hash, onchain_data_size
             };
-            let state_transition_fact: u256 = encode_fact_with_onchain_data(program_output, value);
+            let state_transition_fact: u256 = encode_fact_with_onchain_data(
+                program_output, data_availability_fact
+            );
             let mut offset = snos_output::HEADER_SIZE;
 
             // TODO(#7): We should update SNOS output to have the messages count
