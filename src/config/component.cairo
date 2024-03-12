@@ -5,6 +5,8 @@
 /// Errors.
 mod errors {
     const INVALID_CALLER: felt252 = 'Config: not owner or operator';
+    const ALREADY_REGISTERED: felt252 = 'Config: already operator';
+    const NOT_OPERATOR: felt252 = 'Config: not operator';
 }
 
 /// Configuration component.
@@ -23,13 +25,27 @@ mod config_cpt {
 
     #[storage]
     struct Storage {
-        /// Appchain operator that is allowed to update the state.
-        // TODO(#9): Multiple Operators
-        operator: ContractAddress,
+        /// Appchain operators that are allowed to update the state.
+        operators: LegacyMap<ContractAddress, bool>,
         /// Program info (StarknetOS), with program hash and config hash.
         program_info: (felt252, felt252),
         /// Facts registry contract address.
         facts_registry: ContractAddress,
+    }
+
+    #[event]
+    #[derive(Copy, Drop, starknet::Event)]
+    enum Event {
+        ProgramInfoChanged: ProgramInfoChanged,
+    }
+
+    #[derive(Copy, Drop, starknet::Event)]
+    struct ProgramInfoChanged {
+        changed_by: ContractAddress,
+        old_program_hash: felt252,
+        new_program_hash: felt252,
+        old_config_hash: felt252,
+        new_config_hash: felt252,
     }
 
     #[embeddable_as(ConfigImpl)]
@@ -38,21 +54,38 @@ mod config_cpt {
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>
     > of IConfig<ComponentState<TContractState>> {
-        fn set_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
+        fn register_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
             get_dep_component!(@self, Ownable).assert_only_owner();
-            self.operator.write(address)
+            assert(!self.operators.read(address), errors::ALREADY_REGISTERED);
+            self.operators.write(address, true);
         }
 
-        fn get_operator(self: @ComponentState<TContractState>) -> ContractAddress {
-            self.operator.read()
+        fn unregister_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
+            get_dep_component!(@self, Ownable).assert_only_owner();
+            assert(self.operators.read(address), errors::NOT_OPERATOR);
+            self.operators.write(address, false);
+        }
+
+        fn is_operator(self: @ComponentState<TContractState>, address: ContractAddress) -> bool {
+            self.operators.read(address)
         }
 
         fn set_program_info(
             ref self: ComponentState<TContractState>, program_hash: felt252, config_hash: felt252
         ) {
             self.assert_only_owner_or_operator();
-            self.program_info.write((program_hash, config_hash))
-        // TODO(#6): ProgramHashChanged Event
+            let (old_program_hash, old_config_hash): (felt252, felt252) = self.program_info.read();
+            self.program_info.write((program_hash, config_hash));
+            self
+                .emit(
+                    ProgramInfoChanged {
+                        changed_by: starknet::get_caller_address(),
+                        old_program_hash: old_program_hash,
+                        new_program_hash: program_hash,
+                        old_config_hash: old_config_hash,
+                        new_config_hash: config_hash,
+                    }
+                );
         }
 
         fn get_program_info(self: @ComponentState<TContractState>) -> (felt252, felt252) {
@@ -93,7 +126,7 @@ mod config_cpt {
             ref self: ComponentState<TContractState>, address: ContractAddress
         ) -> bool {
             let owner = get_dep_component!(@self, Ownable).owner();
-            address == owner || address == self.operator.read()
+            address == owner || self.is_operator(address)
         }
     }
 }

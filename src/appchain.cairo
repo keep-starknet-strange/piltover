@@ -5,6 +5,7 @@
 mod errors {
     const INVALID_ADDRESS: felt252 = 'Config: invalid address';
     const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
+    const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
 }
 
@@ -25,10 +26,13 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
+    use piltover::snos_output::ProgramOutput;
     use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::{
         encode_fact_with_onchain_data, DataAvailabilityFact
     };
     use piltover::snos_output;
+    use piltover::state::component::state_cpt::HasComponent;
+    use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
     use starknet::ContractAddress;
     use super::errors;
 
@@ -38,6 +42,7 @@ mod appchain {
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: config_cpt, storage: config, event: ConfigEvent);
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
+    component!(path: state_cpt, storage: state, event: StateEvent);
     component!(
         path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
     );
@@ -46,6 +51,8 @@ mod appchain {
     impl ConfigImpl = config_cpt::ConfigImpl<ContractState>;
     #[abi(embed_v0)]
     impl MessagingImpl = messaging_cpt::MessagingImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl StateImpl = state_cpt::StateImpl<ContractState>;
 
     #[storage]
     struct Storage {
@@ -57,6 +64,8 @@ mod appchain {
         messaging: messaging_cpt::Storage,
         #[substorage(v0)]
         reentrancy_guard: ReentrancyGuardComponent::Storage,
+        #[substorage(v0)]
+        state: state_cpt::Storage,
     }
 
     #[event]
@@ -70,6 +79,22 @@ mod appchain {
         MessagingEvent: messaging_cpt::Event,
         #[flat]
         ReentrancyGuardEvent: ReentrancyGuardComponent::Event,
+        #[flat]
+        StateEvent: state_cpt::Event,
+        LogStateUpdate: LogStateUpdate,
+        LogStateTransitionFact: LogStateTransitionFact,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct LogStateUpdate {
+        state_root: felt252,
+        block_number: felt252,
+        block_hash: felt252,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct LogStateTransitionFact {
+        state_transition_fact: felt252,
     }
 
     /// Initializes the contract.
@@ -78,9 +103,16 @@ mod appchain {
     ///
     /// * `address` - The contract address of the owner.
     #[constructor]
-    fn constructor(ref self: ContractState, owner: ContractAddress) {
+    fn constructor(
+        ref self: ContractState,
+        owner: ContractAddress,
+        state_root: felt252,
+        block_number: felt252,
+        block_hash: felt252,
+    ) {
         self.ownable.initializer(owner);
         self.messaging.initialize(CANCELLATION_DELAY_SECS);
+        self.state.initialize(state_root, block_number, block_hash);
     }
 
 
@@ -95,7 +127,12 @@ mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
             // TODO(#3): facts verification.
-            // TODO(#4): update the current state (component needed).
+
+            let state_transition_fact: felt252 = 0; // Done in another PR.
+            self.emit(LogStateTransitionFact { state_transition_fact });
+
+            // Perform state update
+            self.state.update(program_output);
 
             // Header size + 2 messages segments len.
             assert(
@@ -108,6 +145,15 @@ mod appchain {
             let state_transition_fact: u256 = encode_fact_with_onchain_data(
                 program_output, data_availability_fact
             );
+            let mut program_output_mut = program_output;
+            let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
+                .unwrap();
+            let (_, current_config_hash): (felt252, felt252) = self.config.program_info.read();
+            assert(
+                program_output_struct.config_hash == current_config_hash,
+                errors::SNOS_INVALID_CONFIG_HASH
+            );
+
             let mut offset = snos_output::HEADER_SIZE;
 
             // TODO(#7): We should update SNOS output to have the messages count
@@ -123,6 +169,15 @@ mod appchain {
             self.messaging.process_messages_to_starknet(messages_to_starknet);
             self.messaging.process_messages_to_appchain(messages_to_appchain);
             self.reentrancy_guard.end();
+
+            self
+                .emit(
+                    LogStateUpdate {
+                        state_root: self.state.state_root.read(),
+                        block_number: self.state.block_number.read(),
+                        block_hash: self.state.block_hash.read(),
+                    }
+                );
         }
     }
 }

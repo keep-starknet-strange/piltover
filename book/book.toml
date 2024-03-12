@@ -1,0 +1,10 @@
+[book]
+authors = ["JimmyFate"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Piltover"
+
+[output.html]
+git-repository-url = "https://github.com/keep-starknet-strange/piltover"
+edit-url-template = "https://github.com/keep-starknet-strange/piltover/issues/new/choose"

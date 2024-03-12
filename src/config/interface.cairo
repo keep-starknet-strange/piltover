@@ -5,19 +5,28 @@ use starknet::ContractAddress;
 
 #[starknet::interface]
 trait IConfig<T> {
-    /// Sets the operator that is in charge to push state updates.
-    ///
+    /// Registers an operator that is in charge to push state updates.
+    /// Multiple operators can be registered.
     /// # Arguments
     ///
-    /// * `address` - The operator account address.
-    fn set_operator(ref self: T, address: ContractAddress);
+    /// * `address` - The account address to register as an operator.
+    fn register_operator(ref self: T, address: ContractAddress);
 
-    /// Gets the operator address.
+    /// Unregisters an operator.
+    /// # Arguments
+    ///
+    /// * `address` - The operator account address to unregister.
+    fn unregister_operator(ref self: T, address: ContractAddress);
+
+    /// Verifies if the given address is an operator.
+    /// # Arguments
+    ///
+    /// * `address` - The address to verify.
     ///
     /// # Returns
     ///
-    /// The operator's address.
-    fn get_operator(self: @T) -> ContractAddress;
+    /// True if the address is an operator, false otherwise.
+    fn is_operator(self: @T, address: ContractAddress) -> bool;
 
     /// Sets the information of the program that generates the
     /// state transition trace (namely StarknetOS).
