@@ -13,5 +13,11 @@ trait IAppchain<T> {
     ///
     /// * `program_output` - The StarknetOS state update output.
     /// TODO: DA + facts.
-    fn update_state(ref self: T, program_output: Span<felt252>);
+    fn update_state(
+        ref self: T,
+        program_output: Span<felt252>,
+        onchain_data_hash: felt252,
+        onchain_data_size: u256
+    );
 }
+

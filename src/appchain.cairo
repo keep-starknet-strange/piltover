@@ -27,6 +27,9 @@ mod appchain {
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
     use piltover::snos_output::ProgramOutput;
+    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::{
+        encode_fact_with_onchain_data, DataAvailabilityFact
+    };
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
@@ -112,9 +115,15 @@ mod appchain {
         self.state.initialize(state_root, block_number, block_hash);
     }
 
+
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
-        fn update_state(ref self: ContractState, program_output: Span<felt252>) {
+        fn update_state(
+            ref self: ContractState,
+            program_output: Span<felt252>,
+            onchain_data_hash: felt252,
+            onchain_data_size: u256
+        ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
             // TODO(#3): facts verification.
@@ -130,7 +139,12 @@ mod appchain {
                 program_output.len() > snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
-
+            let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
+                onchain_data_hash, onchain_data_size
+            };
+            let state_transition_fact: u256 = encode_fact_with_onchain_data(
+                program_output, data_availability_fact
+            );
             let mut program_output_mut = program_output;
             let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
                 .unwrap();

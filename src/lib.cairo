@@ -49,3 +49,6 @@ mod state {
         mod test_state;
     }
 }
+mod onchain_data_fact_tree_encoder {
+    mod onchain_data_fact_tree_encoder;
+}
