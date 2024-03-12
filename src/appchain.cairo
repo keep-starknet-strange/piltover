@@ -20,6 +20,9 @@ mod appchain {
         ReentrancyGuardComponent,
         ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl
     };
+    use piltover::components::onchain_data_fact_tree_encoder::{
+        encode_fact_with_onchain_data, DataAvailabilityFact
+    };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::interface::IAppchain;
     use piltover::messaging::{
@@ -27,9 +30,6 @@ mod appchain {
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
     use piltover::snos_output::ProgramOutput;
-    use piltover::onchain_data_fact_tree_encoder::onchain_data_fact_tree_encoder::{
-        encode_fact_with_onchain_data, DataAvailabilityFact
-    };
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
