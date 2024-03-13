@@ -201,7 +201,9 @@ fn update_state_ok() {
         block_hash: 2885081770536693045243577840233106668867645710434679941076039698247255604327
     };
 
-    let expected_state_transition_fact = LogStateTransitionFact { state_transition_fact: 0 };
+    let expected_state_transition_fact = LogStateTransitionFact {
+        state_transition_fact: 46788249717714808102005259149255132333881826766484550864206886746454286005112
+    };
 
     _spy
         .assert_emitted(
