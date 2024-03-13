@@ -5,6 +5,9 @@ use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact
 use piltover::config::{IConfig, IConfigDispatcherTrait, IConfigDispatcher};
 use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
 use piltover::messaging::{IMessaging, IMessagingDispatcherTrait, IMessagingDispatcher};
+use piltover::mocks::{
+    fact_registry_mock, IFactRegistryMockDispatcher, IFactRegistryMockDispatcherTrait
+}; // To change when Herodotus finishes implementing FactRegistry.
 use piltover::snos_output::ProgramOutput;
 use snforge_std as snf;
 use snforge_std::{
@@ -34,6 +37,13 @@ fn deploy_with_owner_and_state(
     let mut spy = snf::spy_events(SpyOn::One(contract_address));
 
     (IAppchainDispatcher { contract_address }, spy)
+}
+
+/// Deploys the fact registry mock contract.
+fn deploy_fact_registry_mock() -> IFactRegistryMockDispatcher {
+    let contract = snf::declare('fact_registry_mock');
+    let contract_address = contract.deploy(@array![]).unwrap();
+    IFactRegistryMockDispatcher { contract_address }
 }
 
 /// State update taken from mainnet:
@@ -138,6 +148,8 @@ fn update_state_ok() {
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
 
+    let fact_registry_mock = deploy_fact_registry_mock();
+
     let contract_sn = starknet::contract_address_const::<
         993696174272377493693496825928908586134624850969
     >();
@@ -163,6 +175,7 @@ fn update_state_ok() {
             program_hash: 0x11,
             config_hash: 2590421891839256512113614983194993186457498815986333310670788206383913888162
         );
+    iconfig.set_facts_registry(address: fact_registry_mock.contract_address);
 
     // The state update contains a message to appchain, therefore, before
     // being sealed, it must be sent first.
