@@ -98,7 +98,7 @@ mod appchain {
 
     #[derive(Drop, starknet::Event)]
     struct LogStateTransitionFact {
-        state_transition_fact: felt252,
+        state_transition_fact: u256,
     }
 
     /// Initializes the contract.
@@ -131,14 +131,34 @@ mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
+            // Header size + 2 messages segments len.
+            assert(
+                program_output.len() > snos_output::HEADER_SIZE + 2,
+                errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
+            );
+
             let (current_program_hash, current_config_hash): (felt252, felt252) = self
                 .config
                 .program_info
                 .read();
 
-            let state_transition_fact: felt252 = 0; // Done in another PR.
+            let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
+                onchain_data_hash, onchain_data_size
+            };
+            let state_transition_fact: u256 = encode_fact_with_onchain_data(
+                program_output, data_availability_fact
+            );
+
+            let mut program_output_mut = program_output;
+            let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
+                .unwrap();
+            assert(
+                program_output_struct.config_hash == current_config_hash,
+                errors::SNOS_INVALID_CONFIG_HASH
+            );
+
             let sharp_fact: u256 = keccak::keccak_u256s_be_inputs(
-                array![current_program_hash.into(), state_transition_fact.into()].span()
+                array![current_program_hash.into(), state_transition_fact].span()
             );
             assert(
                 IFactRegistryMockDispatcher { contract_address: self.config.get_facts_registry() }
@@ -150,25 +170,6 @@ mod appchain {
 
             // Perform state update
             self.state.update(program_output);
-
-            // Header size + 2 messages segments len.
-            assert(
-                program_output.len() > snos_output::HEADER_SIZE + 2,
-                errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
-            );
-            let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash, onchain_data_size
-            };
-            let state_transition_fact: u256 = encode_fact_with_onchain_data(
-                program_output, data_availability_fact
-            );
-            let mut program_output_mut = program_output;
-            let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
-                .unwrap();
-            assert(
-                program_output_struct.config_hash == current_config_hash,
-                errors::SNOS_INVALID_CONFIG_HASH
-            );
 
             let mut offset = snos_output::HEADER_SIZE;
 
