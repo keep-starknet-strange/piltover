@@ -34,6 +34,16 @@ To build the project, run:
 scarb build
 ```
 
+## Bindings (Rust)
+
+To build/update the bindings, first build the contract with `scarb`.
+
+Then, within the Rust project `library/` run:
+
+````bash
+cargo build
+````
+
 ## Test
 
 To test the project, run:
