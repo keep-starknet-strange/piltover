@@ -38,7 +38,7 @@ scarb build
 
 To build/update the bindings, first build the contract with `scarb`.
 
-Then, within the Rust project `library/` run:
+Then, within the Rust project `bindings/` run:
 
 ````bash
 cargo build
