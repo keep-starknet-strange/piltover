@@ -10,6 +10,10 @@ openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", ta
 [dev-dependencies]
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.16.0" }
 
+[lib]
+sierra = true
+casm = true
+
 [scripts]
 test = "snforge test"
 
