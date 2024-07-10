@@ -189,6 +189,19 @@ mod messaging_cpt {
             (message_hash, nonce)
         }
 
+        fn sn_to_appchain_messages(
+            self: @ComponentState<TContractState>, message_hash: MessageHash
+        ) -> Nonce {
+            self.sn_to_appc_messages.read(message_hash)
+        }
+
+
+        fn appchain_to_sn_messages(
+            self: @ComponentState<TContractState>, message_hash: MessageHash
+        ) -> Nonce {
+            self.appc_to_sn_messages.read(message_hash)
+        }
+
         fn consume_message_from_appchain(
             ref self: ComponentState<TContractState>,
             from_address: ContractAddress,
