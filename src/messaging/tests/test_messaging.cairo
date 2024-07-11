@@ -438,7 +438,7 @@ fn consume_message_from_appchain_ok() {
 }
 
 #[test]
-fn appc_to_sn_messages_ok() {
+fn appchain_to_sn_messages_ok() {
     let mut mock = mock_state_testing();
 
     let from = c::SPENDER();
