@@ -1,3 +1,4 @@
+use core::array::ArrayTrait;
 use core::zeroable::Zeroable;
 use openzeppelin::tests::utils::constants as c;
 use piltover::messaging::{
@@ -187,11 +188,18 @@ fn sn_to_appchain_messages_ok() {
     let payload = array![1, 2, 3];
 
     snf::start_prank(CheatTarget::One(mock.contract_address), from);
+
+    // Calculate the message_hash
+    let message_hash = hash::compute_message_hash_sn_to_appc(nonce: 1, to_address: to, :selector, payload: payload.span());
+    let is_pending_before = mock.sn_to_appchain_messages(message_hash);
+    assert(is_pending_before == 0, 'Should not be pending before');
+
+    snf::start_prank(CheatTarget::One(from), from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // Ensure the message is pending to consume
-    let is_pending = mock.sn_to_appchain_messages(message_hash);
-    assert(is_pending == 1, 'message not registered/pending');
+    let is_pending_after = mock.sn_to_appchain_messages(message_hash);
+    assert(is_pending_after == 1, 'message not registered/pending');
 
     let expected_event = MessageSent {
         message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
@@ -450,11 +458,14 @@ fn appchain_to_sn_messages_ok() {
 
     let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
 
+    let count_before = mock.appchain_to_sn_messages(message_hash);
+    assert(count_before == 0, 'message already present');
+
     mock.process_messages_to_starknet(messages);
 
     // Ensure that message is available to consume 
-    let count = mock.appchain_to_sn_messages(message_hash);
-    assert(count == 1, 'message not be present');
+    let count_after = mock.appchain_to_sn_messages(message_hash);
+    assert(count_after == 1, 'message not be present');
 }
 
 #[test]
