@@ -1,5 +1,5 @@
-use piltover::messaging::tests::constants as c;
 use core::zeroable::Zeroable;
+use piltover::messaging::tests::constants as c;
 use piltover::messaging::{
     messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
     IMessagingDispatcherTrait, IMessagingDispatcher, messaging_mock,

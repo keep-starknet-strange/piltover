@@ -32,8 +32,8 @@ mod messaging {
 
     #[cfg(test)]
     mod tests {
-        mod test_messaging;
         mod constants;
+        mod test_messaging;
     }
 }
 

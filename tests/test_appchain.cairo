@@ -1,9 +1,9 @@
-//! Appchain testing.
-//!
-use piltover::messaging::tests::constants as c;
 use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact};
 use piltover::config::{IConfig, IConfigDispatcherTrait, IConfigDispatcher};
 use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
+//! Appchain testing.
+//!
+use piltover::messaging::tests::constants as c;
 use piltover::messaging::{IMessaging, IMessagingDispatcherTrait, IMessagingDispatcher};
 use piltover::mocks::{
     fact_registry_mock, IFactRegistryMockDispatcher, IFactRegistryMockDispatcherTrait
