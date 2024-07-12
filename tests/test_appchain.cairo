@@ -1,6 +1,6 @@
 //! Appchain testing.
 //!
-use openzeppelin::tests::utils::constants as c;
+use piltover::messaging::tests::constants as c;
 use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact};
 use piltover::config::{IConfig, IConfigDispatcherTrait, IConfigDispatcher};
 use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
@@ -17,7 +17,7 @@ use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
 
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare('appchain');
+    let contract = snf::declare("appchain");
     let calldata = array![owner, 0, 0, 0];
     let contract_address = contract.deploy(@calldata).unwrap();
 
@@ -30,7 +30,7 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 fn deploy_with_owner_and_state(
     owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare('appchain');
+    let contract = snf::declare("appchain");
     let calldata = array![owner, state_root, block_number, block_hash];
     let contract_address = contract.deploy(@calldata).unwrap();
 
@@ -41,7 +41,7 @@ fn deploy_with_owner_and_state(
 
 /// Deploys the fact registry mock contract.
 fn deploy_fact_registry_mock() -> IFactRegistryMockDispatcher {
-    let contract = snf::declare('fact_registry_mock');
+    let contract = snf::declare("fact_registry_mock");
     let contract_address = contract.deploy(@array![]).unwrap();
     IFactRegistryMockDispatcher { contract_address }
 }

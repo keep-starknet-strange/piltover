@@ -9,7 +9,7 @@ use snforge_std::{ContractClassTrait};
 fn deploy_mock_with_state(
     state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> IStateDispatcher {
-    let contract = snf::declare('state_mock');
+    let contract = snf::declare("state_mock");
     let calldata = array![state_root, block_number, block_hash];
     let contract_address = contract.deploy(@calldata).unwrap();
     IStateDispatcher { contract_address }
