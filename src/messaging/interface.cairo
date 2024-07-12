@@ -43,7 +43,7 @@ trait IMessaging<T> {
     /// 
     /// # Arguments
     /// 
-    /// * `msg_hash` - The hash of the message that was sent to the Appchain
+    /// * `message_hash` - The hash of the message that was sent to the Appchain.
     /// 
     /// # Returns
     /// 
