@@ -17,6 +17,10 @@ mod appchain {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
+    use openzeppelin::upgrades::{
+        UpgradeableComponent as upgradeable_cpt,
+        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable
+    };
     use openzeppelin::security::reentrancyguard::{
         ReentrancyGuardComponent,
         ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl
@@ -37,13 +41,14 @@ mod appchain {
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
-    use starknet::ContractAddress;
+    use starknet::{ContractAddress, ClassHash};
     use super::errors;
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
+    component!(path: upgradeable_cpt, storage: upgradeable, event: UpgradeableEvent);
     component!(path: config_cpt, storage: config, event: ConfigEvent);
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
     component!(path: state_cpt, storage: state, event: StateEvent);
@@ -63,6 +68,8 @@ mod appchain {
         #[substorage(v0)]
         ownable: ownable_cpt::Storage,
         #[substorage(v0)]
+        upgradeable: upgradeable_cpt::Storage,
+        #[substorage(v0)]
         config: config_cpt::Storage,
         #[substorage(v0)]
         messaging: messaging_cpt::Storage,
@@ -77,6 +84,8 @@ mod appchain {
     enum Event {
         #[flat]
         OwnableEvent: ownable_cpt::Event,
+        #[flat]
+        UpgradeableEvent: upgradeable_cpt::Event,
         #[flat]
         ConfigEvent: config_cpt::Event,
         #[flat]
@@ -195,6 +204,17 @@ mod appchain {
                         block_hash: self.state.block_hash.read(),
                     }
                 );
+        }
+    }
+
+    #[abi(embed_v0)]
+    impl UpgradeableImpl of IUpgradeable<ContractState> {
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            // This function can only be called by the owner
+            self.ownable.assert_only_owner();
+
+            // Replace the class hash upgrading the contract
+            self.upgradeable._upgrade(new_class_hash);
         }
     }
 }
