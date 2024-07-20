@@ -190,7 +190,9 @@ fn sn_to_appchain_messages_ok() {
     snf::start_prank(CheatTarget::One(mock.contract_address), from);
 
     // Calculate the message_hash
-    let message_hash = hash::compute_message_hash_sn_to_appc(nonce: 1, to_address: to, :selector, payload: payload.span());
+    let message_hash = hash::compute_message_hash_sn_to_appc(
+        nonce: 1, to_address: to, :selector, payload: payload.span()
+    );
     let is_pending_before = mock.sn_to_appchain_messages(message_hash);
     assert(is_pending_before == 0, 'Should not be pending before');
 
