@@ -30,15 +30,15 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
-    use piltover::mocks::{
-        IFactRegistryMockDispatcher, IFactRegistryMockDispatcherTrait
-    }; // To change when Herodotus finishes implementing FactRegistry.
+    use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
     use piltover::snos_output::ProgramOutput;
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
+    use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
     use starknet::ContractAddress;
     use super::errors;
+
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
@@ -124,16 +124,23 @@ mod appchain {
     impl Appchain of IAppchain<ContractState> {
         fn update_state(
             ref self: ContractState,
-            program_output: Span<felt252>,
+            mut program_output: Span<felt252>,
             onchain_data_hash: felt252,
             onchain_data_size: u256
         ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
+            let output_hash = poseidon_hash_span(program_output);
+
+            // Cairo 1 program padds the output with len and 0.
+            // Passing it here to keep compatibility with the fact calculation.
+            let _ = program_output.pop_front();
+            let _ = program_output.pop_front();
+
             // Header size + 2 messages segments len.
             assert(
-                program_output.len() > snos_output::HEADER_SIZE + 2,
+                program_output.len() >= snos_output::HEADER_SIZE + 2,
                 errors::SNOS_INVALID_PROGRAM_OUTPUT_SIZE
             );
 
@@ -157,12 +164,11 @@ mod appchain {
                 errors::SNOS_INVALID_CONFIG_HASH
             );
 
-            let sharp_fact: u256 = keccak::keccak_u256s_be_inputs(
-                array![current_program_hash.into(), state_transition_fact].span()
-            );
+            let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
+
             assert(
-                IFactRegistryMockDispatcher { contract_address: self.config.get_facts_registry() }
-                    .is_valid(sharp_fact),
+                IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
+                    .is_valid(fact),
                 errors::NO_STATE_TRANSITION_PROOF
             );
 

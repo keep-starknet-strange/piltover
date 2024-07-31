@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2023_10"
 
 [dependencies]
-snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.16.0" }
-starknet = "2.5.3"
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.26.0" }
+starknet = ">=2.6.3"
 openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v0.9.0" }
 
 [scripts]
@@ -17,4 +17,3 @@ sierra = true
 
 [tool.fmt]
 sort-module-level-items = true
-
