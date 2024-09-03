@@ -8,6 +8,7 @@ use piltover::messaging::{
         Event, MessageSent, MessageCancellationStarted, MessageCanceled, MessageToStarknetReceived,
         MessageToAppchainSealed,
     },
+    types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus},
     output_process::{MessageToStarknet, MessageToAppchain}, hash, output_process,
 };
 use snforge_std as snf;
@@ -194,14 +195,20 @@ fn sn_to_appchain_messages_ok() {
         nonce: 1, to_address: to, :selector, payload: payload.span()
     );
     let is_pending_before = mock.sn_to_appchain_messages(message_hash);
-    assert(is_pending_before == 0, 'Should not be pending before');
+    assert(
+        is_pending_before == MessageToAppchainStatus::SealedOrNotSent,
+        'Should not be pending before'
+    );
 
     snf::start_prank(CheatTarget::One(from), from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // Ensure the message is pending to consume
     let is_pending_after = mock.sn_to_appchain_messages(message_hash);
-    assert(is_pending_after == 1, 'message not registered/pending');
+    assert(
+        is_pending_after == MessageToAppchainStatus::Pending(nonce),
+        'message not registered/pending'
+    );
 
     let expected_event = MessageSent {
         message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
@@ -460,14 +467,14 @@ fn appchain_to_sn_messages_ok() {
 
     let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
 
-    let count_before = mock.appchain_to_sn_messages(message_hash);
-    assert(count_before == 0, 'message already present');
+    let previous_status = mock.appchain_to_sn_messages(message_hash);
+    assert(previous_status == MessageToStarknetStatus::NothingToConsume, 'message already present');
 
     mock.process_messages_to_starknet(messages);
 
     // Ensure that message is available to consume 
     let count_after = mock.appchain_to_sn_messages(message_hash);
-    assert(count_after == 1, 'message not be present');
+    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not be present');
 }
 
 #[test]
