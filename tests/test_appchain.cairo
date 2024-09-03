@@ -1,3 +1,4 @@
+use core::result::ResultTrait;
 use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact};
 use piltover::config::{IConfig, IConfigDispatcherTrait, IConfigDispatcher};
 use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
@@ -10,18 +11,16 @@ use piltover::mocks::{
 }; // To change when Herodotus finishes implementing FactRegistry.
 use piltover::snos_output::ProgramOutput;
 use snforge_std as snf;
-use snforge_std::{
-    CheatTarget, ContractClassTrait, SpyOn, EventSpy, cheatcodes::events::EventAssertions,
-};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
 use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
 
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare("appchain");
+    let contract = snf::declare("appchain").unwrap();
     let calldata = array![owner, 0, 0, 0];
-    let contract_address = contract.deploy(@calldata).unwrap();
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
-    let mut spy = snf::spy_events(SpyOn::One(contract_address));
+    let mut spy = snf::spy_events();
 
     (IAppchainDispatcher { contract_address }, spy)
 }
@@ -30,19 +29,19 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 fn deploy_with_owner_and_state(
     owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare("appchain");
+    let contract = snf::declare("appchain").unwrap();
     let calldata = array![owner, state_root, block_number, block_hash];
-    let contract_address = contract.deploy(@calldata).unwrap();
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
-    let mut spy = snf::spy_events(SpyOn::One(contract_address));
+    let mut spy = snf::spy_events();
 
     (IAppchainDispatcher { contract_address }, spy)
 }
 
 /// Deploys the fact registry mock contract.
 fn deploy_fact_registry_mock() -> IFactRegistryMockDispatcher {
-    let contract = snf::declare("fact_registry_mock");
-    let contract_address = contract.deploy(@array![]).unwrap();
+    let contract = snf::declare("fact_registry_mock").unwrap();
+    let (contract_address, _) = contract.deploy(@array![]).unwrap();
     IFactRegistryMockDispatcher { contract_address }
 }
 
@@ -123,7 +122,7 @@ fn appchain_owner_ok() {
 
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
 
-    snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
+    snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
     iconfig.set_program_info(0x11, 0x22);
 }
 
@@ -169,7 +168,7 @@ fn update_state_ok() {
     ]
         .span();
 
-    snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
+    snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
     iconfig
         .set_program_info(
             program_hash: 0x11,
@@ -184,7 +183,7 @@ fn update_state_ok() {
         appchain.contract_address, selector!("sn_to_appc_nonce"), array![1629170 - 1].span()
     );
 
-    snf::start_prank(CheatTarget::One(appchain.contract_address), contract_sn);
+    snf::start_cheat_caller_address(appchain.contract_address, contract_sn);
     imsg.send_message_to_appchain(contract_appc, selector_appc, payload_sn_to_appc);
 
     // Updating the state will register the message to starknet ready to be consumed
@@ -192,7 +191,7 @@ fn update_state_ok() {
     let output = get_state_update();
     let onchain_data_hash = 0x0;
     let onchain_data_size: u256 = 0;
-    snf::start_prank(CheatTarget::One(appchain.contract_address), c::OWNER());
+    snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
     appchain.update_state(output, onchain_data_hash, onchain_data_size);
 
     let expected_log_state_update = LogStateUpdate {
@@ -216,6 +215,6 @@ fn update_state_ok() {
             ]
         );
 
-    snf::start_prank(CheatTarget::One(appchain.contract_address), contract_sn);
+    snf::start_cheat_caller_address(appchain.contract_address, contract_sn);
     imsg.consume_message_from_appchain(contract_appc, payload_appc_to_sn);
 }
