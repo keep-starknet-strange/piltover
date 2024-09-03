@@ -210,10 +210,7 @@ mod appchain {
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
-            // This function can only be called by the owner
             self.ownable.assert_only_owner();
-
-            // Replace the class hash upgrading the contract
             self.upgradeable._upgrade(new_class_hash);
         }
     }
