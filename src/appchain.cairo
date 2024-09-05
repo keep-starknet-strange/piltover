@@ -17,13 +17,13 @@ mod appchain {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
-    use openzeppelin::upgrades::{
-        UpgradeableComponent as upgradeable_cpt,
-        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable
-    };
     use openzeppelin::security::reentrancyguard::{
         ReentrancyGuardComponent,
         ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl
+    };
+    use openzeppelin::upgrades::{
+        UpgradeableComponent as upgradeable_cpt,
+        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable
     };
     use piltover::components::onchain_data_fact_tree_encoder::{
         encode_fact_with_onchain_data, DataAvailabilityFact
