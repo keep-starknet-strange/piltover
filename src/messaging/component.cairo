@@ -201,11 +201,11 @@ mod messaging_cpt {
         fn appchain_to_sn_messages(
             self: @ComponentState<TContractState>, message_hash: MessageHash
         ) -> MessageToStarknetStatus {
-            let nonce = self.appc_to_sn_messages.read(message_hash);
-            if (nonce == 0) {
+            let message_count = self.appc_to_sn_messages.read(message_hash);
+            if (message_count == 0) {
                 return MessageToStarknetStatus::NothingToConsume;
             }
-            return MessageToStarknetStatus::ReadyToConsume(nonce);
+            return MessageToStarknetStatus::ReadyToConsume(message_count);
         }
 
         fn consume_message_from_appchain(
