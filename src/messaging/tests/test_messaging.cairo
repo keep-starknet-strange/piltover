@@ -1,3 +1,4 @@
+use core::array::ArrayTrait;
 use core::zeroable::Zeroable;
 use openzeppelin::tests::utils::constants as c;
 use piltover::messaging::{
@@ -7,6 +8,7 @@ use piltover::messaging::{
         Event, MessageSent, MessageCancellationStarted, MessageCanceled, MessageToStarknetReceived,
         MessageToAppchainSealed,
     },
+    types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus},
     output_process::{MessageToStarknet, MessageToAppchain}, hash, output_process,
 };
 use snforge_std as snf;
@@ -169,6 +171,44 @@ fn send_message_ok() {
 
     assert(message_hash.is_non_zero(), 'invalid message hash');
     assert(nonce == 1, 'invalid nonce');
+
+    let expected_event = MessageSent {
+        message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
+    };
+
+    spy.assert_emitted(@array![(mock.contract_address, Event::MessageSent(expected_event))]);
+}
+
+#[test]
+fn sn_to_appchain_messages_ok() {
+    let (mock, mut spy) = deploy_mock();
+
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
+    let selector = selector!("func1");
+    let payload = array![1, 2, 3];
+
+    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+
+    // Calculate the message_hash
+    let message_hash = hash::compute_message_hash_sn_to_appc(
+        nonce: 1, to_address: to, :selector, payload: payload.span()
+    );
+    let is_pending_before = mock.sn_to_appchain_messages(message_hash);
+    assert(
+        is_pending_before == MessageToAppchainStatus::SealedOrNotSent,
+        'Should not be pending before'
+    );
+
+    snf::start_prank(CheatTarget::One(from), from);
+    let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
+
+    // Ensure the message is pending to consume
+    let is_pending_after = mock.sn_to_appchain_messages(message_hash);
+    assert(
+        is_pending_after == MessageToAppchainStatus::Pending(nonce),
+        'message not registered/pending'
+    );
 
     let expected_event = MessageSent {
         message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
@@ -412,6 +452,29 @@ fn consume_message_from_appchain_ok() {
     // Ensure the caller address inside the mock function is correctly set.
     snf::start_prank(CheatTarget::One(to), to);
     mock.consume_message_from_appchain(from, payload);
+}
+
+#[test]
+fn appchain_to_sn_messages_ok() {
+    let mut mock = mock_state_testing();
+
+    let from = c::SPENDER();
+    let to = starknet::get_contract_address();
+    let payload = array![1, 2, 3].span();
+
+    let messages = array![MessageToStarknet { from_address: from, to_address: to, payload, }]
+        .span();
+
+    let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
+
+    let previous_status = mock.appchain_to_sn_messages(message_hash);
+    assert(previous_status == MessageToStarknetStatus::NothingToConsume, 'message already present');
+
+    mock.process_messages_to_starknet(messages);
+
+    // Ensure that message is available to consume 
+    let count_after = mock.appchain_to_sn_messages(message_hash);
+    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not be present');
 }
 
 #[test]
