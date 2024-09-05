@@ -48,12 +48,10 @@ mod messaging_cpt {
     };
     use piltover::messaging::{
         hash, interface::IMessaging, output_process::{MessageToStarknet, MessageToAppchain},
+        types::{MessageToAppchainStatus, MessageToStarknetStatus, MessageHash, Nonce}
     };
     use starknet::ContractAddress;
     use super::errors;
-
-    type MessageHash = felt252;
-    type Nonce = felt252;
 
     #[storage]
     struct Storage {
@@ -187,6 +185,27 @@ mod messaging_cpt {
 
             self.sn_to_appc_messages.write(message_hash, nonce);
             (message_hash, nonce)
+        }
+
+        fn sn_to_appchain_messages(
+            self: @ComponentState<TContractState>, message_hash: MessageHash
+        ) -> MessageToAppchainStatus {
+            let nonce = self.sn_to_appc_messages.read(message_hash);
+            if nonce == 0 {
+                return MessageToAppchainStatus::SealedOrNotSent;
+            }
+            return MessageToAppchainStatus::Pending(nonce);
+        }
+
+
+        fn appchain_to_sn_messages(
+            self: @ComponentState<TContractState>, message_hash: MessageHash
+        ) -> MessageToStarknetStatus {
+            let message_count = self.appc_to_sn_messages.read(message_hash);
+            if (message_count == 0) {
+                return MessageToStarknetStatus::NothingToConsume;
+            }
+            return MessageToStarknetStatus::ReadyToConsume(message_count);
         }
 
         fn consume_message_from_appchain(
