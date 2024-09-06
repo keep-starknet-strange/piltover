@@ -168,20 +168,14 @@ mod messaging_cpt {
             let nonce = self.sn_to_appc_nonce.read() + 1;
             self.sn_to_appc_nonce.write(nonce);
 
+            let from = starknet::get_caller_address();
             let message_hash = hash::compute_message_hash_sn_to_appc(
-                nonce, to_address, selector, payload
+                from, to_address, selector, payload, nonce
             );
 
             self
                 .emit(
-                    MessageSent {
-                        message_hash,
-                        from: starknet::get_caller_address(),
-                        to: to_address,
-                        selector,
-                        nonce,
-                        payload,
-                    }
+                    MessageSent { message_hash, from, to: to_address, selector, nonce, payload, }
                 );
 
             self.sn_to_appc_messages.write(message_hash, nonce);
@@ -244,7 +238,7 @@ mod messaging_cpt {
             let from = starknet::get_caller_address();
 
             let message_hash = hash::compute_message_hash_sn_to_appc(
-                nonce, to_address, selector, payload
+                from, to_address, selector, payload, nonce
             );
 
             assert(
@@ -273,7 +267,7 @@ mod messaging_cpt {
             let from = starknet::get_caller_address();
 
             let message_hash = hash::compute_message_hash_sn_to_appc(
-                nonce, to_address, selector, payload
+                from, to_address, selector, payload, nonce
             );
 
             assert(
@@ -366,7 +360,7 @@ mod messaging_cpt {
                         let nonce = *m.nonce;
 
                         let message_hash = hash::compute_message_hash_sn_to_appc(
-                            nonce, to, selector, payload
+                            from, to, selector, payload, nonce
                         );
                         assert(
                             self.sn_to_appc_messages.read(message_hash).is_non_zero(),
