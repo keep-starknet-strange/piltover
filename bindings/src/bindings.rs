@@ -630,10 +630,7 @@ cairo_serde :: CairoSerde for Upgraded
         cairo_serialized_size(& class_hash); Ok(Upgraded { class_hash })
     }
 } #[derive(Debug, PartialEq, Eq, Clone, Copy,)] pub enum Event
-{
-    OwnershipTransferred(OwnershipTransferred),
-    OwnershipTransferStarted(OwnershipTransferStarted)
-} impl cainome :: cairo_serde :: CairoSerde for Event
+{ Upgraded(Upgraded) } impl cainome :: cairo_serde :: CairoSerde for Event
 {
     type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
     usize > = std :: option :: Option :: None; #[inline] fn
@@ -641,28 +638,19 @@ cairo_serde :: CairoSerde for Upgraded
     {
         match __rust
         {
-            Event :: OwnershipTransferred(val) => OwnershipTransferred ::
-            cairo_serialized_size(val) + 1, Event ::
-            OwnershipTransferStarted(val) => OwnershipTransferStarted ::
-            cairo_serialized_size(val) + 1, _ => 0
+            Event :: Upgraded(val) => Upgraded :: cairo_serialized_size(val) +
+            1, _ => 0
         }
     } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
     core :: types :: Felt >
     {
         match __rust
         {
-            Event :: OwnershipTransferred(val) =>
+            Event :: Upgraded(val) =>
             {
                 let mut temp = vec! [];
                 temp.extend(usize :: cairo_serialize(& 0usize));
-                temp.extend(OwnershipTransferred :: cairo_serialize(val));
-                temp
-            }, Event :: OwnershipTransferStarted(val) =>
-            {
-                let mut temp = vec! [];
-                temp.extend(usize :: cairo_serialize(& 1usize));
-                temp.extend(OwnershipTransferStarted :: cairo_serialize(val));
-                temp
+                temp.extend(Upgraded :: cairo_serialize(val)); temp
             }, _ => vec! []
         }
     } fn
@@ -675,11 +663,8 @@ cairo_serde :: CairoSerde for Upgraded
         {
             0usize =>
             Ok(Event ::
-            OwnershipTransferred(OwnershipTransferred ::
-            cairo_deserialize(__felts, __offset + 1) ?)), 1usize =>
-            Ok(Event ::
-            OwnershipTransferStarted(OwnershipTransferStarted ::
-            cairo_deserialize(__felts, __offset + 1) ?)), _ => return
+            Upgraded(Upgraded :: cairo_deserialize(__felts, __offset + 1) ?)),
+            _ => return
             Err(cainome :: cairo_serde :: Error ::
             Deserialize(format! ("Index not handle for enum {}", "Event")))
         }
@@ -693,166 +678,20 @@ cairo_serde :: CairoSerde for Upgraded
         use cainome :: cairo_serde :: CairoSerde; if event.keys.is_empty()
         { return Err("Event has no key".to_string()); } let selector =
         event.keys [0]; if selector == starknet :: core :: utils ::
-        get_selector_from_name("OwnershipTransferred").unwrap_or_else(| _ |
-        panic! ("Invalid selector for {}", "OwnershipTransferred"))
+        get_selector_from_name("Upgraded").unwrap_or_else(| _ | panic!
+        ("Invalid selector for {}", "Upgraded"))
         {
             let mut key_offset = 0 + 1; let mut data_offset = 0; let
-            previous_owner = match cainome :: cairo_serde :: ContractAddress
-            :: cairo_deserialize(& event.keys, key_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "previous_owner", "OwnershipTransferred", e)),
-            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& previous_owner); let new_owner = match
-            cainome :: cairo_serde :: ContractAddress ::
-            cairo_deserialize(& event.keys, key_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}", "new_owner",
-                "OwnershipTransferred", e)),
-            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& new_owner); return
-            Ok(Event ::
-            OwnershipTransferred(OwnershipTransferred
-            { previous_owner, new_owner }))
-        }; let selector = event.keys [0]; if selector == starknet :: core ::
-        utils ::
-        get_selector_from_name("OwnershipTransferStarted").unwrap_or_else(| _
-        | panic! ("Invalid selector for {}", "OwnershipTransferStarted"))
-        {
-            let mut key_offset = 0 + 1; let mut data_offset = 0; let
-            previous_owner = match cainome :: cairo_serde :: ContractAddress
-            :: cairo_deserialize(& event.keys, key_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "previous_owner", "OwnershipTransferStarted", e)),
-            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& previous_owner); let new_owner = match
-            cainome :: cairo_serde :: ContractAddress ::
-            cairo_deserialize(& event.keys, key_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}", "new_owner",
-                "OwnershipTransferStarted", e)),
-            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& new_owner); return
-            Ok(Event ::
-            OwnershipTransferStarted(OwnershipTransferStarted
-            { previous_owner, new_owner }))
-        };
-        Err(format! ("Could not match any event from keys {:?}", event.keys))
-    }
-} #[derive(Debug, PartialEq, Eq, Clone, Copy,)] pub enum Event
-{ ProgramInfoChanged(ProgramInfoChanged) } impl cainome :: cairo_serde ::
-CairoSerde for Event
-{
-    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
-    usize > = std :: option :: Option :: None; #[inline] fn
-    cairo_serialized_size(__rust : & Self :: RustType) -> usize
-    {
-        match __rust
-        {
-            Event :: ProgramInfoChanged(val) => ProgramInfoChanged ::
-            cairo_serialized_size(val) + 1, _ => 0
-        }
-    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
-    core :: types :: Felt >
-    {
-        match __rust
-        {
-            Event :: ProgramInfoChanged(val) =>
-            {
-                let mut temp = vec! [];
-                temp.extend(usize :: cairo_serialize(& 0usize));
-                temp.extend(ProgramInfoChanged :: cairo_serialize(val)); temp
-            }, _ => vec! []
-        }
-    } fn
-    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
-    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
-    {
-        let __f = __felts [__offset]; let __index = u128 ::
-        from_be_bytes(__f.to_bytes_be() [16 ..].try_into().unwrap()); match
-        __index as usize
-        {
-            0usize =>
-            Ok(Event ::
-            ProgramInfoChanged(ProgramInfoChanged ::
-            cairo_deserialize(__felts, __offset + 1) ?)), _ => return
-            Err(cainome :: cairo_serde :: Error ::
-            Deserialize(format! ("Index not handle for enum {}", "Event")))
-        }
-    }
-} impl TryFrom < starknet :: core :: types :: EmittedEvent > for Event
-{
-    type Error = String; fn
-    try_from(event : starknet :: core :: types :: EmittedEvent) -> Result <
-    Self, Self :: Error >
-    {
-        use cainome :: cairo_serde :: CairoSerde; if event.keys.is_empty()
-        { return Err("Event has no key".to_string()); } let selector =
-        event.keys [0]; if selector == starknet :: core :: utils ::
-        get_selector_from_name("ProgramInfoChanged").unwrap_or_else(| _ |
-        panic! ("Invalid selector for {}", "ProgramInfoChanged"))
-        {
-            let mut key_offset = 0 + 1; let mut data_offset = 0; let
-            changed_by = match cainome :: cairo_serde :: ContractAddress ::
+            class_hash = match cainome :: cairo_serde :: ClassHash ::
             cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
-                ("Could not deserialize field {} for {}: {:?}", "changed_by",
-                "ProgramInfoChanged", e)),
-            }; data_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& changed_by); let old_program_hash = match
-            starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "old_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_program_hash); let new_program_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "new_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_program_hash); let old_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "old_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_config_hash); let new_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "new_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_config_hash); return
-            Ok(Event ::
-            ProgramInfoChanged(ProgramInfoChanged
-            {
-                changed_by, old_program_hash, new_program_hash,
-                old_config_hash, new_config_hash
-            }))
+                ("Could not deserialize field {} for {}: {:?}", "class_hash",
+                "Upgraded", e)),
+            }; data_offset += cainome :: cairo_serde :: ClassHash ::
+            cairo_serialized_size(& class_hash); return
+            Ok(Event :: Upgraded(Upgraded { class_hash }))
         };
         Err(format! ("Could not match any event from keys {:?}", event.keys))
     }
@@ -1507,6 +1346,233 @@ CairoSerde for Event
         Err(format! ("Could not match any event from keys {:?}", event.keys))
     }
 } #[derive(Debug, PartialEq, Eq, Clone, Copy,)] pub enum Event
+{ ProgramInfoChanged(ProgramInfoChanged) } impl cainome :: cairo_serde ::
+CairoSerde for Event
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = std :: option :: Option :: None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        match __rust
+        {
+            Event :: ProgramInfoChanged(val) => ProgramInfoChanged ::
+            cairo_serialized_size(val) + 1, _ => 0
+        }
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        match __rust
+        {
+            Event :: ProgramInfoChanged(val) =>
+            {
+                let mut temp = vec! [];
+                temp.extend(usize :: cairo_serialize(& 0usize));
+                temp.extend(ProgramInfoChanged :: cairo_serialize(val)); temp
+            }, _ => vec! []
+        }
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let __f = __felts [__offset]; let __index = u128 ::
+        from_be_bytes(__f.to_bytes_be() [16 ..].try_into().unwrap()); match
+        __index as usize
+        {
+            0usize =>
+            Ok(Event ::
+            ProgramInfoChanged(ProgramInfoChanged ::
+            cairo_deserialize(__felts, __offset + 1) ?)), _ => return
+            Err(cainome :: cairo_serde :: Error ::
+            Deserialize(format! ("Index not handle for enum {}", "Event")))
+        }
+    }
+} impl TryFrom < starknet :: core :: types :: EmittedEvent > for Event
+{
+    type Error = String; fn
+    try_from(event : starknet :: core :: types :: EmittedEvent) -> Result <
+    Self, Self :: Error >
+    {
+        use cainome :: cairo_serde :: CairoSerde; if event.keys.is_empty()
+        { return Err("Event has no key".to_string()); } let selector =
+        event.keys [0]; if selector == starknet :: core :: utils ::
+        get_selector_from_name("ProgramInfoChanged").unwrap_or_else(| _ |
+        panic! ("Invalid selector for {}", "ProgramInfoChanged"))
+        {
+            let mut key_offset = 0 + 1; let mut data_offset = 0; let
+            changed_by = match cainome :: cairo_serde :: ContractAddress ::
+            cairo_deserialize(& event.data, data_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}", "changed_by",
+                "ProgramInfoChanged", e)),
+            }; data_offset += cainome :: cairo_serde :: ContractAddress ::
+            cairo_serialized_size(& changed_by); let old_program_hash = match
+            starknet :: core :: types :: Felt ::
+            cairo_deserialize(& event.data, data_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}",
+                "old_program_hash", "ProgramInfoChanged", e)),
+            }; data_offset += starknet :: core :: types :: Felt ::
+            cairo_serialized_size(& old_program_hash); let new_program_hash =
+            match starknet :: core :: types :: Felt ::
+            cairo_deserialize(& event.data, data_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}",
+                "new_program_hash", "ProgramInfoChanged", e)),
+            }; data_offset += starknet :: core :: types :: Felt ::
+            cairo_serialized_size(& new_program_hash); let old_config_hash =
+            match starknet :: core :: types :: Felt ::
+            cairo_deserialize(& event.data, data_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}",
+                "old_config_hash", "ProgramInfoChanged", e)),
+            }; data_offset += starknet :: core :: types :: Felt ::
+            cairo_serialized_size(& old_config_hash); let new_config_hash =
+            match starknet :: core :: types :: Felt ::
+            cairo_deserialize(& event.data, data_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}",
+                "new_config_hash", "ProgramInfoChanged", e)),
+            }; data_offset += starknet :: core :: types :: Felt ::
+            cairo_serialized_size(& new_config_hash); return
+            Ok(Event ::
+            ProgramInfoChanged(ProgramInfoChanged
+            {
+                changed_by, old_program_hash, new_program_hash,
+                old_config_hash, new_config_hash
+            }))
+        };
+        Err(format! ("Could not match any event from keys {:?}", event.keys))
+    }
+} #[derive(Debug, PartialEq, Eq, Clone, Copy,)] pub enum Event
+{
+    OwnershipTransferred(OwnershipTransferred),
+    OwnershipTransferStarted(OwnershipTransferStarted)
+} impl cainome :: cairo_serde :: CairoSerde for Event
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = std :: option :: Option :: None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        match __rust
+        {
+            Event :: OwnershipTransferred(val) => OwnershipTransferred ::
+            cairo_serialized_size(val) + 1, Event ::
+            OwnershipTransferStarted(val) => OwnershipTransferStarted ::
+            cairo_serialized_size(val) + 1, _ => 0
+        }
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        match __rust
+        {
+            Event :: OwnershipTransferred(val) =>
+            {
+                let mut temp = vec! [];
+                temp.extend(usize :: cairo_serialize(& 0usize));
+                temp.extend(OwnershipTransferred :: cairo_serialize(val));
+                temp
+            }, Event :: OwnershipTransferStarted(val) =>
+            {
+                let mut temp = vec! [];
+                temp.extend(usize :: cairo_serialize(& 1usize));
+                temp.extend(OwnershipTransferStarted :: cairo_serialize(val));
+                temp
+            }, _ => vec! []
+        }
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let __f = __felts [__offset]; let __index = u128 ::
+        from_be_bytes(__f.to_bytes_be() [16 ..].try_into().unwrap()); match
+        __index as usize
+        {
+            0usize =>
+            Ok(Event ::
+            OwnershipTransferred(OwnershipTransferred ::
+            cairo_deserialize(__felts, __offset + 1) ?)), 1usize =>
+            Ok(Event ::
+            OwnershipTransferStarted(OwnershipTransferStarted ::
+            cairo_deserialize(__felts, __offset + 1) ?)), _ => return
+            Err(cainome :: cairo_serde :: Error ::
+            Deserialize(format! ("Index not handle for enum {}", "Event")))
+        }
+    }
+} impl TryFrom < starknet :: core :: types :: EmittedEvent > for Event
+{
+    type Error = String; fn
+    try_from(event : starknet :: core :: types :: EmittedEvent) -> Result <
+    Self, Self :: Error >
+    {
+        use cainome :: cairo_serde :: CairoSerde; if event.keys.is_empty()
+        { return Err("Event has no key".to_string()); } let selector =
+        event.keys [0]; if selector == starknet :: core :: utils ::
+        get_selector_from_name("OwnershipTransferred").unwrap_or_else(| _ |
+        panic! ("Invalid selector for {}", "OwnershipTransferred"))
+        {
+            let mut key_offset = 0 + 1; let mut data_offset = 0; let
+            previous_owner = match cainome :: cairo_serde :: ContractAddress
+            :: cairo_deserialize(& event.keys, key_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}",
+                "previous_owner", "OwnershipTransferred", e)),
+            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
+            cairo_serialized_size(& previous_owner); let new_owner = match
+            cainome :: cairo_serde :: ContractAddress ::
+            cairo_deserialize(& event.keys, key_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}", "new_owner",
+                "OwnershipTransferred", e)),
+            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
+            cairo_serialized_size(& new_owner); return
+            Ok(Event ::
+            OwnershipTransferred(OwnershipTransferred
+            { previous_owner, new_owner }))
+        }; let selector = event.keys [0]; if selector == starknet :: core ::
+        utils ::
+        get_selector_from_name("OwnershipTransferStarted").unwrap_or_else(| _
+        | panic! ("Invalid selector for {}", "OwnershipTransferStarted"))
+        {
+            let mut key_offset = 0 + 1; let mut data_offset = 0; let
+            previous_owner = match cainome :: cairo_serde :: ContractAddress
+            :: cairo_deserialize(& event.keys, key_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}",
+                "previous_owner", "OwnershipTransferStarted", e)),
+            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
+            cairo_serialized_size(& previous_owner); let new_owner = match
+            cainome :: cairo_serde :: ContractAddress ::
+            cairo_deserialize(& event.keys, key_offset)
+            {
+                Ok(v) => v, Err(e) => return
+                Err(format!
+                ("Could not deserialize field {} for {}: {:?}", "new_owner",
+                "OwnershipTransferStarted", e)),
+            }; key_offset += cainome :: cairo_serde :: ContractAddress ::
+            cairo_serialized_size(& new_owner); return
+            Ok(Event ::
+            OwnershipTransferStarted(OwnershipTransferStarted
+            { previous_owner, new_owner }))
+        };
+        Err(format! ("Could not match any event from keys {:?}", event.keys))
+    }
+} #[derive(Debug, PartialEq, Eq, Clone, Copy,)] pub enum Event
 {
     MessageSent(MessageSent), MessageConsumed(MessageConsumed),
     MessageCancellationStarted(MessageCancellationStarted),
@@ -1948,72 +2014,6 @@ CairoSerde for Event
             Ok(Event ::
             MessageToAppchainSealed(MessageToAppchainSealed
             { message_hash, from, to, selector, nonce, payload }))
-        };
-        Err(format! ("Could not match any event from keys {:?}", event.keys))
-    }
-} #[derive(Debug, PartialEq, Eq, Clone, Copy,)] pub enum Event
-{ Upgraded(Upgraded) } impl cainome :: cairo_serde :: CairoSerde for Event
-{
-    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
-    usize > = std :: option :: Option :: None; #[inline] fn
-    cairo_serialized_size(__rust : & Self :: RustType) -> usize
-    {
-        match __rust
-        {
-            Event :: Upgraded(val) => Upgraded :: cairo_serialized_size(val) +
-            1, _ => 0
-        }
-    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
-    core :: types :: Felt >
-    {
-        match __rust
-        {
-            Event :: Upgraded(val) =>
-            {
-                let mut temp = vec! [];
-                temp.extend(usize :: cairo_serialize(& 0usize));
-                temp.extend(Upgraded :: cairo_serialize(val)); temp
-            }, _ => vec! []
-        }
-    } fn
-    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
-    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
-    {
-        let __f = __felts [__offset]; let __index = u128 ::
-        from_be_bytes(__f.to_bytes_be() [16 ..].try_into().unwrap()); match
-        __index as usize
-        {
-            0usize =>
-            Ok(Event ::
-            Upgraded(Upgraded :: cairo_deserialize(__felts, __offset + 1) ?)),
-            _ => return
-            Err(cainome :: cairo_serde :: Error ::
-            Deserialize(format! ("Index not handle for enum {}", "Event")))
-        }
-    }
-} impl TryFrom < starknet :: core :: types :: EmittedEvent > for Event
-{
-    type Error = String; fn
-    try_from(event : starknet :: core :: types :: EmittedEvent) -> Result <
-    Self, Self :: Error >
-    {
-        use cainome :: cairo_serde :: CairoSerde; if event.keys.is_empty()
-        { return Err("Event has no key".to_string()); } let selector =
-        event.keys [0]; if selector == starknet :: core :: utils ::
-        get_selector_from_name("Upgraded").unwrap_or_else(| _ | panic!
-        ("Invalid selector for {}", "Upgraded"))
-        {
-            let mut key_offset = 0 + 1; let mut data_offset = 0; let
-            class_hash = match cainome :: cairo_serde :: ClassHash ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}", "class_hash",
-                "Upgraded", e)),
-            }; data_offset += cainome :: cairo_serde :: ClassHash ::
-            cairo_serialized_size(& class_hash); return
-            Ok(Event :: Upgraded(Upgraded { class_hash }))
         };
         Err(format! ("Could not match any event from keys {:?}", event.keys))
     }

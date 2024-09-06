@@ -31,7 +31,7 @@ mod messaging {
     use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
     use mock::messaging_mock;
 
-    #[cfg(test)]
+    #[cfg(target: "test")]
     mod tests {
         mod constants;
         mod test_messaging;
@@ -47,7 +47,7 @@ mod state {
     use interface::{IState, IStateDispatcher, IStateDispatcherTrait};
     use mock::state_mock;
 
-    #[cfg(test)]
+    #[cfg(target: "test")]
     mod tests {
         mod test_state;
     }

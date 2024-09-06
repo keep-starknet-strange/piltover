@@ -11,12 +11,16 @@ use piltover::mocks::{
 }; // To change when Herodotus finishes implementing FactRegistry.
 use piltover::snos_output::ProgramOutput;
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
-use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait, DeclareResult};
+use starknet::ContractAddress;
 
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare("appchain").unwrap();
+    let contract = match snf::declare("appchain").unwrap() {
+        DeclareResult::Success(contract) => contract,
+        DeclareResult::AlreadyDeclared(contract) => contract,
+    };
+
     let calldata = array![owner, 0, 0, 0];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -29,7 +33,11 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 fn deploy_with_owner_and_state(
     owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare("appchain").unwrap();
+    let contract = match snf::declare("appchain").unwrap() {
+        DeclareResult::Success(contract) => contract,
+        DeclareResult::AlreadyDeclared(contract) => contract,
+    };
+
     let calldata = array![owner, state_root, block_number, block_hash];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -40,7 +48,11 @@ fn deploy_with_owner_and_state(
 
 /// Deploys the fact registry mock contract.
 fn deploy_fact_registry_mock() -> IFactRegistryMockDispatcher {
-    let contract = snf::declare("fact_registry_mock").unwrap();
+    let contract = match snf::declare("fact_registry_mock").unwrap() {
+        DeclareResult::Success(contract) => contract,
+        DeclareResult::AlreadyDeclared(contract) => contract,
+    };
+
     let (contract_address, _) = contract.deploy(@array![]).unwrap();
     IFactRegistryMockDispatcher { contract_address }
 }

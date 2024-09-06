@@ -15,7 +15,8 @@ trait IMessaging<T> {
     /// # Arguments
     ///
     /// * `to_address` - Contract address to send the message to on the Appchain.
-    /// * `selector` - The `l1_handler` function selector of the contract on the Appchain to execute.
+    /// * `selector` - The `l1_handler` function selector of the contract on the Appchain to
+    /// execute.
     /// * `payload` - The message payload.
     ///
     /// # Returns
@@ -42,28 +43,29 @@ trait IMessaging<T> {
     ) -> MessageHash;
 
     /// Checks the status of message sent to the Appchain from Starknet
-    /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L39> 
-    /// 
+    /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L39>
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `message_hash` - The hash of the message that was sent to the Appchain.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Returns the Nonce used for the message with the given `msgHash`,
     ///  or 0 if no message with such a hash is pending.
     fn sn_to_appchain_messages(self: @T, message_hash: felt252) -> MessageToAppchainStatus;
 
     /// Checks the status of message sent to the Starknet from the Appchain
-    /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L43> 
-    /// 
+    /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L43>
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `message_hash` - The hash of the message that was sent to Starknet.
-    /// 
+    ///
     /// # Returns
-    /// 
-    /// Returns the count of messages with given `msg_hash` that are pending to be consumed on starknet, otherwise 0 
+    ///
+    /// Returns the count of messages with given `msg_hash` that are pending to be consumed on
+    /// starknet, otherwise 0
     fn appchain_to_sn_messages(self: @T, message_hash: felt252) -> MessageToStarknetStatus;
 
     /// Starts the cancellation procedure for a message sent from
@@ -76,7 +78,8 @@ trait IMessaging<T> {
     /// # Arguments
     ///
     /// * `to_address` - Contract address to send the message to on the Appchain.
-    /// * `selector` - The `l1_handler` function selector of the contract on the Appchain to execute.
+    /// * `selector` - The `l1_handler` function selector of the contract on the Appchain to
+    /// execute.
     /// * `payload` - The message's payload.
     /// * `nonce` - The message's nonce.
     ///
@@ -98,7 +101,8 @@ trait IMessaging<T> {
     /// # Arguments
     ///
     /// * `to_address` - Contract address to send the message to on the Appchain.
-    /// * `selector` - The `l1_handler` function selector of the contract on the Appchain to execute.
+    /// * `selector` - The `l1_handler` function selector of the contract on the Appchain to
+    /// execute.
     /// * `payload` - The message's payload.
     /// * `nonce` - The message's nonce.
     ///

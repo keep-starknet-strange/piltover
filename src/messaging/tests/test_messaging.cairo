@@ -12,12 +12,16 @@ use piltover::messaging::{
     output_process::{MessageToStarknet, MessageToAppchain}, hash, output_process,
 };
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
-use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait, DeclareResult};
+use starknet::ContractAddress;
 
 /// Deploys the mock with a specific cancellation delay.
 fn deploy_mock_with_delay(cancellation_delay_secs: u64) -> (IMessagingDispatcher, EventSpy) {
-    let contract = snf::declare("messaging_mock").unwrap();
+    let contract = match snf::declare("messaging_mock").unwrap() {
+        DeclareResult::Success(contract) => contract,
+        DeclareResult::AlreadyDeclared(contract) => contract,
+    };
+
     let calldata = array![cancellation_delay_secs.into()];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -470,7 +474,7 @@ fn appchain_to_sn_messages_ok() {
 
     mock.process_messages_to_starknet(messages);
 
-    // Ensure that message is available to consume 
+    // Ensure that message is available to consume
     let count_after = mock.appchain_to_sn_messages(message_hash);
     assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not be present');
 }

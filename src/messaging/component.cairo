@@ -51,6 +51,7 @@ mod messaging_cpt {
         types::{MessageToAppchainStatus, MessageToStarknetStatus, MessageHash, Nonce}
     };
     use starknet::ContractAddress;
+    use starknet::storage::Map;
     use super::errors;
 
     #[storage]
@@ -58,14 +59,14 @@ mod messaging_cpt {
         /// Cancellation delay in seconds for message from Starknet to Appchain.
         cancellation_delay_secs: u64,
         /// Ledger of messages from Starknet to Appchain that are being cancelled.
-        sn_to_appc_cancellations: LegacyMap::<MessageHash, u64>,
+        sn_to_appc_cancellations: Map::<MessageHash, u64>,
         /// The nonce for messages sent to the Appchain from Starknet.
         sn_to_appc_nonce: Nonce,
         /// Ledger of messages hashes sent from Starknet to the appchain.
-        sn_to_appc_messages: LegacyMap::<MessageHash, Nonce>,
+        sn_to_appc_messages: Map::<MessageHash, Nonce>,
         /// Ledger of messages hashes registered from the Appchain and a refcount
         /// associated to it to control messages consumption.
-        appc_to_sn_messages: LegacyMap::<MessageHash, felt252>,
+        appc_to_sn_messages: Map::<MessageHash, felt252>,
     }
 
     #[event]
