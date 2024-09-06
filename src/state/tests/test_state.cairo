@@ -4,17 +4,13 @@ use piltover::state::{
     IStateDispatcherTrait, state_mock,
 };
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, DeclareResult};
+use snforge_std::ContractClassTrait;
 
 /// Deploys the mock with a specific state.
 fn deploy_mock_with_state(
     state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> IStateDispatcher {
-    let contract = match snf::declare("state_mock").unwrap() {
-        DeclareResult::Success(contract) => contract,
-        DeclareResult::AlreadyDeclared(contract) => contract,
-    };
-
+    let contract = snf::declare("state_mock").unwrap();
     let calldata = array![state_root, block_number, block_hash];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
     IStateDispatcher { contract_address }

@@ -73,6 +73,14 @@ version = "0.16.0"
 source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.16.0#ba00ce76a93dcf25c081ab2698da20690b5a1cfb"
 
 [[package]]
+name = "openzeppelin_testing"
+version = "0.16.0"
+source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.16.0#ba00ce76a93dcf25c081ab2698da20690b5a1cfb"
+dependencies = [
+ "snforge_std",
+]
+
+[[package]]
 name = "openzeppelin_token"
 version = "0.16.0"
 source = "git+https://github.com/OpenZeppelin/cairo-contracts.git?tag=v0.16.0#ba00ce76a93dcf25c081ab2698da20690b5a1cfb"
@@ -97,18 +105,11 @@ name = "piltover"
 version = "0.1.0"
 dependencies = [
  "openzeppelin",
+ "openzeppelin_testing",
  "snforge_std",
 ]
 
 [[package]]
-name = "snforge_scarb_plugin"
-version = "0.1.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.30.0#196f06b251926697c3d66800f2a93ae595e76496"
-
-[[package]]
 name = "snforge_std"
-version = "0.30.0"
-source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.30.0#196f06b251926697c3d66800f2a93ae595e76496"
-dependencies = [
- "snforge_scarb_plugin",
-]
+version = "0.27.0"
+source = "git+https://github.com/foundry-rs/starknet-foundry?tag=v0.27.0#2d99b7c00678ef0363881ee0273550c44a9263de"

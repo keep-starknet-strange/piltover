@@ -1,6 +1,6 @@
 use core::array::ArrayTrait;
 use core::zeroable::Zeroable;
-use piltover::messaging::tests::constants as c;
+use openzeppelin_testing::constants as c;
 use piltover::messaging::{
     messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
     IMessagingDispatcherTrait, IMessagingDispatcher, messaging_mock,
@@ -12,16 +12,12 @@ use piltover::messaging::{
     output_process::{MessageToStarknet, MessageToAppchain}, hash, output_process,
 };
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait, DeclareResult};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
 use starknet::ContractAddress;
 
 /// Deploys the mock with a specific cancellation delay.
 fn deploy_mock_with_delay(cancellation_delay_secs: u64) -> (IMessagingDispatcher, EventSpy) {
-    let contract = match snf::declare("messaging_mock").unwrap() {
-        DeclareResult::Success(contract) => contract,
-        DeclareResult::AlreadyDeclared(contract) => contract,
-    };
-
+    let contract = snf::declare("messaging_mock").unwrap();
     let calldata = array![cancellation_delay_secs.into()];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 

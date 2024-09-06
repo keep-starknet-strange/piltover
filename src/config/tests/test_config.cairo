@@ -1,18 +1,14 @@
+use openzeppelin_testing::constants as c;
 use piltover::config::{
     config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig, IConfigDispatcherTrait,
     IConfigDispatcher, config_mock
 };
-use piltover::messaging::tests::constants as c;
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, DeclareResult};
+use snforge_std::ContractClassTrait;
 use starknet::ContractAddress;
 
 fn deploy_mock() -> IConfigDispatcher {
-    let contract = match snf::declare("config_mock").unwrap() {
-        DeclareResult::Success(contract) => contract,
-        DeclareResult::AlreadyDeclared(contract) => contract,
-    };
-
+    let contract = snf::declare("config_mock").unwrap();
     let calldata = array![c::OWNER().into()];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
     IConfigDispatcher { contract_address }

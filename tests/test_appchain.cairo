@@ -1,26 +1,22 @@
 use core::result::ResultTrait;
+//! Appchain testing.
+//!
+use openzeppelin_testing::constants as c;
 use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact};
 use piltover::config::{IConfig, IConfigDispatcherTrait, IConfigDispatcher};
 use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
-//! Appchain testing.
-//!
-use piltover::messaging::tests::constants as c;
 use piltover::messaging::{IMessaging, IMessagingDispatcherTrait, IMessagingDispatcher};
 use piltover::mocks::{
     fact_registry_mock, IFactRegistryMockDispatcher, IFactRegistryMockDispatcherTrait
 }; // To change when Herodotus finishes implementing FactRegistry.
 use piltover::snos_output::ProgramOutput;
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait, DeclareResult};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
 use starknet::ContractAddress;
 
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
-    let contract = match snf::declare("appchain").unwrap() {
-        DeclareResult::Success(contract) => contract,
-        DeclareResult::AlreadyDeclared(contract) => contract,
-    };
-
+    let contract = snf::declare("appchain").unwrap();
     let calldata = array![owner, 0, 0, 0];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -33,11 +29,7 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 fn deploy_with_owner_and_state(
     owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
-    let contract = match snf::declare("appchain").unwrap() {
-        DeclareResult::Success(contract) => contract,
-        DeclareResult::AlreadyDeclared(contract) => contract,
-    };
-
+    let contract = snf::declare("appchain").unwrap();
     let calldata = array![owner, state_root, block_number, block_hash];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -48,11 +40,7 @@ fn deploy_with_owner_and_state(
 
 /// Deploys the fact registry mock contract.
 fn deploy_fact_registry_mock() -> IFactRegistryMockDispatcher {
-    let contract = match snf::declare("fact_registry_mock").unwrap() {
-        DeclareResult::Success(contract) => contract,
-        DeclareResult::AlreadyDeclared(contract) => contract,
-    };
-
+    let contract = snf::declare("fact_registry_mock").unwrap();
     let (contract_address, _) = contract.deploy(@array![]).unwrap();
     IFactRegistryMockDispatcher { contract_address }
 }
