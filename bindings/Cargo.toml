@@ -6,5 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cainome = { git = "https://github.com/cartridge-gg/cainome", tag = "v0.1.10", features = ["abigen-rs"] }
-
+cainome = { git = "https://github.com/cartridge-gg/cainome", rev = "v0.4.0", features = ["abigen-rs"] }

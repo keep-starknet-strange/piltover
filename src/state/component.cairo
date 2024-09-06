@@ -38,7 +38,8 @@ mod state_cpt {
             let mut program_output = program_output;
             let program_output: ProgramOutput = Serde::deserialize(ref program_output).unwrap();
 
-            // Check the blockNumber first as the error is less ambiguous then INVALID_PREVIOUS_ROOT.
+            // Check the blockNumber first as the error is less ambiguous then
+            // INVALID_PREVIOUS_ROOT.
             self.block_number.write(self.block_number.read() + 1);
             assert(
                 self.block_number.read() == program_output.block_number,

@@ -5,7 +5,8 @@ struct DataAvailabilityFact {
 }
 
 /// Encodes a GPS fact Merkle tree where the root has two children.
-/// The left child contains the data we care about and the right child contains on-chain data for the fact.
+/// The left child contains the data we care about and the right child contains on-chain data for
+/// the fact.
 ///
 /// # Arguments
 ///

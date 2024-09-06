@@ -1,6 +1,6 @@
 use core::array::ArrayTrait;
 use core::zeroable::Zeroable;
-use openzeppelin::tests::utils::constants as c;
+use openzeppelin_testing::constants as c;
 use piltover::messaging::{
     messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
     IMessagingDispatcherTrait, IMessagingDispatcher, messaging_mock,
@@ -12,18 +12,16 @@ use piltover::messaging::{
     output_process::{MessageToStarknet, MessageToAppchain}, hash, output_process,
 };
 use snforge_std as snf;
-use snforge_std::{
-    CheatTarget, ContractClassTrait, SpyOn, EventSpy, cheatcodes::events::EventAssertions,
-};
-use starknet::{ContractAddress, storage::StorageMemberAccessTrait};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
+use starknet::ContractAddress;
 
 /// Deploys the mock with a specific cancellation delay.
 fn deploy_mock_with_delay(cancellation_delay_secs: u64) -> (IMessagingDispatcher, EventSpy) {
-    let contract = snf::declare('messaging_mock');
+    let contract = snf::declare("messaging_mock").unwrap();
     let calldata = array![cancellation_delay_secs.into()];
-    let contract_address = contract.deploy(@calldata).unwrap();
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
-    let mut spy = snf::spy_events(SpyOn::One(contract_address));
+    let mut spy = snf::spy_events();
 
     (IMessagingDispatcher { contract_address }, spy)
 }
@@ -166,7 +164,7 @@ fn send_message_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    snf::start_cheat_caller_address(mock.contract_address, from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     assert(message_hash.is_non_zero(), 'invalid message hash');
@@ -188,7 +186,7 @@ fn sn_to_appchain_messages_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    snf::start_cheat_caller_address(mock.contract_address, from);
 
     // Calculate the message_hash
     let message_hash = hash::compute_message_hash_sn_to_appc(
@@ -200,7 +198,7 @@ fn sn_to_appchain_messages_ok() {
         'Should not be pending before'
     );
 
-    snf::start_prank(CheatTarget::One(from), from);
+    snf::start_cheat_caller_address(from, from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // Ensure the message is pending to consume
@@ -226,7 +224,7 @@ fn start_cancellation_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    snf::start_cheat_caller_address(mock.contract_address, from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
@@ -285,15 +283,15 @@ fn cancel_message_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    snf::start_cheat_caller_address(mock.contract_address, from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // The block timestamp must not be 0 for the protocol to be valid.
     // This can't happen on-chain, but here it must be explicitely set greater than 0.
-    snf::start_warp(CheatTarget::One(mock.contract_address), 1);
+    snf::start_cheat_block_timestamp(mock.contract_address, 1);
     mock.start_message_cancellation(to, selector, payload.span(), nonce);
 
-    snf::start_warp(CheatTarget::One(mock.contract_address), delay_secs + 10);
+    snf::start_cheat_block_timestamp(mock.contract_address, delay_secs + 10);
     let message_hash_cancel = mock.cancel_message(to, selector, payload.span(), nonce);
     assert(message_hash_cancel == message_hash, 'invalid message hash');
 
@@ -343,12 +341,12 @@ fn cancel_message_cancellation_not_requested() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    snf::start_cheat_caller_address(mock.contract_address, from);
     let (_message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     // Don't start the cancellation.
 
-    snf::start_warp(CheatTarget::One(mock.contract_address), delay_secs + 10);
+    snf::start_cheat_block_timestamp(mock.contract_address, delay_secs + 10);
     mock.cancel_message(to, selector, payload.span(), nonce);
 }
 
@@ -363,13 +361,13 @@ fn cancel_message_cancellation_not_allowed_yet() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(mock.contract_address), from);
+    snf::start_cheat_caller_address(mock.contract_address, from);
     let (_message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
-    snf::start_warp(CheatTarget::One(mock.contract_address), 1);
+    snf::start_cheat_block_timestamp(mock.contract_address, 1);
     mock.start_message_cancellation(to, selector, payload.span(), nonce);
 
-    snf::start_warp(CheatTarget::One(mock.contract_address), 5);
+    snf::start_cheat_block_timestamp(mock.contract_address, 5);
     mock.cancel_message(to, selector, payload.span(), nonce);
 }
 
@@ -407,7 +405,7 @@ fn process_messages_to_appchain_ok() {
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
 
-    snf::start_prank(CheatTarget::One(starknet::get_contract_address()), from);
+    snf::start_cheat_caller_address(starknet::get_contract_address(), from);
     let (_message_hash, _nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let m = MessageToAppchain {
@@ -450,7 +448,7 @@ fn consume_message_from_appchain_ok() {
     mock.process_messages_to_starknet(messages);
 
     // Ensure the caller address inside the mock function is correctly set.
-    snf::start_prank(CheatTarget::One(to), to);
+    snf::start_cheat_caller_address(to, to);
     mock.consume_message_from_appchain(from, payload);
 }
 
@@ -472,7 +470,7 @@ fn appchain_to_sn_messages_ok() {
 
     mock.process_messages_to_starknet(messages);
 
-    // Ensure that message is available to consume 
+    // Ensure that message is available to consume
     let count_after = mock.appchain_to_sn_messages(message_hash);
     assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not be present');
 }
@@ -489,6 +487,6 @@ fn consume_message_from_appchain_invalid_to_consume() {
     // Don't process the messages to starknet.
 
     // Ensure the caller address inside the mock function is correctly set.
-    snf::start_prank(CheatTarget::One(to), to);
+    snf::start_cheat_caller_address(to, to);
     mock.consume_message_from_appchain(from, payload);
 }

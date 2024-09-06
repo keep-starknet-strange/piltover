@@ -21,12 +21,13 @@ mod config_cpt {
     };
     use piltover::config::interface::IConfig;
     use starknet::ContractAddress;
+    use starknet::storage::Map;
     use super::errors;
 
     #[storage]
     struct Storage {
         /// Appchain operators that are allowed to update the state.
-        operators: LegacyMap<ContractAddress, bool>,
+        operators: Map<ContractAddress, bool>,
         /// Program info (StarknetOS), with program hash and config hash.
         program_info: (felt252, felt252),
         /// Facts registry contract address.
