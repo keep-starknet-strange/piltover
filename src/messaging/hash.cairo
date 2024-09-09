@@ -9,11 +9,12 @@ use starknet::ContractAddress;
 ///
 /// # Arguments
 ///
-/// * `nonce` - Nonce of the message.
+/// * `from_address` - Contract address of the message sender on the Appchain.
 /// * `to_address` - Contract address to send the message to on the Appchain.
 /// * `selector` - The `l1_handler` function selector of the contract on the Appchain
 ///                to execute.
 /// * `payload` - The message payload.
+/// * `nonce` - Nonce of the message.
 ///
 /// # Returns
 ///
