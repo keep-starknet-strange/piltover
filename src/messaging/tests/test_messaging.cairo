@@ -190,7 +190,7 @@ fn sn_to_appchain_messages_ok() {
 
     // Calculate the message_hash
     let message_hash = hash::compute_message_hash_sn_to_appc(
-        nonce: 1, to_address: to, :selector, payload: payload.span()
+        from_address: from, to_address: to, :selector, payload: payload.span(), nonce: 1
     );
     let is_pending_before = mock.sn_to_appchain_messages(message_hash);
     assert(
@@ -413,7 +413,7 @@ fn process_messages_to_appchain_ok() {
     };
 
     let _message_hash = hash::compute_message_hash_sn_to_appc(
-        m.nonce, m.to_address, m.selector, m.payload
+        m.from_address, m.to_address, m.selector, m.payload, m.nonce
     );
 
     let messages = array![m].span();
