@@ -7,7 +7,7 @@ use piltover::messaging::types::{
 use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IMessaging<T> {
+pub trait IMessaging<T> {
     /// Sends a message to the Appchain from Starknet.
     ///
     /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L110>.

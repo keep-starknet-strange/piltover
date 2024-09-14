@@ -3,7 +3,7 @@
 //! Base configuration for appchain contract.
 
 /// Errors.
-mod errors {
+pub mod errors {
     const INVALID_CALLER: felt252 = 'Config: not owner or operator';
     const ALREADY_REGISTERED: felt252 = 'Config: already operator';
     const NOT_OPERATOR: felt252 = 'Config: not operator';
@@ -14,7 +14,7 @@ mod errors {
 /// Depends on `ownable` to ensure the configuration is
 /// only editable by contract's owner.
 #[starknet::component]
-mod config_cpt {
+pub mod config_cpt {
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable,
@@ -25,7 +25,7 @@ mod config_cpt {
     use super::errors;
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         /// Appchain operators that are allowed to update the state.
         operators: Map<ContractAddress, bool>,
         /// Program info (StarknetOS), with program hash and config hash.
@@ -36,12 +36,12 @@ mod config_cpt {
 
     #[event]
     #[derive(Copy, Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         ProgramInfoChanged: ProgramInfoChanged,
     }
 
     #[derive(Copy, Drop, starknet::Event)]
-    struct ProgramInfoChanged {
+    pub struct ProgramInfoChanged {
         changed_by: ContractAddress,
         old_program_hash: felt252,
         new_program_hash: felt252,
@@ -50,7 +50,7 @@ mod config_cpt {
     }
 
     #[embeddable_as(ConfigImpl)]
-    impl Config<
+    pub impl Config<
         TContractState,
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>
@@ -104,7 +104,7 @@ mod config_cpt {
     }
 
     #[generate_trait]
-    impl InternalImpl<
+    pub impl InternalImpl<
         TContractState,
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>,

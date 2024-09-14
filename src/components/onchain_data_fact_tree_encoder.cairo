@@ -1,5 +1,5 @@
 #[derive(Copy, Drop, Serde)]
-struct DataAvailabilityFact {
+pub struct DataAvailabilityFact {
     onchain_data_hash: felt252,
     onchain_data_size: u256,
 }
@@ -16,7 +16,7 @@ struct DataAvailabilityFact {
 /// # Returns
 ///
 /// * The hash of the fact Merkle tree.
-fn encode_fact_with_onchain_data(
+pub fn encode_fact_with_onchain_data(
     program_output: Span<felt252>, fact_data: DataAvailabilityFact
 ) -> u256 {
     // The state transition fact is computed as a Merkle tree.
@@ -55,7 +55,7 @@ fn encode_fact_with_onchain_data(
 /// # Returns
 ///
 /// * The hash of the main public input.
-fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
+pub fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
     let mut keccak_input: Array<u256> = ArrayTrait::new();
     let mut i = 0;
     loop {

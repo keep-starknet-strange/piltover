@@ -4,7 +4,7 @@
 use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IAppchain<T> {
+pub trait IAppchain<T> {
     /// Updates the state of the Appchain on Starknet,
     /// based on a proof of the StarknetOS that the state transition
     /// is valid.
