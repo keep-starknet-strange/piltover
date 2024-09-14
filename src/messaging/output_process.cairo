@@ -14,7 +14,7 @@ use starknet::ContractAddress;
 
 /// Message to Starknet.
 #[derive(Drop, Serde)]
-struct MessageToStarknet {
+pub struct MessageToStarknet {
     /// Appchain contract address sending the message.
     from_address: ContractAddress,
     /// Starknet contract address receiving the message.
@@ -25,7 +25,7 @@ struct MessageToStarknet {
 
 /// Message to Appchain.
 #[derive(Drop, Serde)]
-struct MessageToAppchain {
+pub struct MessageToAppchain {
     /// Starknet address sending the message.
     from_address: ContractAddress,
     /// Appchain address receiving the message.
@@ -50,7 +50,7 @@ struct MessageToAppchain {
 ///
 /// A tuple with the messages to Starknet and messages to Appchain
 /// deserialized.
-fn gather_messages_from_output(
+pub fn gather_messages_from_output(
     output_messages: Span<felt252>
 ) -> (Span<MessageToStarknet>, Span<MessageToAppchain>) {
     let mut messages_to_starknet = array![];

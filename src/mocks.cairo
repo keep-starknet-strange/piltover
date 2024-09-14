@@ -5,12 +5,12 @@
 /// A fact registry mock to be used while Herodotus completes its implementation.
 /// see : https://github.com/HerodotusDev/cairo-verifier/blob/keccak-fact-registry/
 #[starknet::interface]
-trait IFactRegistryMock<TContractState> {
+pub trait IFactRegistryMock<TContractState> {
     fn is_valid(self: @TContractState, fact: u256) -> bool;
 }
 
 #[starknet::contract]
-mod fact_registry_mock {
+pub mod fact_registry_mock {
     #[storage]
     struct Storage {}
 

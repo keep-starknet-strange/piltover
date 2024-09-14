@@ -25,7 +25,7 @@
 //! asymmetric as the Starknet - Ethereum messaging.
 
 /// Errors.
-mod errors {
+pub mod errors {
     const INVALID_NONCE: felt252 = 'INVALID_NONCE';
     const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
     const INVALID_MESSAGE_TO_SEAL: felt252 = 'INVALID_MESSAGE_TO_SEAL';
@@ -40,7 +40,7 @@ mod errors {
 /// Depends on `ownable` to ensure the configuration is
 /// only editable by contract's owner.
 #[starknet::component]
-mod messaging_cpt {
+pub mod messaging_cpt {
     use core::zeroable::Zeroable;
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
@@ -55,7 +55,7 @@ mod messaging_cpt {
     use super::errors;
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         /// Cancellation delay in seconds for message from Starknet to Appchain.
         cancellation_delay_secs: u64,
         /// Ledger of messages from Starknet to Appchain that are being cancelled.
@@ -71,7 +71,7 @@ mod messaging_cpt {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         MessageSent: MessageSent,
         MessageConsumed: MessageConsumed,
         MessageCancellationStarted: MessageCancellationStarted,
@@ -81,7 +81,7 @@ mod messaging_cpt {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageSent {
+    pub struct MessageSent {
         #[key]
         message_hash: MessageHash,
         #[key]
@@ -94,7 +94,7 @@ mod messaging_cpt {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageConsumed {
+    pub struct MessageConsumed {
         #[key]
         message_hash: MessageHash,
         #[key]
@@ -105,20 +105,7 @@ mod messaging_cpt {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageCancellationStarted {
-        #[key]
-        message_hash: MessageHash,
-        #[key]
-        from: ContractAddress,
-        #[key]
-        to: ContractAddress,
-        selector: felt252,
-        payload: Span<felt252>,
-        nonce: Nonce,
-    }
-
-    #[derive(Drop, starknet::Event)]
-    struct MessageCanceled {
+    pub struct MessageCancellationStarted {
         #[key]
         message_hash: MessageHash,
         #[key]
@@ -131,7 +118,20 @@ mod messaging_cpt {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageToStarknetReceived {
+    pub struct MessageCanceled {
+        #[key]
+        message_hash: MessageHash,
+        #[key]
+        from: ContractAddress,
+        #[key]
+        to: ContractAddress,
+        selector: felt252,
+        payload: Span<felt252>,
+        nonce: Nonce,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct MessageToStarknetReceived {
         #[key]
         message_hash: MessageHash,
         #[key]
@@ -142,7 +142,7 @@ mod messaging_cpt {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageToAppchainSealed {
+    pub struct MessageToAppchainSealed {
         #[key]
         message_hash: MessageHash,
         #[key]
@@ -155,7 +155,7 @@ mod messaging_cpt {
     }
 
     #[embeddable_as(MessagingImpl)]
-    impl Messaging<
+    pub impl Messaging<
         TContractState, +HasComponent<TContractState>
     > of IMessaging<ComponentState<TContractState>> {
         fn send_message_to_appchain(
@@ -297,7 +297,7 @@ mod messaging_cpt {
     }
 
     #[generate_trait]
-    impl InternalImpl<
+    pub impl InternalImpl<
         TContractState, +HasComponent<TContractState>
     > of InternalTrait<TContractState> {
         /// Initializes the messaging component.
