@@ -34,13 +34,12 @@ mod appchain {
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
         output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
-    use piltover::mocks::{
-        IFactRegistryMockDispatcher, IFactRegistryMockDispatcherTrait
-    }; // To change when Herodotus finishes implementing FactRegistry.
-    use piltover::snos_output::ProgramOutput;
+    use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
+    use piltover::snos_output::StarknetOsOutput;
     use piltover::snos_output;
     use piltover::state::component::state_cpt::HasComponent;
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
+    use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
     use starknet::{ContractAddress, ClassHash};
     use super::errors;
 
@@ -77,6 +76,8 @@ mod appchain {
         reentrancy_guard: ReentrancyGuardComponent::Storage,
         #[substorage(v0)]
         state: state_cpt::Storage,
+        messages_to_appchain: Array<felt252>,
+        messages_to_starknet: Array<felt252>,
     }
 
     #[event]
@@ -139,6 +140,7 @@ mod appchain {
         ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
+            let output_hash = poseidon_hash_span(program_output);
 
             // Header size + 2 messages segments len.
             assert(
@@ -158,20 +160,19 @@ mod appchain {
                 program_output, data_availability_fact
             );
 
-            let mut program_output_mut = program_output;
-            let program_output_struct: ProgramOutput = Serde::deserialize(ref program_output_mut)
+            let mut stripped_output = program_output.slice(1, program_output.len() / 2);
+            let program_output_struct: StarknetOsOutput = Serde::deserialize(ref stripped_output)
                 .unwrap();
             assert(
-                program_output_struct.config_hash == current_config_hash,
+                program_output_struct.os_program_hash == current_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH
             );
 
-            let sharp_fact: u256 = keccak::keccak_u256s_be_inputs(
-                array![current_program_hash.into(), state_transition_fact].span()
-            );
+            let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
+
             assert(
-                IFactRegistryMockDispatcher { contract_address: self.config.get_facts_registry() }
-                    .is_valid(sharp_fact),
+                IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
+                    .is_valid(fact),
                 errors::NO_STATE_TRANSITION_PROOF
             );
 
@@ -180,20 +181,27 @@ mod appchain {
             // Perform state update
             self.state.update(program_output);
 
-            let mut offset = snos_output::HEADER_SIZE;
-
             // TODO(#7): We should update SNOS output to have the messages count
             // instead of the messages segment len.
+            let mut starknet_segment = program_output_struct.messages_to_l1.span();
+            
+            if starknet_segment.is_empty() {
+                starknet_segment = [0].span();
+            }
+            let messages_to_starknet = Serde::<Array<MessageToStarknet>>::deserialize(ref starknet_segment)
+                .expect('bad format message sn');
 
-            let mut messages_segments = program_output.slice(offset, program_output.len() - offset);
+            let mut appchain_segment = program_output_struct.messages_to_l2.span();
+            if appchain_segment.is_empty() {
+                appchain_segment = [0].span();
+            }
+            let messages_to_appchain = Serde::<
+                Array<MessageToAppchain>
+            >::deserialize(ref appchain_segment)
+                .expect('bad format message sn');
 
-            let (messages_to_starknet, messages_to_appchain) =
-                output_process::gather_messages_from_output(
-                messages_segments
-            );
-
-            self.messaging.process_messages_to_starknet(messages_to_starknet);
-            self.messaging.process_messages_to_appchain(messages_to_appchain);
+            self.messaging.process_messages_to_starknet(messages_to_starknet.span());
+            self.messaging.process_messages_to_appchain(messages_to_appchain.span());
             self.reentrancy_guard.end();
 
             self

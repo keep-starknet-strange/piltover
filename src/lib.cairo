@@ -1,6 +1,6 @@
 mod appchain;
 mod interface;
-mod mocks;
+mod fact_registry;
 mod snos_output;
 
 // Components
