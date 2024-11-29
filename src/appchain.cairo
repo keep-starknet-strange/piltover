@@ -42,6 +42,8 @@ mod appchain {
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
     use starknet::{ContractAddress, ClassHash};
     use super::errors;
+    use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
+    use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
@@ -133,6 +135,7 @@ mod appchain {
         fn update_state(
             ref self: ContractState,
             snos_output: Array<felt252>,
+            snos_output: Array<felt252>,
             program_output: Span<felt252>,
             onchain_data_hash: felt252,
             onchain_data_size: u256
@@ -161,6 +164,7 @@ mod appchain {
                 program_output, data_availability_fact
             );
 
+            
             assert(
                 program_output_struct.starknet_os_config_hash == current_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH

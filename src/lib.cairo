@@ -1,11 +1,8 @@
 mod appchain;
-// Since this contract is used for e2e testing, it must be built as appchain.cairo.
-// We should evaluate the use of Scarb profile to conditionally compile the appchain_test contract.
-mod appchain_test;
-
-mod fact_registry;
 mod interface;
+mod fact_registry;
 mod snos_output;
+mod mocks;
 // Components
 mod config {
     mod component;
