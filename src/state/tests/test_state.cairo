@@ -3,6 +3,7 @@ use piltover::state::{
     state_cpt, state_cpt::InternalTrait as StateInternal, IState, IStateDispatcher,
     IStateDispatcherTrait, state_mock,
 };
+use piltover::snos_output::StarknetOsOutput;
 use snforge_std as snf;
 use snforge_std::ContractClassTrait;
 
@@ -19,67 +20,83 @@ fn deploy_mock_with_state(
 #[test]
 fn state_update_ok() {
     let mock = deploy_mock_with_state(
-        state_root: 'state_root', block_number: 1, block_hash: 'block_hash_1',
+        state_root: 1, block_number: 1, block_hash: 1,
     );
-
-    let mut valid_state_update = array![
-        'state_root',
-        'new_state_root',
-        2,
-        'block_hash_2',
-        'config_hash', // Header.
-        0, // appc to sn messages segment.
-        0, // sn to appc messages segment.
-    ]
-        .span();
-
-    mock.update(valid_state_update);
+    let os_output = StarknetOsOutput{
+        initial_root: 1,
+        final_root: 2,
+        prev_block_number: 1,
+        new_block_number: 2,
+        prev_block_hash: 1,
+        new_block_hash: 2,
+        os_program_hash: 1,
+        starknet_os_config_hash: 1,
+        use_kzg_da: 0,
+        full_output: 0,
+        messages_to_l1: array![],
+        messages_to_l2: array![],
+        contracts: array![],
+        classes: array![],
+    };
+    mock.update(os_output);
 
     let (state_root, block_number, block_hash) = mock.get_state();
 
-    assert(state_root == 'new_state_root', 'invalid state root');
+    assert(state_root == 2, 'invalid state root');
     assert(block_number == 2, 'invalid block number');
-    assert(block_hash == 'block_hash_2', 'invalid block hash');
+    assert(block_hash == 2, 'invalid block hash');
 }
 
 #[test]
 #[should_panic(expected: ('State: invalid block number',))]
 fn state_update_invalid_block_number() {
     let mock = deploy_mock_with_state(
-        state_root: 'state_root', block_number: 1, block_hash: 'block_hash_1',
+        state_root: 1, block_number: 1, block_hash: 1,
     );
 
-    let mut invalid_state_update = array![
-        'state_root',
-        'new_state_root',
-        99999,
-        'block_hash_2',
-        'config_hash', // Header.
-        0, // appc to sn messages segment.
-        0, // sn to appc messages segment.
-    ]
-        .span();
+    let os_output = StarknetOsOutput{
+        initial_root: 1,
+        final_root: 2,
+        prev_block_number: 1,
+        new_block_number:'invalid_block_number',
+        prev_block_hash: 1,
+        new_block_hash: 2,
+        os_program_hash: 1,
+        starknet_os_config_hash: 1,
+        use_kzg_da: 0,
+        full_output: 0,
+        messages_to_l1: array![],
+        messages_to_l2: array![],
+        contracts: array![],
+        classes: array![],
+    };
 
-    mock.update(invalid_state_update);
+    mock.update(os_output);
 }
 
 #[test]
 #[should_panic(expected: ('State: invalid previous root',))]
 fn state_update_invalid_previous_root() {
     let mock = deploy_mock_with_state(
-        state_root: 'state_root', block_number: 1, block_hash: 'block_hash_1',
+        state_root: 1, block_number: 1, block_hash: 1,
     );
 
-    let mut invalid_state_update = array![
-        'invalid_state_root',
-        'new_state_root',
-        2,
-        'block_hash_2',
-        'config_hash', // Header.
-        0, // appc to sn messages segment.
-        0, // sn to appc messages segment.
-    ]
-        .span();
+    let invalid_state_update = StarknetOsOutput{
+        initial_root: 'invalid_previous_root',
+        final_root: 2,
+        prev_block_number: 1,
+        new_block_number: 2,
+        prev_block_hash: 1,
+        new_block_hash: 2,
+        os_program_hash: 1,
+        starknet_os_config_hash: 1,
+        use_kzg_da: 0,
+        full_output: 0,
+        messages_to_l1: array![],
+        messages_to_l2: array![],
+        contracts: array![],
+        classes: array![],
+    };
 
     mock.update(invalid_state_update);
 }

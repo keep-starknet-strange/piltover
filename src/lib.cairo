@@ -1,8 +1,8 @@
 mod appchain;
 mod interface;
-mod mocks;
+mod fact_registry;
 mod snos_output;
-
+mod mocks;
 // Components
 mod config {
     mod component;
