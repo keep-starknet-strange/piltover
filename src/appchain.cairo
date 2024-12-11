@@ -14,7 +14,8 @@ mod errors {
 #[starknet::contract]
 mod appchain {
     use core::iter::IntoIterator;
-use openzeppelin::access::ownable::{
+    use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
+    use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable
     };
@@ -30,10 +31,10 @@ use openzeppelin::access::ownable::{
         encode_fact_with_onchain_data, DataAvailabilityFact
     };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
+    use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
     use piltover::interface::IAppchain;
     use piltover::messaging::{
         messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
-        output_process, output_process::{MessageToStarknet, MessageToAppchain},
     };
     use piltover::snos_output::StarknetOsOutput;
     use piltover::snos_output::deserialize_os_output;
@@ -41,8 +42,6 @@ use openzeppelin::access::ownable::{
     use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
     use starknet::{ContractAddress, ClassHash};
     use super::errors;
-    use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
-    use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
@@ -140,11 +139,11 @@ use openzeppelin::access::ownable::{
         ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
-            
+
             let snos_output_span = snos_output.span();
             let snos_output_hash = poseidon_hash_span(snos_output_span);
             let snos_output_hash_in_bridge_output = program_output.at(4);
-            assert!(snos_output_hash==*snos_output_hash_in_bridge_output);
+            assert!(snos_output_hash == *snos_output_hash_in_bridge_output);
             let output_hash = poseidon_hash_span(program_output);
 
             let mut snos_output_iter = snos_output.into_iter();
@@ -162,20 +161,29 @@ use openzeppelin::access::ownable::{
                 program_output, data_availability_fact
             );
 
-            
             assert(
-                program_output_struct.os_program_hash == current_config_hash,
+                program_output_struct.starknet_os_config_hash == current_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH
             );
 
             let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
-            assert!(*IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
-            .get_all_verifications_for_fact_hash(fact).at(0).security_bits>50);
+            assert!(
+                *IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
+                    .get_all_verifications_for_fact_hash(fact)
+                    .at(0)
+                    .security_bits > 50
+            );
 
             self.emit(LogStateTransitionFact { state_transition_fact });
 
+            let messages_to_l1 = program_output_struct.messages_to_l1;
+            let messages_to_l2 = program_output_struct.messages_to_l2;
+
             // Perform state update
             self.state.update(program_output_struct);
+
+            self.messaging.process_messages_to_starknet(messages_to_l1);
+            self.messaging.process_messages_to_appchain(messages_to_l2);
 
             self.reentrancy_guard.end();
 

@@ -46,3 +46,25 @@ impl ISmartProofDispatcherImpl of IFactRegistry<IFactRegistryContract> {
         )
     }
 }
+
+#[starknet::contract]
+mod fact_registry_mock {
+    #[storage]
+    struct Storage {}
+
+    #[abi(embed_v0)]
+    impl FactRegistryImplMock of super::IFactRegistry<ContractState> {
+        fn get_all_verifications_for_fact_hash(
+            self: @ContractState, fact: felt252
+        ) -> Array<super::VerificationListElement> {
+            let verification_list_element = super::VerificationListElement {
+                verification_hash: 1,
+                security_bits: 60,
+                verifier_config: super::VerifierConfiguration {
+                    layout: 1, hasher: 1, stone_version: 1, cairo_version: 1
+                }
+            };
+            array![verification_list_element]
+        }
+    }
+}

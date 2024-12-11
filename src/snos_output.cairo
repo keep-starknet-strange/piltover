@@ -1,9 +1,11 @@
 //! SNOS output related types and variables.
 //!
-use core::num::traits::Zero;
-use core::iter::Iterator;
-use core::iter::IntoIterator;
 use core::array::ArrayIter;
+use core::iter::IntoIterator;
+use core::iter::Iterator;
+use core::num::traits::Zero;
+use starknet::ContractAddress;
+use starknet::contract_address_try_from_felt252;
 /// Size of the header of the output of SNOS.
 const HEADER_SIZE: usize = 10;
 /// Size of the header of a message to Starknet, which is
@@ -38,11 +40,36 @@ struct StarknetOsOutput {
     starknet_os_config_hash: felt252,
     use_kzg_da: felt252,
     full_output: felt252,
-    messages_to_l1: Array<felt252>,
-    messages_to_l2: Array<felt252>,
+    messages_to_l1: Span<MessageToStarknet>,
+    messages_to_l2: Span<MessageToAppchain>,
     contracts: Array<ContractChanges>,
     classes: Array<(felt252, felt252)>,
 }
+
+#[derive(Drop, Serde, Debug)]
+struct MessageToStarknet {
+    /// Appchain contract address sending the message.
+    from_address: ContractAddress,
+    /// Starknet contract address receiving the message.
+    to_address: ContractAddress,
+    /// Payload of the message.
+    payload: Span<felt252>,
+}
+
+#[derive(Drop, Serde, Debug)]
+struct MessageToAppchain {
+    /// Starknet address sending the message.
+    from_address: ContractAddress,
+    /// Appchain address receiving the message.
+    to_address: ContractAddress,
+    /// Nonce.
+    nonce: felt252,
+    /// Function selector (with #[l1 handler] attribute).
+    selector: felt252,
+    /// Payload size.
+    payload: Span<felt252>,
+}
+
 #[derive(Drop, Serde, Debug)]
 struct ContractChanges {
     addr: felt252,
@@ -100,7 +127,9 @@ fn deserialize_os_output(ref input_iter: ArrayIter<felt252>) -> StarknetOsOutput
         classes,
     }
 }
-fn deserialize_messages(ref input_iter: ArrayIter<felt252>) -> (Array<felt252>, Array<felt252>) {
+pub fn deserialize_messages(
+    ref input_iter: ArrayIter<felt252>
+) -> (Span<MessageToStarknet>, Span<MessageToAppchain>) {
     let n_messages_to_l1: usize = input_iter
         .next()
         .unwrap()
@@ -112,8 +141,15 @@ fn deserialize_messages(ref input_iter: ArrayIter<felt252>) -> (Array<felt252>, 
         .unwrap()
         .try_into()
         .expect('Invalid n_messages_to_l2');
-    let messages_to_l2 = read_segment(ref input_iter, n_messages_to_l2);
-    (messages_to_l1, messages_to_l2)
+    let mut messages_to_l2 = read_segment(ref input_iter, n_messages_to_l2);
+
+    let mut iter_messages_to_l1 = messages_to_l1.into_iter();
+    let messages_to_l1 = deserialize_messages_to_l1(ref iter_messages_to_l1);
+
+    let mut iter_messages_to_l2 = messages_to_l2.into_iter();
+    let messages_to_l2 = deserialize_messages_to_l2(ref iter_messages_to_l2);
+
+    (messages_to_l1.span(), messages_to_l2.span())
 }
 fn deserialize_contract_state(
     ref input_iter: ArrayIter<felt252>, full_output: felt252
@@ -196,4 +232,43 @@ fn deserialize_contract_class_da_changes(
             contract_changes.append((class_hash, compiled_class_hash));
         };
     contract_changes
+}
+
+fn deserialize_messages_to_l1(ref input_iter: ArrayIter<felt252>) -> Array<MessageToStarknet> {
+    let mut messages_to_starknet = array![];
+    loop {
+        let header = read_segment(ref input_iter, MESSAGE_TO_STARKNET_HEADER_SIZE);
+        if header.len() < MESSAGE_TO_STARKNET_HEADER_SIZE {
+            break;
+        }
+        let payload_size: usize = (*header[2]).try_into().expect('Invalid payload size');
+        let mut payload = read_segment(ref input_iter, payload_size);
+        let payload = payload.span();
+        let from_address = contract_address_try_from_felt252(*header[0])
+            .expect('Invalid from address');
+        let to_address = contract_address_try_from_felt252(*header[1]).expect('Invalid to address');
+        let message_to_starknet = MessageToStarknet { from_address, to_address, payload };
+        messages_to_starknet.append(message_to_starknet);
+    };
+    return messages_to_starknet;
+}
+fn deserialize_messages_to_l2(ref input_iter: ArrayIter<felt252>) -> Array<MessageToAppchain> {
+    let mut messages_to_appchain = array![];
+    loop {
+        let header = read_segment(ref input_iter, MESSAGE_TO_APPCHAIN_HEADER_SIZE);
+        if header.len() < MESSAGE_TO_APPCHAIN_HEADER_SIZE {
+            break;
+        }
+        let payload_size: usize = (*header[4]).try_into().expect('Invalid payload size');
+        let mut payload = read_segment(ref input_iter, payload_size);
+        let payload = payload.span();
+        let from_address = contract_address_try_from_felt252(*header[0])
+            .expect('Invalid from address');
+        let to_address = contract_address_try_from_felt252(*header[1]).expect('Invalid to address');
+        let message_to_appchain = MessageToAppchain {
+            from_address, to_address, nonce: *header[2], selector: *header[3], payload
+        };
+        messages_to_appchain.append(message_to_appchain);
+    };
+    return messages_to_appchain;
 }

@@ -47,9 +47,10 @@ mod messaging_cpt {
         interface::IOwnable,
     };
     use piltover::messaging::{
-        hash, interface::IMessaging, output_process::{MessageToStarknet, MessageToAppchain},
+        hash, interface::IMessaging,
         types::{MessageToAppchainStatus, MessageToStarknetStatus, MessageHash, Nonce}
     };
+    use piltover::snos_output::{MessageToStarknet, MessageToAppchain};
     use starknet::ContractAddress;
     use starknet::storage::Map;
     use super::errors;
