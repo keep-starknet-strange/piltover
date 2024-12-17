@@ -48,8 +48,7 @@ mod state_cpt {
             self.block_hash.write(program_output.new_block_hash);
 
             assert(
-                self.state_root.read() == program_output.initial_root,
-                errors::INVALID_PREVIOUS_ROOT
+                self.state_root.read() == program_output.initial_root, errors::INVALID_PREVIOUS_ROOT
             );
 
             self.state_root.write(program_output.final_root);
