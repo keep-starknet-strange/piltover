@@ -24,4 +24,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3
-      - run: snforge test
+      - run: snforge test --all-features
