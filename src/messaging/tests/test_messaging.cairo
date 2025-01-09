@@ -470,7 +470,27 @@ fn appchain_to_sn_messages_ok() {
 
     // Ensure that message is available to consume
     let count_after = mock.appchain_to_sn_messages(message_hash);
-    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not be present');
+    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not present');
+}
+
+#[test]
+fn appchain_to_sn_messages_hashes_test() {
+    let mut mock = mock_state_testing();
+
+    let from = c::SPENDER();
+    let to = starknet::get_contract_address();
+    let payload = array![1, 2, 3].span();
+
+    let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
+
+    let previous_status = mock.appchain_to_sn_messages(message_hash);
+    assert(previous_status == MessageToStarknetStatus::NothingToConsume, 'message already present');
+
+    mock.add_messages_hashes_from_appchain(array![message_hash].span());
+
+    // Ensure that message is available to consume.
+    let count_after = mock.appchain_to_sn_messages(message_hash);
+    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not present');
 }
 
 #[test]

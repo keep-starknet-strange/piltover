@@ -15,4 +15,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3
       - run: scarb fmt --check
-      - run: scarb build
+      - run: scarb build --all-features
