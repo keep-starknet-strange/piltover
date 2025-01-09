@@ -55,6 +55,9 @@ mod messaging_cpt {
     use starknet::storage::Map;
     use super::errors;
 
+    // Max felt252 value to indicate that the message is sealed.
+    const SEALED_MESSAGE: felt252 = 0x800000000000011000000000000000000000000000000000000000000000000;
+
     #[storage]
     struct Storage {
         /// Cancellation delay in seconds for message from Starknet to Appchain.
@@ -165,9 +168,14 @@ mod messaging_cpt {
             selector: felt252,
             payload: Span<felt252>
         ) -> (MessageHash, Nonce) {
-            // Starts by +1 to avoid 0 as a valid nonce.
-            let nonce = self.sn_to_appc_nonce.read() + 1;
-            self.sn_to_appc_nonce.write(nonce);
+            // From the what's done from L1 to L2, the first nonce must be 0:
+            // <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L117>
+            // The value is read from the storage, and then incremented but the read
+            // value is used at the tx nonce.
+            let mut nonce = self.sn_to_appc_nonce.read();
+
+            // Increment the nonce, but the read value is used at the tx nonce.
+            self.sn_to_appc_nonce.write(nonce + 1);
 
             let from = starknet::get_caller_address();
             let message_hash = hash::compute_message_hash_sn_to_appc(
@@ -392,11 +400,14 @@ mod messaging_cpt {
                             from, to, selector, payload, nonce
                         );
                         assert(
-                            self.sn_to_appc_messages.read(message_hash).is_non_zero(),
+                            self.sn_to_appc_messages.read(message_hash) != SEALED_MESSAGE,
                             errors::INVALID_MESSAGE_TO_SEAL
                         );
 
-                        self.sn_to_appc_messages.write(message_hash, 0);
+                        // On the L1, they use the Fee in front of the message hash, not the nonce.
+                        // Since the nonce 0 is a valid nonce, the max value of the felt is used
+                        // instead to indicate that the message is sealed.
+                        self.sn_to_appc_messages.write(message_hash, SEALED_MESSAGE);
 
                         self
                             .emit(
