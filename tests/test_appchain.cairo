@@ -228,7 +228,7 @@ fn update_state_ok() {
     // being sealed, it must be sent first.
     // The nonce must be adjusted to ensure the correct message to be sent.
     snf::store(
-        appchain.contract_address, selector!("sn_to_appc_nonce"), array![1629170 - 1].span()
+        appchain.contract_address, selector!("sn_to_appc_nonce"), array![1629170].span()
     );
 
     snf::start_cheat_caller_address(appchain.contract_address, contract_sn);
