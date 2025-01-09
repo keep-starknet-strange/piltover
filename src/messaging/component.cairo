@@ -295,6 +295,34 @@ mod messaging_cpt {
 
             return message_hash;
         }
+
+        #[cfg(feature: 'messaging_test')]
+        fn add_messages_hashes_from_appchain(
+            ref self: ComponentState<TContractState>, messages_hashes: Span<felt252>
+        ) {
+            let mut i = 0_usize;
+            loop {
+                if i == messages_hashes.len() {
+                    break;
+                }
+
+                let msg_hash = *messages_hashes[i];
+
+                let count = self.appc_to_sn_messages.read(msg_hash);
+                self.appc_to_sn_messages.write(msg_hash, count + 1);
+
+                // We can't have the detail of the message here, so we emit a dummy event
+                // with at least the message hash.
+                self.emit(MessageToStarknetReceived { 
+                    message_hash: msg_hash,
+                    from: 0.try_into().unwrap(),
+                    to: 0.try_into().unwrap(),
+                    payload: array![].span() 
+                });
+
+                i += 1;
+            };
+        }
     }
 
     #[generate_trait]
