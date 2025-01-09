@@ -193,10 +193,7 @@ fn sn_to_appchain_messages_ok() {
         from_address: from, to_address: to, :selector, payload: payload.span(), nonce: 0
     );
     let is_pending_before = mock.sn_to_appchain_messages(message_hash);
-    assert(
-        is_pending_before == MessageToAppchainStatus::NotSent,
-        'Should not be pending before'
-    );
+    assert(is_pending_before == MessageToAppchainStatus::NotSent, 'Should not be pending before');
 
     snf::start_cheat_caller_address(from, from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
