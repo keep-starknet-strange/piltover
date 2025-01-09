@@ -271,7 +271,9 @@ mod messaging_cpt {
             );
 
             assert(
-                self.sn_to_appc_messages.read(message_hash) == MessageToAppchainStatus::Pending(nonce),
+                self
+                    .sn_to_appc_messages
+                    .read(message_hash) == MessageToAppchainStatus::Pending(nonce),
                 errors::NO_MESSAGE_TO_CANCEL
             );
 
@@ -313,12 +315,15 @@ mod messaging_cpt {
 
                 // We can't have the detail of the message here, so we emit a dummy event
                 // with at least the message hash.
-                self.emit(MessageToStarknetReceived { 
-                    message_hash: msg_hash,
-                    from: 0.try_into().unwrap(),
-                    to: 0.try_into().unwrap(),
-                    payload: array![].span() 
-                });
+                self
+                    .emit(
+                        MessageToStarknetReceived {
+                            message_hash: msg_hash,
+                            from: 0.try_into().unwrap(),
+                            to: 0.try_into().unwrap(),
+                            payload: array![].span()
+                        }
+                    );
 
                 i += 1;
             };
@@ -399,7 +404,9 @@ mod messaging_cpt {
 
                         // On the L1, they use the Fee in front of the message hash, not the nonce.
                         // Here, we have an enum to explicitly indicate that the message is sealed.
-                        self.sn_to_appc_messages.write(message_hash, MessageToAppchainStatus::Sealed);
+                        self
+                            .sn_to_appc_messages
+                            .write(message_hash, MessageToAppchainStatus::Sealed);
 
                         self
                             .emit(
