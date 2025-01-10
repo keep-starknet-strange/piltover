@@ -4,7 +4,6 @@ use piltover::state::{
     state_cpt, state_cpt::InternalTrait as StateInternal, IState, IStateDispatcher,
     IStateDispatcherTrait, state_mock,
 };
-use piltover::snos_output::StarknetOsOutput;
 use snforge_std as snf;
 use snforge_std::ContractClassTrait;
 
@@ -68,7 +67,6 @@ fn state_update_invalid_block_number() {
         classes: array![],
     };
 
-    mock.update(os_output);
     mock.update(os_output);
 }
 

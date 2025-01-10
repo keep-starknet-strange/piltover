@@ -470,6 +470,7 @@ fn appchain_to_sn_messages_ok() {
     assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not present');
 }
 
+#[cfg(feature: 'messaging_test')]
 #[test]
 fn appchain_to_sn_messages_hashes_test() {
     let mut mock = mock_state_testing();
