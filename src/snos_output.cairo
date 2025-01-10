@@ -89,6 +89,8 @@ fn read_segment(ref input_iter: ArrayIter<felt252>, segment_length: usize) -> Ar
         };
     return segment;
 }
+/// Custom deserialization function, inspired by
+///https://github.com/starkware-libs/cairo-lang/blob/8e11b8cc65ae1d0959328b1b4a40b92df8b58595/src/starkware/starknet/core/aggregator/output_parser.py
 fn deserialize_os_output(ref input_iter: ArrayIter<felt252>) -> StarknetOsOutput {
     let _ = read_segment(ref input_iter, 3);
     let header = read_segment(ref input_iter, HEADER_SIZE);

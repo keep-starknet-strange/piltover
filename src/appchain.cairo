@@ -127,9 +127,12 @@ mod appchain {
         self.state.initialize(state_root, block_number, block_hash);
     }
 
-
+    
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
+        /// This function accepts two outputs due to the dynamic nature of the layout, which prevents direct verification of the snos proof.
+        /// To ensure the correctness of `snos_output`, we compare its hash with the corresponding hash in `program_output`,
+        /// which serves as a layout bridge proof.
         fn update_state(
             ref self: ContractState,
             snos_output: Array<felt252>,
@@ -142,12 +145,13 @@ mod appchain {
 
             let snos_output_span = snos_output.span();
             let snos_output_hash = poseidon_hash_span(snos_output_span);
-            let snos_output_hash_in_bridge_output = program_output.at(4);
-            assert!(snos_output_hash == *snos_output_hash_in_bridge_output);
+            let snos_output_hash_in_bridge_output = program_output.at(4); 
+            assert!(snos_output_hash == *snos_output_hash_in_bridge_output); 
             let output_hash = poseidon_hash_span(program_output);
 
             let mut snos_output_iter = snos_output.into_iter();
-            let program_output_struct = deserialize_os_output(ref snos_output_iter);
+            let program_output_struct = deserialize_os_output(ref snos_output_iter); //Custom deserialization function, inspired by 
+            //https://github.com/starkware-libs/cairo-lang/blob/8e11b8cc65ae1d0959328b1b4a40b92df8b58595/src/starkware/starknet/core/aggregator/output_parser.py
 
             let (current_program_hash, current_config_hash): (felt252, felt252) = self
                 .config
