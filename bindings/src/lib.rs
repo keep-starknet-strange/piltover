@@ -44,6 +44,58 @@ Provider + Sync >
     { self.block_id = block_id; } pub fn
     with_block(self, block_id : starknet :: core :: types :: BlockId) -> Self
     { Self { block_id, .. self } }
+} #[derive()] pub struct ContractChanges
+{
+    pub addr : starknet :: core :: types :: Felt, pub nonce : starknet :: core
+    :: types :: Felt, pub class_hash : Option < starknet :: core :: types ::
+    Felt > , pub storage_changes : Vec <
+    (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt) >
+} impl cainome :: cairo_serde :: CairoSerde for ContractChanges
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        let mut __size = 0; __size += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.addr); __size += starknet :: core ::
+        types :: Felt :: cairo_serialized_size(& __rust.nonce); __size +=
+        Option :: < starknet :: core :: types :: Felt > ::
+        cairo_serialized_size(& __rust.class_hash); __size += Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_serialized_size(& __rust.storage_changes); __size
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        let mut __out : Vec < starknet :: core :: types :: Felt > = vec! [];
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.addr));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.nonce));
+        __out.extend(Option :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(& __rust.class_hash));
+        __out.extend(Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_serialize(& __rust.storage_changes)); __out
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let mut __offset = __offset; let addr = starknet :: core :: types ::
+        Felt :: cairo_deserialize(__felts, __offset) ? ; __offset += starknet
+        :: core :: types :: Felt :: cairo_serialized_size(& addr); let nonce =
+        starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& nonce); let class_hash =
+        Option :: < starknet :: core :: types :: Felt > ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += Option :: <
+        starknet :: core :: types :: Felt > ::
+        cairo_serialized_size(& class_hash); let storage_changes = Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_deserialize(__felts, __offset) ? ; __offset += Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_serialized_size(& storage_changes);
+        Ok(ContractChanges { addr, nonce, class_hash, storage_changes })
+    }
 } #[derive()] pub struct LogStateTransitionFact
 { pub state_transition_fact : cainome :: cairo_serde :: U256 } impl cainome ::
 cairo_serde :: CairoSerde for LogStateTransitionFact
@@ -394,6 +446,63 @@ cairo_serde :: CairoSerde for LogStateTransitionFact
         starknet :: core :: utils ::
         get_selector_from_name("MessageSent").unwrap()
     } pub fn event_name() -> & 'static str { "MessageSent" }
+} #[derive()] pub struct MessageToAppchain
+{
+    pub from_address : cainome :: cairo_serde :: ContractAddress, pub
+    to_address : cainome :: cairo_serde :: ContractAddress, pub nonce :
+    starknet :: core :: types :: Felt, pub selector : starknet :: core ::
+    types :: Felt, pub payload : Vec < starknet :: core :: types :: Felt >
+} impl cainome :: cairo_serde :: CairoSerde for MessageToAppchain
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        let mut __size = 0; __size += cainome :: cairo_serde ::
+        ContractAddress :: cairo_serialized_size(& __rust.from_address);
+        __size += cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialized_size(& __rust.to_address); __size += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& __rust.nonce); __size +=
+        starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.selector); __size += Vec :: < starknet
+        :: core :: types :: Felt > :: cairo_serialized_size(& __rust.payload);
+        __size
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        let mut __out : Vec < starknet :: core :: types :: Felt > = vec! [];
+        __out.extend(cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialize(& __rust.from_address));
+        __out.extend(cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialize(& __rust.to_address));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.nonce));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.selector));
+        __out.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(& __rust.payload)); __out
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let mut __offset = __offset; let from_address = cainome :: cairo_serde
+        :: ContractAddress :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialized_size(& from_address); let to_address = cainome ::
+        cairo_serde :: ContractAddress :: cairo_deserialize(__felts, __offset)
+        ? ; __offset += cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialized_size(& to_address); let nonce = starknet :: core ::
+        types :: Felt :: cairo_deserialize(__felts, __offset) ? ; __offset +=
+        starknet :: core :: types :: Felt :: cairo_serialized_size(& nonce);
+        let selector = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& selector); let payload =
+        Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += Vec :: < starknet
+        :: core :: types :: Felt > :: cairo_serialized_size(& payload);
+        Ok(MessageToAppchain
+        { from_address, to_address, nonce, selector, payload })
+    }
 } #[derive()] pub struct MessageToAppchainSealed
 {
     pub message_hash : starknet :: core :: types :: Felt, pub from : cainome
@@ -465,6 +574,49 @@ cairo_serde :: CairoSerde for LogStateTransitionFact
         starknet :: core :: utils ::
         get_selector_from_name("MessageToAppchainSealed").unwrap()
     } pub fn event_name() -> & 'static str { "MessageToAppchainSealed" }
+} #[derive()] pub struct MessageToStarknet
+{
+    pub from_address : cainome :: cairo_serde :: ContractAddress, pub
+    to_address : cainome :: cairo_serde :: ContractAddress, pub payload : Vec
+    < starknet :: core :: types :: Felt >
+} impl cainome :: cairo_serde :: CairoSerde for MessageToStarknet
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        let mut __size = 0; __size += cainome :: cairo_serde ::
+        ContractAddress :: cairo_serialized_size(& __rust.from_address);
+        __size += cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialized_size(& __rust.to_address); __size += Vec :: <
+        starknet :: core :: types :: Felt > ::
+        cairo_serialized_size(& __rust.payload); __size
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        let mut __out : Vec < starknet :: core :: types :: Felt > = vec! [];
+        __out.extend(cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialize(& __rust.from_address));
+        __out.extend(cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialize(& __rust.to_address));
+        __out.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(& __rust.payload)); __out
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let mut __offset = __offset; let from_address = cainome :: cairo_serde
+        :: ContractAddress :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialized_size(& from_address); let to_address = cainome ::
+        cairo_serde :: ContractAddress :: cairo_deserialize(__felts, __offset)
+        ? ; __offset += cainome :: cairo_serde :: ContractAddress ::
+        cairo_serialized_size(& to_address); let payload = Vec :: < starknet
+        :: core :: types :: Felt > :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialized_size(& payload);
+        Ok(MessageToStarknet { from_address, to_address, payload })
+    }
 } #[derive()] pub struct MessageToStarknetReceived
 {
     pub message_hash : starknet :: core :: types :: Felt, pub from : cainome
@@ -675,6 +827,141 @@ cairo_serde :: CairoSerde for LogStateTransitionFact
         starknet :: core :: utils ::
         get_selector_from_name("ProgramInfoChanged").unwrap()
     } pub fn event_name() -> & 'static str { "ProgramInfoChanged" }
+} #[derive()] pub struct StarknetOsOutput
+{
+    pub initial_root : starknet :: core :: types :: Felt, pub final_root :
+    starknet :: core :: types :: Felt, pub prev_block_number : starknet ::
+    core :: types :: Felt, pub new_block_number : starknet :: core :: types ::
+    Felt, pub prev_block_hash : starknet :: core :: types :: Felt, pub
+    new_block_hash : starknet :: core :: types :: Felt, pub os_program_hash :
+    starknet :: core :: types :: Felt, pub starknet_os_config_hash : starknet
+    :: core :: types :: Felt, pub use_kzg_da : starknet :: core :: types ::
+    Felt, pub full_output : starknet :: core :: types :: Felt, pub
+    messages_to_l1 : Vec < MessageToStarknet > , pub messages_to_l2 : Vec <
+    MessageToAppchain > , pub contracts : Vec < ContractChanges > , pub
+    classes : Vec <
+    (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt) >
+} impl cainome :: cairo_serde :: CairoSerde for StarknetOsOutput
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        let mut __size = 0; __size += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.initial_root); __size += starknet ::
+        core :: types :: Felt :: cairo_serialized_size(& __rust.final_root);
+        __size += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.prev_block_number); __size += starknet
+        :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.new_block_number); __size += starknet
+        :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.prev_block_hash); __size += starknet ::
+        core :: types :: Felt ::
+        cairo_serialized_size(& __rust.new_block_hash); __size += starknet ::
+        core :: types :: Felt ::
+        cairo_serialized_size(& __rust.os_program_hash); __size += starknet ::
+        core :: types :: Felt ::
+        cairo_serialized_size(& __rust.starknet_os_config_hash); __size +=
+        starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.use_kzg_da); __size += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& __rust.full_output);
+        __size += Vec :: < MessageToStarknet > ::
+        cairo_serialized_size(& __rust.messages_to_l1); __size += Vec :: <
+        MessageToAppchain > :: cairo_serialized_size(& __rust.messages_to_l2);
+        __size += Vec :: < ContractChanges > ::
+        cairo_serialized_size(& __rust.contracts); __size += Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_serialized_size(& __rust.classes); __size
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        let mut __out : Vec < starknet :: core :: types :: Felt > = vec! [];
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.initial_root));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.final_root));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.prev_block_number));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.new_block_number));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.prev_block_hash));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.new_block_hash));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.os_program_hash));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.starknet_os_config_hash));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.use_kzg_da));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.full_output));
+        __out.extend(Vec :: < MessageToStarknet > ::
+        cairo_serialize(& __rust.messages_to_l1));
+        __out.extend(Vec :: < MessageToAppchain > ::
+        cairo_serialize(& __rust.messages_to_l2));
+        __out.extend(Vec :: < ContractChanges > ::
+        cairo_serialize(& __rust.contracts));
+        __out.extend(Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_serialize(& __rust.classes)); __out
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let mut __offset = __offset; let initial_root = starknet :: core ::
+        types :: Felt :: cairo_deserialize(__felts, __offset) ? ; __offset +=
+        starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& initial_root); let final_root = starknet ::
+        core :: types :: Felt :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& final_root); let prev_block_number = starknet
+        :: core :: types :: Felt :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& prev_block_number); let new_block_number =
+        starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& new_block_number); let
+        prev_block_hash = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& prev_block_hash); let
+        new_block_hash = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& new_block_hash); let
+        os_program_hash = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& os_program_hash); let
+        starknet_os_config_hash = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& starknet_os_config_hash);
+        let use_kzg_da = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& use_kzg_da); let
+        full_output = starknet :: core :: types :: Felt ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
+        :: types :: Felt :: cairo_serialized_size(& full_output); let
+        messages_to_l1 = Vec :: < MessageToStarknet > ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += Vec :: <
+        MessageToStarknet > :: cairo_serialized_size(& messages_to_l1); let
+        messages_to_l2 = Vec :: < MessageToAppchain > ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += Vec :: <
+        MessageToAppchain > :: cairo_serialized_size(& messages_to_l2); let
+        contracts = Vec :: < ContractChanges > ::
+        cairo_deserialize(__felts, __offset) ? ; __offset += Vec :: <
+        ContractChanges > :: cairo_serialized_size(& contracts); let classes =
+        Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_deserialize(__felts, __offset) ? ; __offset += Vec :: <
+        (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
+        > :: cairo_serialized_size(& classes);
+        Ok(StarknetOsOutput
+        {
+            initial_root, final_root, prev_block_number, new_block_number,
+            prev_block_hash, new_block_hash, os_program_hash,
+            starknet_os_config_hash, use_kzg_da, full_output, messages_to_l1,
+            messages_to_l2, contracts, classes
+        })
+    }
 } #[derive()] pub struct Upgraded
 { pub class_hash : cainome :: cairo_serde :: ClassHash } impl cainome ::
 cairo_serde :: CairoSerde for Upgraded
@@ -3702,26 +3989,24 @@ UpgradeableEvent
             ("unregister_operator"), calldata : __calldata,
         }; self.account.execute_v1(vec! [__call])
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
-    fn
-    update_getcall(& self, program_output : & Vec :: < starknet :: core ::
-    types :: Felt >) -> starknet :: core :: types :: Call
+    fn update_getcall(& self, program_output : & StarknetOsOutput) -> starknet
+    :: core :: types :: Call
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
         [];
-        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        __calldata.extend(StarknetOsOutput ::
         cairo_serialize(program_output)); starknet :: core :: types :: Call
         {
             to : self.address, selector : starknet :: macros :: selector!
             ("update"), calldata : __calldata,
         }
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
-    fn
-    update(& self, program_output : & Vec :: < starknet :: core :: types ::
-    Felt >) -> starknet :: accounts :: ExecutionV1 < A >
+    fn update(& self, program_output : & StarknetOsOutput) -> starknet ::
+    accounts :: ExecutionV1 < A >
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
         [];
-        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        __calldata.extend(StarknetOsOutput ::
         cairo_serialize(program_output)); let __call = starknet :: core ::
         types :: Call
         {
@@ -3730,13 +4015,16 @@ UpgradeableEvent
         }; self.account.execute_v1(vec! [__call])
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
     fn
-    update_state_getcall(& self, program_output : & Vec :: < starknet :: core
-    :: types :: Felt > , onchain_data_hash : & starknet :: core :: types ::
-    Felt, onchain_data_size : & cainome :: cairo_serde :: U256) -> starknet ::
-    core :: types :: Call
+    update_state_getcall(& self, snos_output : & Vec :: < starknet :: core ::
+    types :: Felt > , program_output : & Vec :: < starknet :: core :: types ::
+    Felt > , onchain_data_hash : & starknet :: core :: types :: Felt,
+    onchain_data_size : & cainome :: cairo_serde :: U256) -> starknet :: core
+    :: types :: Call
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
         [];
+        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(snos_output));
         __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
         cairo_serialize(program_output));
         __calldata.extend(starknet :: core :: types :: Felt ::
@@ -3749,13 +4037,16 @@ UpgradeableEvent
         }
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
     fn
-    update_state(& self, program_output : & Vec :: < starknet :: core :: types
-    :: Felt > , onchain_data_hash : & starknet :: core :: types :: Felt,
-    onchain_data_size : & cainome :: cairo_serde :: U256) -> starknet ::
-    accounts :: ExecutionV1 < A >
+    update_state(& self, snos_output : & Vec :: < starknet :: core :: types ::
+    Felt > , program_output : & Vec :: < starknet :: core :: types :: Felt > ,
+    onchain_data_hash : & starknet :: core :: types :: Felt, onchain_data_size
+    : & cainome :: cairo_serde :: U256) -> starknet :: accounts :: ExecutionV1
+    < A >
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
         [];
+        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(snos_output));
         __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
         cairo_serialize(program_output));
         __calldata.extend(starknet :: core :: types :: Felt ::

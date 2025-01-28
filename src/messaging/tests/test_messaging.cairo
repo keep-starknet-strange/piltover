@@ -1,4 +1,5 @@
 use core::array::ArrayTrait;
+use core::iter::IntoIterator;
 use core::zeroable::Zeroable;
 use openzeppelin_testing::constants as c;
 use piltover::messaging::{
@@ -8,9 +9,9 @@ use piltover::messaging::{
         Event, MessageSent, MessageCancellationStarted, MessageCanceled, MessageToStarknetReceived,
         MessageToAppchainSealed,
     },
-    types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus},
-    output_process::{MessageToStarknet, MessageToAppchain}, hash, output_process,
+    types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus}, hash,
 };
+use piltover::snos_output::{MessageToStarknet, MessageToAppchain, deserialize_messages};
 use snforge_std as snf;
 use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
 use starknet::ContractAddress;
@@ -76,7 +77,7 @@ fn get_message_to_appchain() -> MessageToAppchain {
 
 /// Messages segments of SNOS output from mainnet:
 /// <https://etherscan.io/tx/0xc1351dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
-fn get_messages_segments() -> Span<felt252> {
+fn get_messages_segments() -> Array<felt252> {
     array![
         // Header
         // 2308509181970242579758367820250590423941246005755407149765148974993919671160,
@@ -105,7 +106,6 @@ fn get_messages_segments() -> Span<felt252> {
         100000000000000000,
         0,
     ]
-        .span()
 }
 
 #[test]
@@ -370,10 +370,8 @@ fn cancel_message_cancellation_not_allowed_yet() {
 
 #[test]
 fn gather_messages_from_output_ok() {
-    let felts = get_messages_segments();
-    let (messages_to_starknet, messages_to_appchain) = output_process::gather_messages_from_output(
-        felts
-    );
+    let mut felts = get_messages_segments().span().into_iter();
+    let (messages_to_starknet, messages_to_appchain) = deserialize_messages(ref felts);
 
     assert(messages_to_starknet.len() == 1, 'missing msgs to sn');
     assert(messages_to_appchain.len() == 1, 'missing msgs to appc');
@@ -472,6 +470,7 @@ fn appchain_to_sn_messages_ok() {
     assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not present');
 }
 
+#[cfg(feature: 'messaging_test')]
 #[test]
 fn appchain_to_sn_messages_hashes_test() {
     let mut mock = mock_state_testing();

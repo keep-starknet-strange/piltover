@@ -52,7 +52,13 @@ Currently some warnings are displayed, will be fixed in a future version of `cai
 To test the project, run:
 
 ```bash
-snforge test
+scarb test --all-features
+```
+
+Or using the script (where further tests may be added in the future):
+
+```bash
+bash scripts/test_all_features.sh
 ```
 
 ## Code style (cairo)
@@ -71,3 +77,9 @@ let addr = contract_address_const::<0>();
 ```
 
 - Document functions inside the trait, and add details if needed in the implementation.
+
+To enforce the cairo linter, please use:
+
+```bash
+bash scripts/cairo_fmt.sh --fix
+```

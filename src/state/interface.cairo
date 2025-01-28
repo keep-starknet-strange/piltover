@@ -1,6 +1,7 @@
 //! SPDX-License-Identifier: MIT
 //!
 //! Interface for Appchain - Starknet state.
+use piltover::snos_output::StarknetOsOutput;
 
 #[starknet::interface]
 trait IState<T> {
@@ -10,7 +11,7 @@ trait IState<T> {
     /// # Arguments
     ///
     /// * `program_output` - The StarknetOS state update output.
-    fn update(ref self: T, program_output: Span<felt252>,);
+    fn update(ref self: T, program_output: StarknetOsOutput);
 
     /// Gets the current state.
     ///

@@ -1,8 +1,7 @@
 mod appchain;
+mod fact_registry;
 mod interface;
-mod mocks;
 mod snos_output;
-
 // Components
 mod config {
     mod component;
@@ -24,7 +23,6 @@ mod messaging {
     mod hash;
     mod interface;
     mod mock;
-    mod output_process;
     mod types;
 
     use component::messaging_cpt;
