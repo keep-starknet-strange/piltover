@@ -116,4 +116,16 @@ trait IMessaging<T> {
         payload: Span<felt252>,
         nonce: felt252,
     ) -> MessageHash;
+
+    /// Manually registers messages hashes as consumable.
+    ///
+    /// This function is mostly used to decorrelate the messages registration from the
+    /// state update step. Since all messages are registered once the proof is verified,
+    /// and the output of SNOS parsed, this function shortcut this step.
+    ///
+    /// The appchain sequencer for testing e2e messaging can then use this function to
+    /// register messages hashes that are considered as ready to be consumed. This can be done
+    /// right after the block is produced, for fast and reliable messaging testing.
+    #[cfg(feature: 'messaging_test')]
+    fn add_messages_hashes_from_appchain(ref self: T, messages_hashes: Span<felt252>);
 }

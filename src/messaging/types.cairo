@@ -1,9 +1,12 @@
 pub type MessageHash = felt252;
 pub type Nonce = felt252;
 
-#[derive(Serde, Drop, PartialEq)]
+#[derive(Serde, Drop, PartialEq, starknet::Store, Default)]
 pub enum MessageToAppchainStatus {
-    SealedOrNotSent, // sn->appc: The nonce is 0 for the message hash.
+    #[default]
+    NotSent,
+    Sealed,
+    Cancelled,
     Pending: Nonce, // sn->appc: The nonce > 0.
 }
 

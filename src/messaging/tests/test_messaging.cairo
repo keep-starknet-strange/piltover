@@ -168,7 +168,7 @@ fn send_message_ok() {
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     assert(message_hash.is_non_zero(), 'invalid message hash');
-    assert(nonce == 1, 'invalid nonce');
+    assert(nonce == 0, 'invalid nonce');
 
     let expected_event = MessageSent {
         message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
@@ -190,13 +190,10 @@ fn sn_to_appchain_messages_ok() {
 
     // Calculate the message_hash
     let message_hash = hash::compute_message_hash_sn_to_appc(
-        from_address: from, to_address: to, :selector, payload: payload.span(), nonce: 1
+        from_address: from, to_address: to, :selector, payload: payload.span(), nonce: 0
     );
     let is_pending_before = mock.sn_to_appchain_messages(message_hash);
-    assert(
-        is_pending_before == MessageToAppchainStatus::SealedOrNotSent,
-        'Should not be pending before'
-    );
+    assert(is_pending_before == MessageToAppchainStatus::NotSent, 'Should not be pending before');
 
     snf::start_cheat_caller_address(from, from);
     let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
@@ -248,14 +245,14 @@ fn start_cancellation_ok() {
 }
 
 #[test]
-#[should_panic(expected: ('INVALID_NONCE',))]
+#[should_panic(expected: ('NO_MESSAGE_TO_CANCEL',))]
 fn start_cancellation_invalid_nonce() {
     let (mock, _) = deploy_mock();
 
     let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
-    let nonce = 0;
+    let nonce = 0x800000000000011000000000000000000000000000000000000000000000000;
 
     mock.start_message_cancellation(to, selector, payload.span(), nonce);
 }
@@ -325,7 +322,7 @@ fn cancel_message_no_message_to_cancel() {
     let to = c::RECIPIENT();
     let selector = selector!("func1");
     let payload = array![1, 2, 3];
-    let nonce = 1;
+    let nonce = 0;
 
     mock.cancel_message(to, selector, payload.span(), nonce + 1000);
 }
@@ -409,7 +406,7 @@ fn process_messages_to_appchain_ok() {
     let (_message_hash, _nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
     let m = MessageToAppchain {
-        from_address: from, to_address: to, nonce: 1, selector, payload: payload.span(),
+        from_address: from, to_address: to, nonce: 0, selector, payload: payload.span(),
     };
 
     let _message_hash = hash::compute_message_hash_sn_to_appc(
@@ -472,7 +469,27 @@ fn appchain_to_sn_messages_ok() {
 
     // Ensure that message is available to consume
     let count_after = mock.appchain_to_sn_messages(message_hash);
-    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not be present');
+    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not present');
+}
+
+#[test]
+fn appchain_to_sn_messages_hashes_test() {
+    let mut mock = mock_state_testing();
+
+    let from = c::SPENDER();
+    let to = starknet::get_contract_address();
+    let payload = array![1, 2, 3].span();
+
+    let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
+
+    let previous_status = mock.appchain_to_sn_messages(message_hash);
+    assert(previous_status == MessageToStarknetStatus::NothingToConsume, 'message already present');
+
+    mock.add_messages_hashes_from_appchain(array![message_hash].span());
+
+    // Ensure that message is available to consume.
+    let count_after = mock.appchain_to_sn_messages(message_hash);
+    assert(count_after == MessageToStarknetStatus::ReadyToConsume(1), 'message not present');
 }
 
 #[test]

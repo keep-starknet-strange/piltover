@@ -40,9 +40,12 @@ To build/update the bindings, first build the contract with `scarb`.
 
 Then, within the Rust project `bindings/` run:
 
-````bash
-cargo build
-````
+```bash
+cargo build --bin generator
+```
+
+This will generate the bindings into `src/lib.rs`, which can be imported in other Rust project.
+Currently some warnings are displayed, will be fixed in a future version of `cainome`.
 
 ## Test
 

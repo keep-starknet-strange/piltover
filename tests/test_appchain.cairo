@@ -179,9 +179,7 @@ fn update_state_ok() {
     // The state update contains a message to appchain, therefore, before
     // being sealed, it must be sent first.
     // The nonce must be adjusted to ensure the correct message to be sent.
-    snf::store(
-        appchain.contract_address, selector!("sn_to_appc_nonce"), array![1629170 - 1].span()
-    );
+    snf::store(appchain.contract_address, selector!("sn_to_appc_nonce"), array![1629170].span());
 
     snf::start_cheat_caller_address(appchain.contract_address, contract_sn);
     imsg.send_message_to_appchain(contract_appc, selector_appc, payload_sn_to_appc);

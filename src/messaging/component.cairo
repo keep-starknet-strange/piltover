@@ -26,7 +26,6 @@
 
 /// Errors.
 mod errors {
-    const INVALID_NONCE: felt252 = 'INVALID_NONCE';
     const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
     const INVALID_MESSAGE_TO_SEAL: felt252 = 'INVALID_MESSAGE_TO_SEAL';
     const NO_MESSAGE_TO_CANCEL: felt252 = 'NO_MESSAGE_TO_CANCEL';
@@ -62,8 +61,8 @@ mod messaging_cpt {
         sn_to_appc_cancellations: Map::<MessageHash, u64>,
         /// The nonce for messages sent to the Appchain from Starknet.
         sn_to_appc_nonce: Nonce,
-        /// Ledger of messages hashes sent from Starknet to the appchain.
-        sn_to_appc_messages: Map::<MessageHash, Nonce>,
+        /// Ledger of messages hashes sent from Starknet to the appchain and their status.
+        sn_to_appc_messages: Map::<MessageHash, MessageToAppchainStatus>,
         /// Ledger of messages hashes registered from the Appchain and a refcount
         /// associated to it to control messages consumption.
         appc_to_sn_messages: Map::<MessageHash, felt252>,
@@ -164,9 +163,14 @@ mod messaging_cpt {
             selector: felt252,
             payload: Span<felt252>
         ) -> (MessageHash, Nonce) {
-            // Starts by +1 to avoid 0 as a valid nonce.
-            let nonce = self.sn_to_appc_nonce.read() + 1;
-            self.sn_to_appc_nonce.write(nonce);
+            // From the what's done from L1 to L2, the first nonce must be 0:
+            // <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L117>
+            // The value is read from the storage, and then incremented but the read
+            // value is used at the tx nonce.
+            let mut nonce = self.sn_to_appc_nonce.read();
+
+            // Increment the nonce, but the read value is used at the tx nonce.
+            self.sn_to_appc_nonce.write(nonce + 1);
 
             let from = starknet::get_caller_address();
             let message_hash = hash::compute_message_hash_sn_to_appc(
@@ -178,20 +182,15 @@ mod messaging_cpt {
                     MessageSent { message_hash, from, to: to_address, selector, nonce, payload, }
                 );
 
-            self.sn_to_appc_messages.write(message_hash, nonce);
+            self.sn_to_appc_messages.write(message_hash, MessageToAppchainStatus::Pending(nonce));
             (message_hash, nonce)
         }
 
         fn sn_to_appchain_messages(
             self: @ComponentState<TContractState>, message_hash: MessageHash
         ) -> MessageToAppchainStatus {
-            let nonce = self.sn_to_appc_messages.read(message_hash);
-            if nonce == 0 {
-                return MessageToAppchainStatus::SealedOrNotSent;
-            }
-            return MessageToAppchainStatus::Pending(nonce);
+            self.sn_to_appc_messages.read(message_hash)
         }
-
 
         fn appchain_to_sn_messages(
             self: @ComponentState<TContractState>, message_hash: MessageHash
@@ -234,16 +233,16 @@ mod messaging_cpt {
             payload: Span<felt252>,
             nonce: Nonce,
         ) -> MessageHash {
-            assert(nonce.is_non_zero(), errors::INVALID_NONCE);
             let from = starknet::get_caller_address();
 
             let message_hash = hash::compute_message_hash_sn_to_appc(
                 from, to_address, selector, payload, nonce
             );
 
-            assert(
-                self.sn_to_appc_messages.read(message_hash) == nonce, errors::NO_MESSAGE_TO_CANCEL
-            );
+            match self.sn_to_appc_messages.read(message_hash) {
+                MessageToAppchainStatus::Pending(_) => {},
+                _ => assert(false, errors::NO_MESSAGE_TO_CANCEL),
+            };
 
             self.sn_to_appc_cancellations.write(message_hash, starknet::get_block_timestamp());
 
@@ -271,7 +270,10 @@ mod messaging_cpt {
             );
 
             assert(
-                self.sn_to_appc_messages.read(message_hash) == nonce, errors::NO_MESSAGE_TO_CANCEL
+                self
+                    .sn_to_appc_messages
+                    .read(message_hash) == MessageToAppchainStatus::Pending(nonce),
+                errors::NO_MESSAGE_TO_CANCEL
             );
 
             let request_time = self.sn_to_appc_cancellations.read(message_hash);
@@ -290,9 +292,40 @@ mod messaging_cpt {
                 );
 
             // Once canceled, no more operation can be done on this message.
-            self.sn_to_appc_messages.write(message_hash, 0);
+            self.sn_to_appc_messages.write(message_hash, MessageToAppchainStatus::Cancelled);
 
             return message_hash;
+        }
+
+        #[cfg(feature: 'messaging_test')]
+        fn add_messages_hashes_from_appchain(
+            ref self: ComponentState<TContractState>, messages_hashes: Span<felt252>
+        ) {
+            let mut i = 0_usize;
+            loop {
+                if i == messages_hashes.len() {
+                    break;
+                }
+
+                let msg_hash = *messages_hashes[i];
+
+                let count = self.appc_to_sn_messages.read(msg_hash);
+                self.appc_to_sn_messages.write(msg_hash, count + 1);
+
+                // We can't have the detail of the message here, so we emit a dummy event
+                // with at least the message hash.
+                self
+                    .emit(
+                        MessageToStarknetReceived {
+                            message_hash: msg_hash,
+                            from: 0.try_into().unwrap(),
+                            to: 0.try_into().unwrap(),
+                            payload: array![].span()
+                        }
+                    );
+
+                i += 1;
+            };
         }
     }
 
@@ -362,12 +395,17 @@ mod messaging_cpt {
                         let message_hash = hash::compute_message_hash_sn_to_appc(
                             from, to, selector, payload, nonce
                         );
-                        assert(
-                            self.sn_to_appc_messages.read(message_hash).is_non_zero(),
-                            errors::INVALID_MESSAGE_TO_SEAL
-                        );
 
-                        self.sn_to_appc_messages.write(message_hash, 0);
+                        match self.sn_to_appc_messages.read(message_hash) {
+                            MessageToAppchainStatus::Pending(_) => {},
+                            _ => assert(false, errors::INVALID_MESSAGE_TO_SEAL),
+                        };
+
+                        // On the L1, they use the Fee in front of the message hash, not the nonce.
+                        // Here, we have an enum to explicitly indicate that the message is sealed.
+                        self
+                            .sn_to_appc_messages
+                            .write(message_hash, MessageToAppchainStatus::Sealed);
 
                         self
                             .emit(
