@@ -370,7 +370,7 @@ fn cancel_message_cancellation_not_allowed_yet() {
 
 #[test]
 fn gather_messages_from_output_ok() {
-    let mut felts = get_messages_segments().into_iter();
+    let mut felts = get_messages_segments().span().into_iter();
     let (messages_to_starknet, messages_to_appchain) = deserialize_messages(ref felts);
 
     assert(messages_to_starknet.len() == 1, 'missing msgs to sn');

@@ -135,7 +135,7 @@ fn get_output() -> Span<felt252> {
 
 #[test]
 fn snos_output_deser() {
-    let mut felts = get_state_update().into_iter();
+    let mut felts = get_state_update().span().into_iter();
     let output: StarknetOsOutput = deserialize_os_output(ref felts);
 
     assert(
@@ -238,7 +238,7 @@ fn update_state_ok() {
     let onchain_data_hash = 0x0;
     let onchain_data_size: u256 = 0;
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
-    appchain.update_state(snos_output, output, onchain_data_hash, onchain_data_size);
+    appchain.update_state(snos_output.span(), output, onchain_data_hash, onchain_data_size);
 
     let expected_log_state_update = LogStateUpdate {
         state_root: 2251620073307221877548100532273969460343974267802546890497101472079704728659,
