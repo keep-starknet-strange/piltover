@@ -141,3 +141,31 @@ fn config_set_facts_registry_unauthorized() {
     snf::start_cheat_caller_address(mock.contract_address, c::OTHER());
     mock.set_facts_registry(facts_registry_address);
 }
+
+#[test]
+fn config_set_snos_program_hash_ok() {
+    let mock = deploy_mock();
+
+    snf::start_cheat_caller_address(mock.contract_address, c::OWNER());
+
+    // Owner sets the info.
+    mock.set_snos_program_hash(0x1);
+    assert(mock.get_snos_program_hash() == 0x1, 'expect correct hashes');
+
+    mock.register_operator(c::OPERATOR());
+
+    // Operator can also set the program info.
+    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
+    mock.set_snos_program_hash(0x11);
+
+    assert(mock.get_snos_program_hash() == 0x11, 'expect operator hashes');
+}
+
+#[test]
+#[should_panic(expected: ('Config: not owner or operator',))]
+fn config_set_snos_program_hash_unauthorized() {
+    let mock = deploy_mock();
+
+    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
+    mock.set_snos_program_hash(0x11);
+}

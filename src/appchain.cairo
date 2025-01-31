@@ -139,9 +139,16 @@ mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
+            //Snos proof is wrapped in bootloader so 3rd element is program hash of
+            //bootloaded program in our case StarknetOs
+            let snos_program_hash = snos_output.at(2);
+            let stored_snos_program_hash = self.config.snos_program_hash.read();
+            assert!(stored_snos_program_hash == *snos_program_hash);
+
             let snos_output_hash = poseidon_hash_span(snos_output);
             let snos_output_hash_in_bridge_output = program_output.at(4);
             assert!(snos_output_hash == *snos_output_hash_in_bridge_output);
+
             let output_hash = poseidon_hash_span(program_output);
 
             let mut snos_output_iter = snos_output.into_iter();

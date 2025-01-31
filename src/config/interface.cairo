@@ -28,8 +28,8 @@ trait IConfig<T> {
     /// True if the address is an operator, false otherwise.
     fn is_operator(self: @T, address: ContractAddress) -> bool;
 
-    /// Sets the information of the program that generates the
-    /// state transition trace (namely StarknetOS).
+    /// Sets the information of the program that generates
+    /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader).
     ///
     /// # Arguments
     ///
@@ -38,7 +38,7 @@ trait IConfig<T> {
     fn set_program_info(ref self: T, program_hash: felt252, config_hash: felt252);
 
     /// Gets the information of the program that generates the
-    /// state transition trace (namely StarknetOS).
+    /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader).
     ///
     /// # Returns
     ///
@@ -59,4 +59,19 @@ trait IConfig<T> {
     ///
     /// The contract address of the facts registry.
     fn get_facts_registry(self: @T) -> ContractAddress;
+
+    /// Sets the information of the program that generates the
+    /// state transition trace (namely StarknetOS).
+    ///
+    /// # Arguments
+    ///
+    /// * `snos_program_hash` - The program hash.
+    fn set_snos_program_hash(ref self: T, snos_program_hash: felt252);
+
+    /// Gets the snos program hash used to prove block.
+    ///
+    /// # Returns
+    ///
+    /// Snos program hash.
+    fn get_snos_program_hash(self: @T) -> felt252;
 }
