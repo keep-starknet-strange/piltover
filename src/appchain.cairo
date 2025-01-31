@@ -139,11 +139,18 @@ mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
+            let (
+                current_program_hash, current_config_hash, current_snos_program_hash
+            ): (felt252, felt252, felt252) =
+                self
+                .config
+                .program_info
+                .read();
+
             //Snos proof is wrapped in bootloader so 3rd element is program hash of
             //bootloaded program in our case StarknetOs
             let snos_program_hash = snos_output.at(2);
-            let stored_snos_program_hash = self.config.snos_program_hash.read();
-            assert!(stored_snos_program_hash == *snos_program_hash);
+            assert!(current_snos_program_hash == *snos_program_hash);
 
             let snos_output_hash = poseidon_hash_span(snos_output);
             let snos_output_hash_in_bridge_output = program_output.at(4);
@@ -153,11 +160,6 @@ mod appchain {
 
             let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(ref snos_output_iter);
-
-            let (current_program_hash, current_config_hash): (felt252, felt252) = self
-                .config
-                .program_info
-                .read();
 
             let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
                 onchain_data_hash, onchain_data_size

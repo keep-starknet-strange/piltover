@@ -33,17 +33,21 @@ trait IConfig<T> {
     ///
     /// # Arguments
     ///
-    /// * `program_hash` - The program hash.
-    /// * `config_hash` - The program's config hash.
-    fn set_program_info(ref self: T, program_hash: felt252, config_hash: felt252);
+    /// * `program_hash` - The program hash of layout bridge program.
+    /// * `config_hash` - The SNOS's config hash.
+    /// * `snos_program_hash` - The SNOS program hash
+    fn set_program_info(
+        ref self: T, program_hash: felt252, config_hash: felt252, snos_program_hash: felt252
+    );
 
     /// Gets the information of the program that generates the
-    /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader).
+    /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader),
+    /// and StarknetOs program hash
     ///
     /// # Returns
     ///
-    /// The program hash and it's configuration hash.
-    fn get_program_info(self: @T) -> (felt252, felt252);
+    /// The layout bridge program hash, SNOS configuration hash and SNOS program hash.
+    fn get_program_info(self: @T) -> (felt252, felt252, felt252);
 
     /// Sets the facts registry contract address, which is already
     /// initialized with the verifier information.
@@ -59,19 +63,4 @@ trait IConfig<T> {
     ///
     /// The contract address of the facts registry.
     fn get_facts_registry(self: @T) -> ContractAddress;
-
-    /// Sets the information of the program that generates the
-    /// state transition trace (namely StarknetOS).
-    ///
-    /// # Arguments
-    ///
-    /// * `snos_program_hash` - The program hash.
-    fn set_snos_program_hash(ref self: T, snos_program_hash: felt252);
-
-    /// Gets the snos program hash used to prove block.
-    ///
-    /// # Returns
-    ///
-    /// Snos program hash.
-    fn get_snos_program_hash(self: @T) -> felt252;
 }

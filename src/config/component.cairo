@@ -28,19 +28,16 @@ mod config_cpt {
     struct Storage {
         /// Appchain operators that are allowed to update the state.
         operators: Map<ContractAddress, bool>,
-        /// Program info (StarknetOS), with program hash and config hash.
-        program_info: (felt252, felt252),
+        /// Program info layout bridge program hash, config hash and StarknetOs program hash.
+        program_info: (felt252, felt252, felt252),
         /// Facts registry contract address.
         facts_registry: ContractAddress,
-        /// Snos program hash.
-        snos_program_hash: felt252
     }
 
     #[event]
     #[derive(Copy, Drop, starknet::Event)]
     enum Event {
         ProgramInfoChanged: ProgramInfoChanged,
-        SnosProgramHashChanged: SnosProgramHashChanged
     }
 
     #[derive(Copy, Drop, starknet::Event)]
@@ -50,11 +47,6 @@ mod config_cpt {
         new_program_hash: felt252,
         old_config_hash: felt252,
         new_config_hash: felt252,
-    }
-
-    #[derive(Copy, Drop, starknet::Event)]
-    struct SnosProgramHashChanged {
-        changed_by: ContractAddress,
         old_snos_program_hash: felt252,
         new_snos_program_hash: felt252,
     }
@@ -82,11 +74,19 @@ mod config_cpt {
         }
 
         fn set_program_info(
-            ref self: ComponentState<TContractState>, program_hash: felt252, config_hash: felt252
+            ref self: ComponentState<TContractState>,
+            program_hash: felt252,
+            config_hash: felt252,
+            snos_program_hash: felt252
         ) {
             self.assert_only_owner_or_operator();
-            let (old_program_hash, old_config_hash): (felt252, felt252) = self.program_info.read();
-            self.program_info.write((program_hash, config_hash));
+            let (
+                old_program_hash, old_config_hash, old_snos_program_hash
+            ): (felt252, felt252, felt252) =
+                self
+                .program_info
+                .read();
+            self.program_info.write((program_hash, config_hash, snos_program_hash));
             self
                 .emit(
                     ProgramInfoChanged {
@@ -95,11 +95,13 @@ mod config_cpt {
                         new_program_hash: program_hash,
                         old_config_hash: old_config_hash,
                         new_config_hash: config_hash,
+                        old_snos_program_hash: old_snos_program_hash,
+                        new_snos_program_hash: snos_program_hash,
                     }
                 );
         }
 
-        fn get_program_info(self: @ComponentState<TContractState>) -> (felt252, felt252) {
+        fn get_program_info(self: @ComponentState<TContractState>) -> (felt252, felt252, felt252) {
             self.program_info.read()
         }
 
@@ -110,26 +112,6 @@ mod config_cpt {
 
         fn get_facts_registry(self: @ComponentState<TContractState>) -> ContractAddress {
             self.facts_registry.read()
-        }
-
-        fn set_snos_program_hash(
-            ref self: ComponentState<TContractState>, snos_program_hash: felt252
-        ) {
-            self.assert_only_owner_or_operator();
-            let old_snos_program_hash = self.snos_program_hash.read();
-            self.snos_program_hash.write(snos_program_hash);
-            self
-                .emit(
-                    SnosProgramHashChanged {
-                        changed_by: starknet::get_caller_address(),
-                        old_snos_program_hash,
-                        new_snos_program_hash: snos_program_hash
-                    }
-                );
-        }
-
-        fn get_snos_program_hash(self: @ComponentState<TContractState>) -> felt252 {
-            self.snos_program_hash.read()
         }
     }
 
