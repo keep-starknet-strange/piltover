@@ -1,7 +1,7 @@
 #[derive(Copy, Drop, Serde)]
-struct DataAvailabilityFact {
-    onchain_data_hash: felt252,
-    onchain_data_size: u256,
+pub struct DataAvailabilityFact {
+    pub onchain_data_hash: felt252,
+    pub onchain_data_size: u256,
 }
 
 /// Encodes a GPS fact Merkle tree where the root has two children.
@@ -16,8 +16,8 @@ struct DataAvailabilityFact {
 /// # Returns
 ///
 /// * The hash of the fact Merkle tree.
-fn encode_fact_with_onchain_data(
-    program_output: Span<felt252>, fact_data: DataAvailabilityFact
+pub fn encode_fact_with_onchain_data(
+    program_output: Span<felt252>, fact_data: DataAvailabilityFact,
 ) -> u256 {
     // The state transition fact is computed as a Merkle tree.
     // The root has two children.
@@ -39,7 +39,7 @@ fn encode_fact_with_onchain_data(
     keccak_input.append(fact_data.onchain_data_hash.into());
     keccak_input.append(main_public_input_len + fact_data.onchain_data_size);
 
-    let hash_result: u256 = keccak::keccak_u256s_le_inputs(keccak_input.span());
+    let hash_result: u256 = core::keccak::keccak_u256s_le_inputs(keccak_input.span());
 
     // Add one to the hash to indicate it represents an inner node, rather than a leaf.
 
@@ -55,7 +55,7 @@ fn encode_fact_with_onchain_data(
 /// # Returns
 ///
 /// * The hash of the main public input.
-fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
+pub fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
     let mut keccak_input: Array<u256> = ArrayTrait::new();
     let mut i = 0;
     loop {
@@ -66,6 +66,5 @@ fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
         i += 1;
     };
 
-    keccak::keccak_u256s_le_inputs(keccak_input.span())
+    core::keccak::keccak_u256s_le_inputs(keccak_input.span())
 }
-

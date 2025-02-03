@@ -4,7 +4,7 @@
 use piltover::snos_output::StarknetOsOutput;
 
 #[starknet::interface]
-trait IState<T> {
+pub trait IState<T> {
     /// Validates that the 'blockNumber' and the previous root are consistent with the
     /// current state and updates the state.
     ///

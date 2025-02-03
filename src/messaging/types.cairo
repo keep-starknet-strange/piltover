@@ -7,7 +7,7 @@ pub enum MessageToAppchainStatus {
     NotSent,
     Sealed,
     Cancelled,
-    Pending: Nonce, // sn->appc: The nonce > 0.
+    Pending: Nonce // sn->appc: The nonce > 0.
 }
 
 #[derive(Serde, Drop, PartialEq)]

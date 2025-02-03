@@ -3,44 +3,40 @@
 //!
 
 mod errors {
-    const INVALID_ADDRESS: felt252 = 'Config: invalid address';
-    const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
-    const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
-    const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
-    const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
+    pub const INVALID_ADDRESS: felt252 = 'Config: invalid address';
+    pub const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
+    pub const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
+    pub const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
+    pub const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
 }
 
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
-mod appchain {
+pub mod appchain {
     use core::iter::IntoIterator;
-    use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
+    use core::poseidon::{PoseidonImpl, poseidon_hash_span};
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
-        interface::IOwnable
     };
     use openzeppelin::security::reentrancyguard::{
         ReentrancyGuardComponent,
-        ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl
+        ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl,
     };
     use openzeppelin::upgrades::{
         UpgradeableComponent as upgradeable_cpt,
-        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable
+        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable,
     };
     use piltover::components::onchain_data_fact_tree_encoder::{
-        encode_fact_with_onchain_data, DataAvailabilityFact
+        DataAvailabilityFact, encode_fact_with_onchain_data,
     };
-    use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
+    use piltover::config::{IConfig, config_cpt, config_cpt::InternalTrait as ConfigInternal};
     use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
     use piltover::interface::IAppchain;
-    use piltover::messaging::{
-        messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
-    };
-    use piltover::snos_output::StarknetOsOutput;
+    use piltover::messaging::{messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal};
     use piltover::snos_output::deserialize_os_output;
-    use piltover::state::component::state_cpt::HasComponent;
-    use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
-    use starknet::{ContractAddress, ClassHash};
+    use piltover::state::{IState, state_cpt, state_cpt::InternalTrait as StateInternal};
+    use starknet::storage::{StoragePointerReadAccess};
+    use starknet::{ClassHash, ContractAddress};
     use super::errors;
 
     /// The default cancellation delay of 5 days.
@@ -52,7 +48,7 @@ mod appchain {
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
     component!(path: state_cpt, storage: state, event: StateEvent);
     component!(
-        path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
+        path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent,
     );
 
     #[abi(embed_v0)]
@@ -80,7 +76,7 @@ mod appchain {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         #[flat]
         OwnableEvent: ownable_cpt::Event,
         #[flat]
@@ -98,15 +94,15 @@ mod appchain {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct LogStateUpdate {
-        state_root: felt252,
-        block_number: felt252,
-        block_hash: felt252,
+    pub struct LogStateUpdate {
+        pub state_root: felt252,
+        pub block_number: felt252,
+        pub block_hash: felt252,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct LogStateTransitionFact {
-        state_transition_fact: u256,
+    pub struct LogStateTransitionFact {
+        pub state_transition_fact: u256,
     }
 
     /// Initializes the contract.
@@ -134,7 +130,7 @@ mod appchain {
             snos_output: Span<felt252>,
             program_output: Span<felt252>,
             onchain_data_hash: felt252,
-            onchain_data_size: u256
+            onchain_data_size: u256,
         ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
@@ -153,15 +149,15 @@ mod appchain {
                 .read();
 
             let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash, onchain_data_size
+                onchain_data_hash, onchain_data_size,
             };
             let state_transition_fact: u256 = encode_fact_with_onchain_data(
-                program_output, data_availability_fact
+                program_output, data_availability_fact,
             );
 
             assert(
                 program_output_struct.starknet_os_config_hash == current_config_hash,
-                errors::SNOS_INVALID_CONFIG_HASH
+                errors::SNOS_INVALID_CONFIG_HASH,
             );
 
             let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
@@ -169,7 +165,7 @@ mod appchain {
                 *IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
                     .get_all_verifications_for_fact_hash(fact)
                     .at(0)
-                    .security_bits > 50
+                    .security_bits > 50,
             );
 
             self.emit(LogStateTransitionFact { state_transition_fact });
@@ -191,7 +187,7 @@ mod appchain {
                         state_root: self.state.state_root.read(),
                         block_number: self.state.block_number.read(),
                         block_hash: self.state.block_hash.read(),
-                    }
+                    },
                 );
         }
     }

@@ -26,12 +26,12 @@
 
 /// Errors.
 mod errors {
-    const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
-    const INVALID_MESSAGE_TO_SEAL: felt252 = 'INVALID_MESSAGE_TO_SEAL';
-    const NO_MESSAGE_TO_CANCEL: felt252 = 'NO_MESSAGE_TO_CANCEL';
-    const CANCELLATION_NOT_REQUESTED: felt252 = 'CANCELLATION_NOT_REQUESTED';
-    const CANCELLATION_NOT_ALLOWED_YET: felt252 = 'CANCELLATION_NOT_ALLOWED_YET';
-    const CANCEL_ALLOWED_TIME_OVERFLOW: felt252 = 'CANCEL_ALLOWED_TIME_OVERFLOW';
+    pub const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
+    pub const INVALID_MESSAGE_TO_SEAL: felt252 = 'INVALID_MESSAGE_TO_SEAL';
+    pub const NO_MESSAGE_TO_CANCEL: felt252 = 'NO_MESSAGE_TO_CANCEL';
+    pub const CANCELLATION_NOT_REQUESTED: felt252 = 'CANCELLATION_NOT_REQUESTED';
+    pub const CANCELLATION_NOT_ALLOWED_YET: felt252 = 'CANCELLATION_NOT_ALLOWED_YET';
+    pub const CANCEL_ALLOWED_TIME_OVERFLOW: felt252 = 'CANCEL_ALLOWED_TIME_OVERFLOW';
 }
 
 /// Messaging component.
@@ -39,39 +39,39 @@ mod errors {
 /// Depends on `ownable` to ensure the configuration is
 /// only editable by contract's owner.
 #[starknet::component]
-mod messaging_cpt {
-    use core::zeroable::Zeroable;
-    use openzeppelin::access::ownable::{
-        OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
-        interface::IOwnable,
-    };
+pub mod messaging_cpt {
+    use core::num::traits::Zero;
     use piltover::messaging::{
         hash, interface::IMessaging,
-        types::{MessageToAppchainStatus, MessageToStarknetStatus, MessageHash, Nonce}
+        types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus, Nonce},
     };
-    use piltover::snos_output::{MessageToStarknet, MessageToAppchain};
+    use piltover::snos_output::{MessageToAppchain, MessageToStarknet};
     use starknet::ContractAddress;
     use starknet::storage::Map;
+    use starknet::storage::{
+        StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
+    };
     use super::errors;
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         /// Cancellation delay in seconds for message from Starknet to Appchain.
-        cancellation_delay_secs: u64,
+        pub cancellation_delay_secs: u64,
         /// Ledger of messages from Starknet to Appchain that are being cancelled.
-        sn_to_appc_cancellations: Map::<MessageHash, u64>,
+        pub sn_to_appc_cancellations: Map::<MessageHash, u64>,
         /// The nonce for messages sent to the Appchain from Starknet.
-        sn_to_appc_nonce: Nonce,
+        pub sn_to_appc_nonce: Nonce,
         /// Ledger of messages hashes sent from Starknet to the appchain and their status.
-        sn_to_appc_messages: Map::<MessageHash, MessageToAppchainStatus>,
+        pub sn_to_appc_messages: Map::<MessageHash, MessageToAppchainStatus>,
         /// Ledger of messages hashes registered from the Appchain and a refcount
         /// associated to it to control messages consumption.
-        appc_to_sn_messages: Map::<MessageHash, felt252>,
+        pub appc_to_sn_messages: Map::<MessageHash, felt252>,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         MessageSent: MessageSent,
         MessageConsumed: MessageConsumed,
         MessageCancellationStarted: MessageCancellationStarted,
@@ -81,88 +81,88 @@ mod messaging_cpt {
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageSent {
+    pub struct MessageSent {
         #[key]
-        message_hash: MessageHash,
+        pub message_hash: MessageHash,
         #[key]
-        from: ContractAddress,
+        pub from: ContractAddress,
         #[key]
-        to: ContractAddress,
-        selector: felt252,
-        nonce: Nonce,
-        payload: Span<felt252>,
+        pub to: ContractAddress,
+        pub selector: felt252,
+        pub nonce: Nonce,
+        pub payload: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageConsumed {
+    pub struct MessageConsumed {
         #[key]
-        message_hash: MessageHash,
+        pub message_hash: MessageHash,
         #[key]
-        from: ContractAddress,
+        pub from: ContractAddress,
         #[key]
-        to: ContractAddress,
-        payload: Span<felt252>,
+        pub to: ContractAddress,
+        pub payload: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageCancellationStarted {
+    pub struct MessageCancellationStarted {
         #[key]
-        message_hash: MessageHash,
+        pub message_hash: MessageHash,
         #[key]
-        from: ContractAddress,
+        pub from: ContractAddress,
         #[key]
-        to: ContractAddress,
-        selector: felt252,
-        payload: Span<felt252>,
-        nonce: Nonce,
+        pub to: ContractAddress,
+        pub selector: felt252,
+        pub payload: Span<felt252>,
+        pub nonce: Nonce,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageCanceled {
+    pub struct MessageCanceled {
         #[key]
-        message_hash: MessageHash,
+        pub message_hash: MessageHash,
         #[key]
-        from: ContractAddress,
+        pub from: ContractAddress,
         #[key]
-        to: ContractAddress,
-        selector: felt252,
-        payload: Span<felt252>,
-        nonce: Nonce,
+        pub to: ContractAddress,
+        pub selector: felt252,
+        pub payload: Span<felt252>,
+        pub nonce: Nonce,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageToStarknetReceived {
+    pub struct MessageToStarknetReceived {
         #[key]
-        message_hash: MessageHash,
+        pub message_hash: MessageHash,
         #[key]
-        from: ContractAddress,
+        pub from: ContractAddress,
         #[key]
-        to: ContractAddress,
-        payload: Span<felt252>,
+        pub to: ContractAddress,
+        pub payload: Span<felt252>,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct MessageToAppchainSealed {
+    pub struct MessageToAppchainSealed {
         #[key]
-        message_hash: MessageHash,
+        pub message_hash: MessageHash,
         #[key]
-        from: ContractAddress,
+        pub from: ContractAddress,
         #[key]
-        to: ContractAddress,
-        selector: felt252,
-        nonce: Nonce,
-        payload: Span<felt252>,
+        pub to: ContractAddress,
+        pub selector: felt252,
+        pub nonce: Nonce,
+        pub payload: Span<felt252>,
     }
 
     #[embeddable_as(MessagingImpl)]
     impl Messaging<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of IMessaging<ComponentState<TContractState>> {
         fn send_message_to_appchain(
             ref self: ComponentState<TContractState>,
             to_address: ContractAddress,
             selector: felt252,
-            payload: Span<felt252>
+            payload: Span<felt252>,
         ) -> (MessageHash, Nonce) {
             // From the what's done from L1 to L2, the first nonce must be 0:
             // <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L117>
@@ -175,26 +175,23 @@ mod messaging_cpt {
 
             let from = starknet::get_caller_address();
             let message_hash = hash::compute_message_hash_sn_to_appc(
-                from, to_address, selector, payload, nonce
+                from, to_address, selector, payload, nonce,
             );
 
-            self
-                .emit(
-                    MessageSent { message_hash, from, to: to_address, selector, nonce, payload, }
-                );
+            self.emit(MessageSent { message_hash, from, to: to_address, selector, nonce, payload });
 
             self.sn_to_appc_messages.write(message_hash, MessageToAppchainStatus::Pending(nonce));
             (message_hash, nonce)
         }
 
         fn sn_to_appchain_messages(
-            self: @ComponentState<TContractState>, message_hash: MessageHash
+            self: @ComponentState<TContractState>, message_hash: MessageHash,
         ) -> MessageToAppchainStatus {
             self.sn_to_appc_messages.read(message_hash)
         }
 
         fn appchain_to_sn_messages(
-            self: @ComponentState<TContractState>, message_hash: MessageHash
+            self: @ComponentState<TContractState>, message_hash: MessageHash,
         ) -> MessageToStarknetStatus {
             let message_count = self.appc_to_sn_messages.read(message_hash);
             if (message_count == 0) {
@@ -206,12 +203,12 @@ mod messaging_cpt {
         fn consume_message_from_appchain(
             ref self: ComponentState<TContractState>,
             from_address: ContractAddress,
-            payload: Span<felt252>
+            payload: Span<felt252>,
         ) -> MessageHash {
             let to_address = starknet::get_caller_address();
 
             let message_hash = hash::compute_message_hash_appc_to_sn(
-                from_address, to_address, payload
+                from_address, to_address, payload,
             );
 
             let count = self.appc_to_sn_messages.read(message_hash);
@@ -219,7 +216,7 @@ mod messaging_cpt {
 
             self
                 .emit(
-                    MessageConsumed { message_hash, from: from_address, to: to_address, payload, }
+                    MessageConsumed { message_hash, from: from_address, to: to_address, payload },
                 );
 
             self.appc_to_sn_messages.write(message_hash, count - 1);
@@ -237,7 +234,7 @@ mod messaging_cpt {
             let from = starknet::get_caller_address();
 
             let message_hash = hash::compute_message_hash_sn_to_appc(
-                from, to_address, selector, payload, nonce
+                from, to_address, selector, payload, nonce,
             );
 
             match self.sn_to_appc_messages.read(message_hash) {
@@ -250,8 +247,8 @@ mod messaging_cpt {
             self
                 .emit(
                     MessageCancellationStarted {
-                        message_hash, from, to: to_address, selector, payload, nonce
-                    }
+                        message_hash, from, to: to_address, selector, payload, nonce,
+                    },
                 );
 
             return message_hash;
@@ -267,14 +264,14 @@ mod messaging_cpt {
             let from = starknet::get_caller_address();
 
             let message_hash = hash::compute_message_hash_sn_to_appc(
-                from, to_address, selector, payload, nonce
+                from, to_address, selector, payload, nonce,
             );
 
             assert(
                 self
                     .sn_to_appc_messages
                     .read(message_hash) == MessageToAppchainStatus::Pending(nonce),
-                errors::NO_MESSAGE_TO_CANCEL
+                errors::NO_MESSAGE_TO_CANCEL,
             );
 
             let request_time = self.sn_to_appc_cancellations.read(message_hash);
@@ -284,12 +281,14 @@ mod messaging_cpt {
             assert(cancel_allowed_time >= request_time, errors::CANCEL_ALLOWED_TIME_OVERFLOW);
             assert(
                 starknet::get_block_timestamp() >= cancel_allowed_time,
-                errors::CANCELLATION_NOT_ALLOWED_YET
+                errors::CANCELLATION_NOT_ALLOWED_YET,
             );
 
             self
                 .emit(
-                    MessageCanceled { message_hash, from, to: to_address, selector, payload, nonce }
+                    MessageCanceled {
+                        message_hash, from, to: to_address, selector, payload, nonce,
+                    },
                 );
 
             // Once canceled, no more operation can be done on this message.
@@ -300,7 +299,7 @@ mod messaging_cpt {
 
         #[cfg(feature: 'messaging_test')]
         fn add_messages_hashes_from_appchain(
-            ref self: ComponentState<TContractState>, messages_hashes: Span<felt252>
+            ref self: ComponentState<TContractState>, messages_hashes: Span<felt252>,
         ) {
             let mut i = 0_usize;
             loop {
@@ -321,8 +320,8 @@ mod messaging_cpt {
                             message_hash: msg_hash,
                             from: 0.try_into().unwrap(),
                             to: 0.try_into().unwrap(),
-                            payload: array![].span()
-                        }
+                            payload: array![].span(),
+                        },
                     );
 
                 i += 1;
@@ -331,8 +330,8 @@ mod messaging_cpt {
     }
 
     #[generate_trait]
-    impl InternalImpl<
-        TContractState, +HasComponent<TContractState>
+    pub impl InternalImpl<
+        TContractState, +HasComponent<TContractState>,
     > of InternalTrait<TContractState> {
         /// Initializes the messaging component.
         ///
@@ -394,7 +393,7 @@ mod messaging_cpt {
                         let nonce = *m.nonce;
 
                         let message_hash = hash::compute_message_hash_sn_to_appc(
-                            from, to, selector, payload, nonce
+                            from, to, selector, payload, nonce,
                         );
 
                         match self.sn_to_appc_messages.read(message_hash) {
@@ -411,8 +410,8 @@ mod messaging_cpt {
                         self
                             .emit(
                                 MessageToAppchainSealed {
-                                    message_hash, from, to, selector, payload, nonce
-                                }
+                                    message_hash, from, to, selector, payload, nonce,
+                                },
                             );
                     },
                     Option::None => { break; },

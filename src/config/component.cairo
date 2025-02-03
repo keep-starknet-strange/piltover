@@ -4,9 +4,9 @@
 
 /// Errors.
 mod errors {
-    const INVALID_CALLER: felt252 = 'Config: not owner or operator';
-    const ALREADY_REGISTERED: felt252 = 'Config: already operator';
-    const NOT_OPERATOR: felt252 = 'Config: not operator';
+    pub const INVALID_CALLER: felt252 = 'Config: not owner or operator';
+    pub const ALREADY_REGISTERED: felt252 = 'Config: already operator';
+    pub const NOT_OPERATOR: felt252 = 'Config: not operator';
 }
 
 /// Configuration component.
@@ -14,7 +14,7 @@ mod errors {
 /// Depends on `ownable` to ensure the configuration is
 /// only editable by contract's owner.
 #[starknet::component]
-mod config_cpt {
+pub mod config_cpt {
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable,
@@ -22,21 +22,25 @@ mod config_cpt {
     use piltover::config::interface::IConfig;
     use starknet::ContractAddress;
     use starknet::storage::Map;
+    use starknet::storage::{
+        StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
+    };
     use super::errors;
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         /// Appchain operators that are allowed to update the state.
-        operators: Map<ContractAddress, bool>,
+        pub operators: Map<ContractAddress, bool>,
         /// Program info (StarknetOS), with program hash and config hash.
-        program_info: (felt252, felt252),
+        pub program_info: (felt252, felt252),
         /// Facts registry contract address.
-        facts_registry: ContractAddress,
+        pub facts_registry: ContractAddress,
     }
 
     #[event]
     #[derive(Copy, Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         ProgramInfoChanged: ProgramInfoChanged,
     }
 
@@ -53,7 +57,7 @@ mod config_cpt {
     impl Config<
         TContractState,
         +HasComponent<TContractState>,
-        impl Ownable: ownable_cpt::HasComponent<TContractState>
+        impl Ownable: ownable_cpt::HasComponent<TContractState>,
     > of IConfig<ComponentState<TContractState>> {
         fn register_operator(ref self: ComponentState<TContractState>, address: ContractAddress) {
             get_dep_component!(@self, Ownable).assert_only_owner();
@@ -72,7 +76,7 @@ mod config_cpt {
         }
 
         fn set_program_info(
-            ref self: ComponentState<TContractState>, program_hash: felt252, config_hash: felt252
+            ref self: ComponentState<TContractState>, program_hash: felt252, config_hash: felt252,
         ) {
             self.assert_only_owner_or_operator();
             let (old_program_hash, old_config_hash): (felt252, felt252) = self.program_info.read();
@@ -85,7 +89,7 @@ mod config_cpt {
                         new_program_hash: program_hash,
                         old_config_hash: old_config_hash,
                         new_config_hash: config_hash,
-                    }
+                    },
                 );
         }
 
@@ -104,7 +108,7 @@ mod config_cpt {
     }
 
     #[generate_trait]
-    impl InternalImpl<
+    pub impl InternalImpl<
         TContractState,
         +HasComponent<TContractState>,
         impl Ownable: ownable_cpt::HasComponent<TContractState>,
@@ -113,7 +117,7 @@ mod config_cpt {
         /// the authorized operator. Reverts otherwise.
         fn assert_only_owner_or_operator(ref self: ComponentState<TContractState>) {
             assert(
-                self.is_owner_or_operator(starknet::get_caller_address()), errors::INVALID_CALLER
+                self.is_owner_or_operator(starknet::get_caller_address()), errors::INVALID_CALLER,
             );
         }
 
@@ -124,7 +128,7 @@ mod config_cpt {
         ///
         /// * `address` - The contrat address to verify.
         fn is_owner_or_operator(
-            ref self: ComponentState<TContractState>, address: ContractAddress
+            ref self: ComponentState<TContractState>, address: ContractAddress,
         ) -> bool {
             let owner = get_dep_component!(@self, Ownable).owner();
             address == owner || self.is_operator(address)

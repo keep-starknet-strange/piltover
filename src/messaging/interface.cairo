@@ -1,5 +1,5 @@
 use piltover::messaging::types::{
-    MessageHash, Nonce, MessageToAppchainStatus, MessageToStarknetStatus
+    MessageHash, MessageToAppchainStatus, MessageToStarknetStatus, Nonce,
 };
 //! SPDX-License-Identifier: MIT
 //!
@@ -7,7 +7,7 @@ use piltover::messaging::types::{
 use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IMessaging<T> {
+pub trait IMessaging<T> {
     /// Sends a message to the Appchain from Starknet.
     ///
     /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L110>.
@@ -23,7 +23,7 @@ trait IMessaging<T> {
     ///
     /// The message hash and the updated nonce of the message.
     fn send_message_to_appchain(
-        ref self: T, to_address: ContractAddress, selector: felt252, payload: Span<felt252>
+        ref self: T, to_address: ContractAddress, selector: felt252, payload: Span<felt252>,
     ) -> (MessageHash, Nonce);
 
     /// Consumes a message received from a state update of the Appchain.
@@ -39,7 +39,7 @@ trait IMessaging<T> {
     ///
     /// Returns the hash of the consummed message.
     fn consume_message_from_appchain(
-        ref self: T, from_address: ContractAddress, payload: Span<felt252>
+        ref self: T, from_address: ContractAddress, payload: Span<felt252>,
     ) -> MessageHash;
 
     /// Checks the status of message sent to the Appchain from Starknet

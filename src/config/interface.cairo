@@ -4,7 +4,7 @@
 use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IConfig<T> {
+pub trait IConfig<T> {
     /// Registers an operator that is in charge to push state updates.
     /// Multiple operators can be registered.
     /// # Arguments

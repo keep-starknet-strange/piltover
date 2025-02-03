@@ -4,17 +4,16 @@
 
 /// Errors.
 mod errors {
-    const INVALID_BLOCK_NUMBER: felt252 = 'State: invalid block number';
-    const INVALID_PREVIOUS_ROOT: felt252 = 'State: invalid previous root';
+    pub const INVALID_BLOCK_NUMBER: felt252 = 'State: invalid block number';
+    pub const INVALID_PREVIOUS_ROOT: felt252 = 'State: invalid previous root';
 }
 
 /// State component.
 #[starknet::component]
-mod state_cpt {
-    use core::iter::IntoIterator;
+pub mod state_cpt {
     use piltover::snos_output::StarknetOsOutput;
-    use piltover::snos_output::deserialize_os_output;
     use piltover::state::interface::IState;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use super::errors;
 
     type StateRoot = felt252;
@@ -22,15 +21,15 @@ mod state_cpt {
     type BlockHash = felt252;
 
     #[storage]
-    struct Storage {
-        state_root: StateRoot,
-        block_number: BlockNumber,
-        block_hash: BlockHash,
+    pub struct Storage {
+        pub state_root: StateRoot,
+        pub block_number: BlockNumber,
+        pub block_hash: BlockHash,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {}
+    pub enum Event {}
 
     #[embeddable_as(StateImpl)]
     impl State<
@@ -42,13 +41,14 @@ mod state_cpt {
             self.block_number.write(self.block_number.read() + 1);
             assert(
                 self.block_number.read() == program_output.new_block_number,
-                errors::INVALID_BLOCK_NUMBER
+                errors::INVALID_BLOCK_NUMBER,
             );
 
             self.block_hash.write(program_output.new_block_hash);
 
             assert(
-                self.state_root.read() == program_output.initial_root, errors::INVALID_PREVIOUS_ROOT
+                self.state_root.read() == program_output.initial_root,
+                errors::INVALID_PREVIOUS_ROOT,
             );
 
             self.state_root.write(program_output.final_root);
@@ -60,7 +60,7 @@ mod state_cpt {
     }
 
     #[generate_trait]
-    impl InternalImpl<
+    pub impl InternalImpl<
         TContractState, +HasComponent<TContractState>,
     > of InternalTrait<TContractState> {
         /// Initialized the messaging component.

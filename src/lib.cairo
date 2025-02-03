@@ -1,54 +1,56 @@
-mod appchain;
-mod fact_registry;
-mod interface;
-mod snos_output;
+pub mod appchain;
+pub mod fact_registry;
+pub mod interface;
+pub mod snos_output;
+
 // Components
-mod config {
-    mod component;
-    mod interface;
-    mod mock;
+pub mod config {
+    pub mod component;
+    pub mod interface;
+    pub mod mock;
 
-    use component::config_cpt;
-    use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
-    use mock::config_mock;
+    pub use component::config_cpt;
+    pub use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
+    pub use mock::config_mock;
 
     #[cfg(test)]
-    mod tests {
-        mod test_config;
+    pub mod tests {
+        pub mod test_config;
     }
 }
 
-mod messaging {
-    mod component;
-    mod hash;
-    mod interface;
-    mod mock;
-    mod types;
+pub mod messaging {
+    pub mod component;
+    pub mod hash;
+    pub mod interface;
+    pub mod mock;
+    pub mod types;
 
-    use component::messaging_cpt;
-    use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
-    use mock::messaging_mock;
+    pub use component::messaging_cpt;
+    pub use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
+    pub use mock::messaging_mock;
 
     #[cfg(test)]
-    mod tests {
-        mod test_messaging;
+    pub mod tests {
+        pub mod test_messaging;
     }
 }
 
-mod state {
-    mod component;
-    mod interface;
-    mod mock;
+pub mod state {
+    pub mod component;
+    pub mod interface;
+    pub mod mock;
 
-    use component::state_cpt;
-    use interface::{IState, IStateDispatcher, IStateDispatcherTrait};
-    use mock::state_mock;
+    pub use component::state_cpt;
+    pub use interface::{IState, IStateDispatcher, IStateDispatcherTrait};
+    pub use mock::state_mock;
 
     #[cfg(test)]
-    mod tests {
-        mod test_state;
+    pub mod tests {
+        pub mod test_state;
     }
 }
-mod components {
-    mod onchain_data_fact_tree_encoder;
+
+pub mod components {
+    pub mod onchain_data_fact_tree_encoder;
 }

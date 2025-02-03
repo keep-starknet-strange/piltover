@@ -5,7 +5,7 @@ use core::iter::IntoIterator;
 use core::iter::Iterator;
 use core::num::traits::Zero;
 use starknet::ContractAddress;
-use starknet::contract_address_try_from_felt252;
+
 /// Size of the header of the output of SNOS.
 const HEADER_SIZE: usize = 10;
 /// Size of the header of a message to Starknet, which is
@@ -28,71 +28,70 @@ const FULL_OUTPUT_OFFSET: usize = 9;
 const KZG_N_BLOBS_OFFSET: usize = 1;
 
 #[derive(Drop, Serde, Debug)]
-struct StarknetOsOutput {
-    initial_root: felt252,
-    final_root: felt252,
-    prev_block_number: felt252,
-    new_block_number: felt252,
-    prev_block_hash: felt252,
-    new_block_hash: felt252,
-    os_program_hash: felt252,
-    starknet_os_config_hash: felt252,
-    use_kzg_da: felt252,
-    full_output: felt252,
-    messages_to_l1: Span<MessageToStarknet>,
-    messages_to_l2: Span<MessageToAppchain>,
-    contracts: Array<ContractChanges>,
-    classes: Array<(felt252, felt252)>,
+pub struct StarknetOsOutput {
+    pub initial_root: felt252,
+    pub final_root: felt252,
+    pub prev_block_number: felt252,
+    pub new_block_number: felt252,
+    pub prev_block_hash: felt252,
+    pub new_block_hash: felt252,
+    pub os_program_hash: felt252,
+    pub starknet_os_config_hash: felt252,
+    pub use_kzg_da: felt252,
+    pub full_output: felt252,
+    pub messages_to_l1: Span<MessageToStarknet>,
+    pub messages_to_l2: Span<MessageToAppchain>,
+    pub contracts: Array<ContractChanges>,
+    pub classes: Array<(felt252, felt252)>,
 }
 
 #[derive(Drop, Serde, Debug)]
-struct MessageToStarknet {
+pub struct MessageToStarknet {
     /// Appchain contract address sending the message.
-    from_address: ContractAddress,
+    pub from_address: ContractAddress,
     /// Starknet contract address receiving the message.
-    to_address: ContractAddress,
+    pub to_address: ContractAddress,
     /// Payload of the message.
-    payload: Span<felt252>,
+    pub payload: Span<felt252>,
 }
 
 #[derive(Drop, Serde, Debug)]
-struct MessageToAppchain {
+pub struct MessageToAppchain {
     /// Starknet address sending the message.
-    from_address: ContractAddress,
+    pub from_address: ContractAddress,
     /// Appchain address receiving the message.
-    to_address: ContractAddress,
+    pub to_address: ContractAddress,
     /// Nonce.
-    nonce: felt252,
+    pub nonce: felt252,
     /// Function selector (with #[l1 handler] attribute).
-    selector: felt252,
+    pub selector: felt252,
     /// Payload size.
-    payload: Span<felt252>,
+    pub payload: Span<felt252>,
 }
 
 #[derive(Drop, Serde, Debug)]
-struct ContractChanges {
-    addr: felt252,
-    nonce: felt252,
-    class_hash: Option<felt252>,
-    storage_changes: Array<(felt252, felt252)>,
+pub struct ContractChanges {
+    pub addr: felt252,
+    pub nonce: felt252,
+    pub class_hash: Option<felt252>,
+    pub storage_changes: Array<(felt252, felt252)>,
 }
 
 fn read_segment(ref input_iter: SpanIter<felt252>, segment_length: usize) -> Array<felt252> {
     let mut segment = array![];
-    for _i in 0
-        ..segment_length {
-            let x = input_iter.next();
-            if x.is_none() {
-                break;
-            }
-            segment.append(*(x.unwrap()));
-        };
+    for _i in 0..segment_length {
+        let x = input_iter.next();
+        if x.is_none() {
+            break;
+        }
+        segment.append(*(x.unwrap()));
+    };
     return segment;
 }
 
 /// Custom deserialization function, inspired by
 /// https://github.com/starkware-libs/cairo-lang/blob/8e11b8cc65ae1d0959328b1b4a40b92df8b58595/src/starkware/starknet/core/aggregator/output_parser.py
-fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOutput {
+pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOutput {
     let _ = read_segment(ref input_iter, 3);
     let header = read_segment(ref input_iter, HEADER_SIZE);
     let use_kzg_da = header[USE_KZG_DA_OFFSET];
@@ -108,7 +107,7 @@ fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOutput 
     let (contracts, classes) = if use_kzg_da.is_zero() {
         (
             deserialize_contract_state(ref input_iter, *full_output),
-            deserialize_contract_class_da_changes(ref input_iter, *full_output)
+            deserialize_contract_class_da_changes(ref input_iter, *full_output),
         )
     } else {
         (array![], array![])
@@ -132,7 +131,7 @@ fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOutput 
 }
 
 pub fn deserialize_messages(
-    ref input_iter: SpanIter<felt252>
+    ref input_iter: SpanIter<felt252>,
 ) -> (Span<MessageToStarknet>, Span<MessageToAppchain>) {
     let n_messages_to_l1: usize = (*(input_iter.next().unwrap()))
         .try_into()
@@ -153,21 +152,20 @@ pub fn deserialize_messages(
 }
 
 fn deserialize_contract_state(
-    ref input_iter: SpanIter<felt252>, full_output: felt252
+    ref input_iter: SpanIter<felt252>, full_output: felt252,
 ) -> Array<ContractChanges> {
     let output_n_updates: usize = (*(input_iter.next().unwrap()))
         .try_into()
         .expect('Invalid output_n_updates');
     let mut contract_changes = array![];
-    for _ in 0
-        ..output_n_updates {
-            contract_changes.append(deserialize_contract_state_inner(ref input_iter, full_output));
-        };
+    for _ in 0..output_n_updates {
+        contract_changes.append(deserialize_contract_state_inner(ref input_iter, full_output));
+    };
     contract_changes
 }
 
 fn deserialize_contract_state_inner(
-    ref input_iter: SpanIter<felt252>, full_output: felt252
+    ref input_iter: SpanIter<felt252>, full_output: felt252,
 ) -> ContractChanges {
     let bound: u256 = 18446744073709551616; // 2^64
     let addr = *(input_iter.next().unwrap());
@@ -193,42 +191,40 @@ fn deserialize_contract_state_inner(
         addr: addr,
         nonce: new_state_nonce.try_into().unwrap(),
         class_hash: new_state_class_hash,
-        storage_changes
+        storage_changes,
     }
 }
 
 fn deserialize_da_changes(
-    ref input_iter: SpanIter<felt252>, n_actual_updates: usize, full_output: felt252
+    ref input_iter: SpanIter<felt252>, n_actual_updates: usize, full_output: felt252,
 ) -> Array<(felt252, felt252)> {
     let mut storage_changes = array![];
-    for _ in 0
-        ..n_actual_updates {
-            let key = *(input_iter.next().unwrap());
-            if full_output.is_non_zero() {
-                *(input_iter.next().unwrap());
-            };
-            let new_value = *(input_iter.next().unwrap());
-            storage_changes.append((key, new_value));
+    for _ in 0..n_actual_updates {
+        let key = *(input_iter.next().unwrap());
+        if full_output.is_non_zero() {
+            *(input_iter.next().unwrap());
         };
+        let new_value = *(input_iter.next().unwrap());
+        storage_changes.append((key, new_value));
+    };
     storage_changes
 }
 
 fn deserialize_contract_class_da_changes(
-    ref input_iter: SpanIter<felt252>, full_output: felt252
+    ref input_iter: SpanIter<felt252>, full_output: felt252,
 ) -> Array<(felt252, felt252)> {
     let output_n_updates: usize = (*(input_iter.next().unwrap()))
         .try_into()
         .expect('Invalid output_n_updates');
     let mut contract_changes = array![];
-    for _ in 0
-        ..output_n_updates {
-            let class_hash = *(input_iter.next().unwrap());
-            if full_output.is_non_zero() {
-                *(input_iter.next().unwrap());
-            };
-            let compiled_class_hash = *(input_iter.next().unwrap());
-            contract_changes.append((class_hash, compiled_class_hash));
+    for _ in 0..output_n_updates {
+        let class_hash = *(input_iter.next().unwrap());
+        if full_output.is_non_zero() {
+            *(input_iter.next().unwrap());
         };
+        let compiled_class_hash = *(input_iter.next().unwrap());
+        contract_changes.append((class_hash, compiled_class_hash));
+    };
     contract_changes
 }
 
@@ -242,9 +238,8 @@ fn deserialize_messages_to_l1(ref input_iter: SpanIter<felt252>) -> Array<Messag
         let payload_size: usize = (*header[2]).try_into().expect('Invalid payload size');
         let mut payload = read_segment(ref input_iter, payload_size);
         let payload = payload.span();
-        let from_address = contract_address_try_from_felt252(*header[0])
-            .expect('Invalid from address');
-        let to_address = contract_address_try_from_felt252(*header[1]).expect('Invalid to address');
+        let from_address: ContractAddress = (*header[0]).try_into().expect('Invalid from address');
+        let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
         let message_to_starknet = MessageToStarknet { from_address, to_address, payload };
         messages_to_starknet.append(message_to_starknet);
     };
@@ -261,11 +256,10 @@ fn deserialize_messages_to_l2(ref input_iter: SpanIter<felt252>) -> Array<Messag
         let payload_size: usize = (*header[4]).try_into().expect('Invalid payload size');
         let mut payload = read_segment(ref input_iter, payload_size);
         let payload = payload.span();
-        let from_address = contract_address_try_from_felt252(*header[0])
-            .expect('Invalid from address');
-        let to_address = contract_address_try_from_felt252(*header[1]).expect('Invalid to address');
+        let from_address: ContractAddress = (*header[0]).try_into().expect('Invalid from address');
+        let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
         let message_to_appchain = MessageToAppchain {
-            from_address, to_address, nonce: *header[2], selector: *header[3], payload
+            from_address, to_address, nonce: *header[2], selector: *header[3], payload,
         };
         messages_to_appchain.append(message_to_appchain);
     };
