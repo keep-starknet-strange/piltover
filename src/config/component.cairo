@@ -28,12 +28,21 @@ mod config_cpt {
     struct Storage {
         /// Appchain operators that are allowed to update the state.
         operators: Map<ContractAddress, bool>,
-        /// Program info layout bridge program hash, config hash and StarknetOs program hash.
+        /// The information of the program verified to apply the state transition.
         program_info: ProgramInfo,
         /// Facts registry contract address.
         facts_registry: ContractAddress,
     }
 
+    /// Information of the program verified onchain to apply the state transition.
+    ///
+    /// In the current design, the StarknetOS (SNOS) is executed and proven first.
+    /// Since the layout used by SNOS is not verifiable onchain, a bridge layout
+    /// program is also executed on the proof generated from SNOS execution.
+    ///
+    /// For this reason, the program info contains the hash of the SNOS program,
+    /// additionally to the `program_hash`, which in this case is the bridge layout program hash.
+    /// This ensures that the correct programs have been executed.
     #[derive(starknet::Store, Drop, Serde, Copy, PartialEq)]
     struct ProgramInfo {
         program_hash: felt252,

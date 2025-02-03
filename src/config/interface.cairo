@@ -29,23 +29,20 @@ trait IConfig<T> {
     /// True if the address is an operator, false otherwise.
     fn is_operator(self: @T, address: ContractAddress) -> bool;
 
-    /// Sets the information of the program that generates
-    /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader).
+    /// Sets the information of the program verified onchain to
+    /// execute the state transition.
     ///
     /// # Arguments
     ///
-    /// * `program_hash` - The program hash of layout bridge program.
-    /// * `config_hash` - The SNOS's config hash.
-    /// * `snos_program_hash` - The SNOS program hash
+    /// * `program_info` - The program information.
     fn set_program_info(ref self: T, program_info: ProgramInfo);
 
-    /// Gets the information of the program that generates the
-    /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader),
-    /// and StarknetOs program hash
+    /// Gets the information of the program verified onchain to
+    /// execute the state transition.
     ///
     /// # Returns
     ///
-    /// The layout bridge program hash, SNOS configuration hash and SNOS program hash.
+    /// The program information.
     fn get_program_info(self: @T) -> ProgramInfo;
 
     /// Sets the facts registry contract address, which is already
