@@ -139,18 +139,12 @@ mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
-            let (
-                current_program_hash, current_config_hash, current_snos_program_hash
-            ): (felt252, felt252, felt252) =
-                self
-                .config
-                .program_info
-                .read();
+            let program_info = self.config.program_info.read();
 
             //Snos proof is wrapped in bootloader so 3rd element is program hash of
             //bootloaded program in our case StarknetOs
             let snos_program_hash = snos_output.at(2);
-            assert!(current_snos_program_hash == *snos_program_hash);
+            assert!(program_info.snos_program_hash == *snos_program_hash);
 
             let snos_output_hash = poseidon_hash_span(snos_output);
             let snos_output_hash_in_bridge_output = program_output.at(4);
@@ -169,11 +163,11 @@ mod appchain {
             );
 
             assert(
-                program_output_struct.starknet_os_config_hash == current_config_hash,
+                program_output_struct.starknet_os_config_hash == program_info.config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH
             );
 
-            let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
+            let fact = poseidon_hash_span(array![program_info.program_hash, output_hash].span());
             assert!(
                 *IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
                     .get_all_verifications_for_fact_hash(fact)

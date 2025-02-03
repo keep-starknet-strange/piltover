@@ -2,6 +2,7 @@
 //!
 //! Interface for appchain settlement contract configuration.
 use starknet::ContractAddress;
+use super::component::config_cpt::ProgramInfo;
 
 #[starknet::interface]
 trait IConfig<T> {
@@ -36,9 +37,7 @@ trait IConfig<T> {
     /// * `program_hash` - The program hash of layout bridge program.
     /// * `config_hash` - The SNOS's config hash.
     /// * `snos_program_hash` - The SNOS program hash
-    fn set_program_info(
-        ref self: T, program_hash: felt252, config_hash: felt252, snos_program_hash: felt252
-    );
+    fn set_program_info(ref self: T, program_info: ProgramInfo);
 
     /// Gets the information of the program that generates the
     /// layout bridge (Cairo verifier ran with StarknetOs proof, wrapped in bootloader),
@@ -47,7 +46,7 @@ trait IConfig<T> {
     /// # Returns
     ///
     /// The layout bridge program hash, SNOS configuration hash and SNOS program hash.
-    fn get_program_info(self: @T) -> (felt252, felt252, felt252);
+    fn get_program_info(self: @T) -> ProgramInfo;
 
     /// Sets the facts registry contract address, which is already
     /// initialized with the verifier information.

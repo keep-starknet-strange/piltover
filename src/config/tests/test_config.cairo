@@ -1,7 +1,7 @@
 use openzeppelin_testing::constants as c;
 use piltover::config::{
-    config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig, IConfigDispatcherTrait,
-    IConfigDispatcher, config_mock
+    config_cpt, config_cpt::ProgramInfo, config_cpt::InternalTrait as ConfigInternal, IConfig,
+    IConfigDispatcherTrait, IConfigDispatcher, config_mock
 };
 use snforge_std as snf;
 use snforge_std::ContractClassTrait;
@@ -88,16 +88,20 @@ fn config_set_program_info_ok() {
     snf::start_cheat_caller_address(mock.contract_address, c::OWNER());
 
     // Owner sets the info.
-    mock.set_program_info(0x1, 0x2, 0x3);
-    assert(mock.get_program_info() == (0x1, 0x2, 0x3), 'expect correct hashes');
+    let program_info = ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3, };
+    mock.set_program_info(program_info);
+    assert(mock.get_program_info() == program_info, 'expect correct hashes');
 
     mock.register_operator(c::OPERATOR());
 
     // Operator can also set the program info.
     snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
-    mock.set_program_info(0x11, 0x22, 0x33);
+    let program_info = ProgramInfo {
+        program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33,
+    };
+    mock.set_program_info(program_info);
 
-    assert(mock.get_program_info() == (0x11, 0x22, 0x33), 'expect operator hashes');
+    assert(mock.get_program_info() == program_info, 'expect operator hashes');
 }
 
 #[test]
@@ -106,7 +110,10 @@ fn config_set_program_info_unauthorized() {
     let mock = deploy_mock();
 
     snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
-    mock.set_program_info(0x11, 0x22, 0x33);
+    mock
+        .set_program_info(
+            ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3, }
+        );
 }
 
 #[test]
