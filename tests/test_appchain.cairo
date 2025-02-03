@@ -32,6 +32,7 @@ fn deploy_with_owner_and_state(
     owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
     let contract = snf::declare("appchain").unwrap();
+    let block_number: felt252 = block_number.into();
     let calldata = array![owner, state_root, block_number, block_hash];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 

@@ -46,6 +46,34 @@ fn state_update_ok() {
 }
 
 #[test]
+fn genesis_state_update_ok() {
+    let mock = deploy_mock_with_state(state_root: 0, block_number: 0, block_hash: 0,);
+    let os_output = StarknetOsOutput {
+        initial_root: 0,
+        final_root: 1,
+        prev_block_number: 0x800000000000011000000000000000000000000000000000000000000000000,
+        new_block_number: 1,
+        prev_block_hash: 0,
+        new_block_hash: 1,
+        os_program_hash: 1,
+        starknet_os_config_hash: 1,
+        use_kzg_da: 0,
+        full_output: 0,
+        messages_to_l1: array![].span(),
+        messages_to_l2: array![].span(),
+        contracts: array![],
+        classes: array![],
+    };
+    mock.update(os_output);
+
+    let (state_root, block_number, block_hash) = mock.get_state();
+
+    assert(state_root == 1, 'invalid state root');
+    assert(block_number == 1, 'invalid block number');
+    assert(block_hash == 1, 'invalid block hash');
+}
+
+#[test]
 #[should_panic(expected: ('State: invalid block number',))]
 fn state_update_invalid_block_number() {
     let mock = deploy_mock_with_state(state_root: 1, block_number: 1, block_hash: 1,);
