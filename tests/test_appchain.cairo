@@ -35,6 +35,7 @@ fn deploy_with_owner_and_state(
         snf::DeclareResult::Success(contract) => contract,
         _ => core::panic_with_felt252('AlreadyDeclared not expected'),
     };
+    let block_number: felt252 = block_number.into();
     let calldata = array![owner, state_root, block_number, block_hash];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
