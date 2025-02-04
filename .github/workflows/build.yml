@@ -9,10 +9,16 @@ on:
 permissions: read-all
 
 jobs:
-  check:
+  build_default:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3.0.2
-      - run: scarb fmt --check
+      - run: scarb build
+
+  build_all_features:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v3.0.2
       - run: scarb build --all-features
