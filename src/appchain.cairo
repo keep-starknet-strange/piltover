@@ -17,18 +17,18 @@ mod appchain {
     use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
-        interface::IOwnable
+        interface::IOwnable,
     };
     use openzeppelin::security::reentrancyguard::{
         ReentrancyGuardComponent,
-        ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl
+        ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl,
     };
     use openzeppelin::upgrades::{
         UpgradeableComponent as upgradeable_cpt,
-        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable
+        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable,
     };
     use piltover::components::onchain_data_fact_tree_encoder::{
-        encode_fact_with_onchain_data, DataAvailabilityFact
+        encode_fact_with_onchain_data, DataAvailabilityFact,
     };
     use piltover::config::{config_cpt, config_cpt::InternalTrait as ConfigInternal, IConfig};
     use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
@@ -52,7 +52,7 @@ mod appchain {
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
     component!(path: state_cpt, storage: state, event: StateEvent);
     component!(
-        path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent
+        path: ReentrancyGuardComponent, storage: reentrancy_guard, event: ReentrancyGuardEvent,
     );
 
     #[abi(embed_v0)]
@@ -134,42 +134,47 @@ mod appchain {
             snos_output: Span<felt252>,
             program_output: Span<felt252>,
             onchain_data_hash: felt252,
-            onchain_data_size: u256
+            onchain_data_size: u256,
         ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
+            let program_info = self.config.program_info.read();
+
+            // StarknetOS (SNOS) proof is wrapped in bootloader so 3rd element is the program hash
+            // of bootloaded program, in our case SNOS.
+            let snos_program_hash = snos_output.at(2);
+            assert!(program_info.snos_program_hash == *snos_program_hash);
+
             let snos_output_hash = poseidon_hash_span(snos_output);
+            // Layout bridge program is also bootloaded, and the 5th element is the hash of the
+            // output of the program that has been layout-bridged.
             let snos_output_hash_in_bridge_output = program_output.at(4);
             assert!(snos_output_hash == *snos_output_hash_in_bridge_output);
+
             let output_hash = poseidon_hash_span(program_output);
 
             let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(ref snos_output_iter);
 
-            let (current_program_hash, current_config_hash): (felt252, felt252) = self
-                .config
-                .program_info
-                .read();
-
             let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash, onchain_data_size
+                onchain_data_hash, onchain_data_size,
             };
             let state_transition_fact: u256 = encode_fact_with_onchain_data(
-                program_output, data_availability_fact
+                program_output, data_availability_fact,
             );
 
             assert(
-                program_output_struct.starknet_os_config_hash == current_config_hash,
-                errors::SNOS_INVALID_CONFIG_HASH
+                program_output_struct.starknet_os_config_hash == program_info.config_hash,
+                errors::SNOS_INVALID_CONFIG_HASH,
             );
 
-            let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
+            let fact = poseidon_hash_span(array![program_info.program_hash, output_hash].span());
             assert!(
                 *IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
                     .get_all_verifications_for_fact_hash(fact)
                     .at(0)
-                    .security_bits > 50
+                    .security_bits > 50,
             );
 
             self.emit(LogStateTransitionFact { state_transition_fact });
@@ -191,7 +196,7 @@ mod appchain {
                         state_root: self.state.state_root.read(),
                         block_number: self.state.block_number.read(),
                         block_hash: self.state.block_hash.read(),
-                    }
+                    },
                 );
         }
     }

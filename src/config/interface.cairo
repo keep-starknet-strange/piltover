@@ -2,6 +2,7 @@
 //!
 //! Interface for appchain settlement contract configuration.
 use starknet::ContractAddress;
+use super::component::config_cpt::ProgramInfo;
 
 #[starknet::interface]
 trait IConfig<T> {
@@ -28,22 +29,21 @@ trait IConfig<T> {
     /// True if the address is an operator, false otherwise.
     fn is_operator(self: @T, address: ContractAddress) -> bool;
 
-    /// Sets the information of the program that generates the
-    /// state transition trace (namely StarknetOS).
+    /// Sets the information of the program verified onchain to
+    /// execute the state transition.
     ///
     /// # Arguments
     ///
-    /// * `program_hash` - The program hash.
-    /// * `config_hash` - The program's config hash.
-    fn set_program_info(ref self: T, program_hash: felt252, config_hash: felt252);
+    /// * `program_info` - The program information.
+    fn set_program_info(ref self: T, program_info: ProgramInfo);
 
-    /// Gets the information of the program that generates the
-    /// state transition trace (namely StarknetOS).
+    /// Gets the information of the program verified onchain to
+    /// execute the state transition.
     ///
     /// # Returns
     ///
-    /// The program hash and it's configuration hash.
-    fn get_program_info(self: @T) -> (felt252, felt252);
+    /// The program information.
+    fn get_program_info(self: @T) -> ProgramInfo;
 
     /// Sets the facts registry contract address, which is already
     /// initialized with the verifier information.
