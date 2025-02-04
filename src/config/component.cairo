@@ -19,7 +19,7 @@ pub mod config_cpt {
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
         interface::IOwnable,
     };
-    use piltover::config::interface::IConfig;
+    use piltover::config::interface::{IConfig, ProgramInfo};
     use starknet::ContractAddress;
     use starknet::storage::Map;
     use starknet::storage::{
@@ -32,8 +32,8 @@ pub mod config_cpt {
     pub struct Storage {
         /// Appchain operators that are allowed to update the state.
         pub operators: Map<ContractAddress, bool>,
-        /// Program info (StarknetOS), with program hash and config hash.
-        pub program_info: (felt252, felt252),
+        /// The information of the program verified to apply the state transition.
+        pub program_info: ProgramInfo,
         /// Facts registry contract address.
         pub facts_registry: ContractAddress,
     }
@@ -47,10 +47,8 @@ pub mod config_cpt {
     #[derive(Copy, Drop, starknet::Event)]
     struct ProgramInfoChanged {
         changed_by: ContractAddress,
-        old_program_hash: felt252,
-        new_program_hash: felt252,
-        old_config_hash: felt252,
-        new_config_hash: felt252,
+        old_program_info: ProgramInfo,
+        new_program_info: ProgramInfo,
     }
 
     #[embeddable_as(ConfigImpl)]
@@ -75,25 +73,21 @@ pub mod config_cpt {
             self.operators.read(address)
         }
 
-        fn set_program_info(
-            ref self: ComponentState<TContractState>, program_hash: felt252, config_hash: felt252,
-        ) {
+        fn set_program_info(ref self: ComponentState<TContractState>, program_info: ProgramInfo) {
             self.assert_only_owner_or_operator();
-            let (old_program_hash, old_config_hash): (felt252, felt252) = self.program_info.read();
-            self.program_info.write((program_hash, config_hash));
+            let old_program_info = self.program_info.read();
+            self.program_info.write(program_info);
             self
                 .emit(
                     ProgramInfoChanged {
                         changed_by: starknet::get_caller_address(),
-                        old_program_hash: old_program_hash,
-                        new_program_hash: program_hash,
-                        old_config_hash: old_config_hash,
-                        new_config_hash: config_hash,
+                        old_program_info,
+                        new_program_info: program_info,
                     },
                 );
         }
 
-        fn get_program_info(self: @ComponentState<TContractState>) -> (felt252, felt252) {
+        fn get_program_info(self: @ComponentState<TContractState>) -> ProgramInfo {
             self.program_info.read()
         }
 

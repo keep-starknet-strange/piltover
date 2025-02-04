@@ -135,18 +135,23 @@ pub mod appchain {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
+            let program_info = self.config.program_info.read();
+
+            // StarknetOS (SNOS) proof is wrapped in bootloader so 3rd element is the program hash
+            // of bootloaded program, in our case SNOS.
+            let snos_program_hash = snos_output.at(2);
+            assert!(program_info.snos_program_hash == *snos_program_hash);
+
             let snos_output_hash = poseidon_hash_span(snos_output);
+            // Layout bridge program is also bootloaded, and the 5th element is the hash of the
+            // output of the program that has been layout-bridged.
             let snos_output_hash_in_bridge_output = program_output.at(4);
             assert!(snos_output_hash == *snos_output_hash_in_bridge_output);
+
             let output_hash = poseidon_hash_span(program_output);
 
             let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(ref snos_output_iter);
-
-            let (current_program_hash, current_config_hash): (felt252, felt252) = self
-                .config
-                .program_info
-                .read();
 
             let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
                 onchain_data_hash, onchain_data_size,
@@ -156,11 +161,11 @@ pub mod appchain {
             );
 
             assert(
-                program_output_struct.starknet_os_config_hash == current_config_hash,
+                program_output_struct.starknet_os_config_hash == program_info.config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH,
             );
 
-            let fact = poseidon_hash_span(array![current_program_hash, output_hash].span());
+            let fact = poseidon_hash_span(array![program_info.program_hash, output_hash].span());
             assert!(
                 *IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
                     .get_all_verifications_for_fact_hash(fact)

@@ -5,7 +5,7 @@ use core::result::ResultTrait;
 //!
 use openzeppelin_testing::constants as c;
 use piltover::appchain::appchain::{Event, LogStateTransitionFact, LogStateUpdate};
-use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait};
+use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
 use piltover::fact_registry::{IFactRegistryDispatcher};
 use piltover::interface::{IAppchainDispatcher, IAppchainDispatcherTrait};
 use piltover::messaging::{IMessagingDispatcher, IMessagingDispatcherTrait};
@@ -177,7 +177,10 @@ fn appchain_owner_ok() {
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
 
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
-    iconfig.set_program_info(0x11, 0x22);
+    iconfig
+        .set_program_info(
+            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 },
+        );
 }
 
 #[test]
@@ -186,7 +189,10 @@ fn appchain_owner_only() {
     let (appchain, _spy) = deploy_with_owner(c::OWNER().into());
 
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
-    iconfig.set_program_info(0x11, 0x22);
+    iconfig
+        .set_program_info(
+            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 },
+        );
 }
 
 #[test]
@@ -225,11 +231,13 @@ fn update_state_ok() {
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
     iconfig
         .set_program_info(
-            program_hash: 0,
-            config_hash: 8868593919264901768958912247765226517850727970326290266005120699201631282,
+            ProgramInfo {
+                program_hash: 0,
+                config_hash: 8868593919264901768958912247765226517850727970326290266005120699201631282,
+                snos_program_hash: 3,
+            },
         );
     iconfig.set_facts_registry(address: fact_registry_mock.contract_address);
-
     // The state update contains a message to appchain, therefore, before
     // being sealed, it must be sent first.
     // The nonce must be adjusted to ensure the correct message to be sent.

@@ -757,13 +757,52 @@ cairo_serde :: CairoSerde for LogStateTransitionFact
         starknet :: core :: utils ::
         get_selector_from_name("OwnershipTransferred").unwrap()
     } pub fn event_name() -> & 'static str { "OwnershipTransferred" }
+} #[derive()] pub struct ProgramInfo
+{
+    pub program_hash : starknet :: core :: types :: Felt, pub config_hash :
+    starknet :: core :: types :: Felt, pub snos_program_hash : starknet ::
+    core :: types :: Felt
+} impl cainome :: cairo_serde :: CairoSerde for ProgramInfo
+{
+    type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
+    usize > = None; #[inline] fn
+    cairo_serialized_size(__rust : & Self :: RustType) -> usize
+    {
+        let mut __size = 0; __size += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.program_hash); __size += starknet ::
+        core :: types :: Felt :: cairo_serialized_size(& __rust.config_hash);
+        __size += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& __rust.snos_program_hash); __size
+    } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
+    core :: types :: Felt >
+    {
+        let mut __out : Vec < starknet :: core :: types :: Felt > = vec! [];
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.program_hash));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.config_hash));
+        __out.extend(starknet :: core :: types :: Felt ::
+        cairo_serialize(& __rust.snos_program_hash)); __out
+    } fn
+    cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
+    __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
+    {
+        let mut __offset = __offset; let program_hash = starknet :: core ::
+        types :: Felt :: cairo_deserialize(__felts, __offset) ? ; __offset +=
+        starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& program_hash); let config_hash = starknet ::
+        core :: types :: Felt :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& config_hash); let snos_program_hash = starknet
+        :: core :: types :: Felt :: cairo_deserialize(__felts, __offset) ? ;
+        __offset += starknet :: core :: types :: Felt ::
+        cairo_serialized_size(& snos_program_hash);
+        Ok(ProgramInfo { program_hash, config_hash, snos_program_hash })
+    }
 } #[derive()] pub struct ProgramInfoChanged
 {
     pub changed_by : cainome :: cairo_serde :: ContractAddress, pub
-    old_program_hash : starknet :: core :: types :: Felt, pub new_program_hash
-    : starknet :: core :: types :: Felt, pub old_config_hash : starknet ::
-    core :: types :: Felt, pub new_config_hash : starknet :: core :: types ::
-    Felt
+    old_program_info : ProgramInfo, pub new_program_info : ProgramInfo
 } impl cainome :: cairo_serde :: CairoSerde for ProgramInfoChanged
 {
     type RustType = Self; const SERIALIZED_SIZE : std :: option :: Option <
@@ -772,28 +811,19 @@ cairo_serde :: CairoSerde for LogStateTransitionFact
     {
         let mut __size = 0; __size += cainome :: cairo_serde ::
         ContractAddress :: cairo_serialized_size(& __rust.changed_by); __size
-        += starknet :: core :: types :: Felt ::
-        cairo_serialized_size(& __rust.old_program_hash); __size += starknet
-        :: core :: types :: Felt ::
-        cairo_serialized_size(& __rust.new_program_hash); __size += starknet
-        :: core :: types :: Felt ::
-        cairo_serialized_size(& __rust.old_config_hash); __size += starknet ::
-        core :: types :: Felt ::
-        cairo_serialized_size(& __rust.new_config_hash); __size
+        += ProgramInfo :: cairo_serialized_size(& __rust.old_program_info);
+        __size += ProgramInfo ::
+        cairo_serialized_size(& __rust.new_program_info); __size
     } fn cairo_serialize(__rust : & Self :: RustType) -> Vec < starknet ::
     core :: types :: Felt >
     {
         let mut __out : Vec < starknet :: core :: types :: Felt > = vec! [];
         __out.extend(cainome :: cairo_serde :: ContractAddress ::
         cairo_serialize(& __rust.changed_by));
-        __out.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(& __rust.old_program_hash));
-        __out.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(& __rust.new_program_hash));
-        __out.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(& __rust.old_config_hash));
-        __out.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(& __rust.new_config_hash)); __out
+        __out.extend(ProgramInfo ::
+        cairo_serialize(& __rust.old_program_info));
+        __out.extend(ProgramInfo ::
+        cairo_serialize(& __rust.new_program_info)); __out
     } fn
     cairo_deserialize(__felts : & [starknet :: core :: types :: Felt],
     __offset : usize) -> cainome :: cairo_serde :: Result < Self :: RustType >
@@ -801,24 +831,14 @@ cairo_serde :: CairoSerde for LogStateTransitionFact
         let mut __offset = __offset; let changed_by = cainome :: cairo_serde
         :: ContractAddress :: cairo_deserialize(__felts, __offset) ? ;
         __offset += cainome :: cairo_serde :: ContractAddress ::
-        cairo_serialized_size(& changed_by); let old_program_hash = starknet
-        :: core :: types :: Felt :: cairo_deserialize(__felts, __offset) ? ;
-        __offset += starknet :: core :: types :: Felt ::
-        cairo_serialized_size(& old_program_hash); let new_program_hash =
-        starknet :: core :: types :: Felt ::
-        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
-        :: types :: Felt :: cairo_serialized_size(& new_program_hash); let
-        old_config_hash = starknet :: core :: types :: Felt ::
-        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
-        :: types :: Felt :: cairo_serialized_size(& old_config_hash); let
-        new_config_hash = starknet :: core :: types :: Felt ::
-        cairo_deserialize(__felts, __offset) ? ; __offset += starknet :: core
-        :: types :: Felt :: cairo_serialized_size(& new_config_hash);
+        cairo_serialized_size(& changed_by); let old_program_info =
+        ProgramInfo :: cairo_deserialize(__felts, __offset) ? ; __offset +=
+        ProgramInfo :: cairo_serialized_size(& old_program_info); let
+        new_program_info = ProgramInfo :: cairo_deserialize(__felts, __offset)
+        ? ; __offset += ProgramInfo ::
+        cairo_serialized_size(& new_program_info);
         Ok(ProgramInfoChanged
-        {
-            changed_by, old_program_hash, new_program_hash, old_config_hash,
-            new_config_hash
-        })
+        { changed_by, old_program_info, new_program_info })
     }
 } impl ProgramInfoChanged
 {
@@ -1207,50 +1227,27 @@ AppchainEvent
                 ("Could not deserialize field {} for {}: {:?}", "changed_by",
                 "ProgramInfoChanged", e)),
             }; data_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& changed_by); let old_program_hash = match
-            starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+            cairo_serialized_size(& changed_by); let old_program_info = match
+            ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "old_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_program_hash); let new_program_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+                "old_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& old_program_info); let new_program_info =
+            match ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "new_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_program_hash); let old_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "old_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_config_hash); let new_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "new_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_config_hash); return
+                "new_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& new_program_info); return
             Ok(AppchainEvent ::
             ConfigEvent(ConfigEvent ::
             ProgramInfoChanged(ProgramInfoChanged
-            {
-                changed_by, old_program_hash, new_program_hash,
-                old_config_hash, new_config_hash
-            })))
+            { changed_by, old_program_info, new_program_info })))
         }; let selector = event.keys [0]; if selector == starknet :: core ::
         utils ::
         get_selector_from_name("MessageSent").unwrap_or_else(| _ | panic!
@@ -1747,50 +1744,27 @@ AppchainEvent
                 ("Could not deserialize field {} for {}: {:?}", "changed_by",
                 "ProgramInfoChanged", e)),
             }; data_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& changed_by); let old_program_hash = match
-            starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+            cairo_serialized_size(& changed_by); let old_program_info = match
+            ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "old_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_program_hash); let new_program_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+                "old_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& old_program_info); let new_program_info =
+            match ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "new_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_program_hash); let old_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "old_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_config_hash); let new_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "new_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_config_hash); return
+                "new_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& new_program_info); return
             Ok(AppchainEvent ::
             ConfigEvent(ConfigEvent ::
             ProgramInfoChanged(ProgramInfoChanged
-            {
-                changed_by, old_program_hash, new_program_hash,
-                old_config_hash, new_config_hash
-            })))
+            { changed_by, old_program_info, new_program_info })))
         }; let selector = event.keys [0]; if selector == starknet :: core ::
         utils ::
         get_selector_from_name("MessageSent").unwrap_or_else(| _ | panic!
@@ -2254,49 +2228,26 @@ impl cainome :: cairo_serde :: CairoSerde for ConfigEvent
                 ("Could not deserialize field {} for {}: {:?}", "changed_by",
                 "ProgramInfoChanged", e)),
             }; data_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& changed_by); let old_program_hash = match
-            starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+            cairo_serialized_size(& changed_by); let old_program_info = match
+            ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "old_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_program_hash); let new_program_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+                "old_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& old_program_info); let new_program_info =
+            match ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "new_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_program_hash); let old_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "old_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_config_hash); let new_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "new_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_config_hash); return
+                "new_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& new_program_info); return
             Ok(ConfigEvent ::
             ProgramInfoChanged(ProgramInfoChanged
-            {
-                changed_by, old_program_hash, new_program_hash,
-                old_config_hash, new_config_hash
-            }))
+            { changed_by, old_program_info, new_program_info }))
         };
         Err(format! ("Could not match any event from keys {:?}", event.keys))
     }
@@ -2321,49 +2272,26 @@ impl cainome :: cairo_serde :: CairoSerde for ConfigEvent
                 ("Could not deserialize field {} for {}: {:?}", "changed_by",
                 "ProgramInfoChanged", e)),
             }; data_offset += cainome :: cairo_serde :: ContractAddress ::
-            cairo_serialized_size(& changed_by); let old_program_hash = match
-            starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+            cairo_serialized_size(& changed_by); let old_program_info = match
+            ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "old_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_program_hash); let new_program_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
+                "old_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& old_program_info); let new_program_info =
+            match ProgramInfo :: cairo_deserialize(& event.data, data_offset)
             {
                 Ok(v) => v, Err(e) => return
                 Err(format!
                 ("Could not deserialize field {} for {}: {:?}",
-                "new_program_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_program_hash); let old_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "old_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& old_config_hash); let new_config_hash =
-            match starknet :: core :: types :: Felt ::
-            cairo_deserialize(& event.data, data_offset)
-            {
-                Ok(v) => v, Err(e) => return
-                Err(format!
-                ("Could not deserialize field {} for {}: {:?}",
-                "new_config_hash", "ProgramInfoChanged", e)),
-            }; data_offset += starknet :: core :: types :: Felt ::
-            cairo_serialized_size(& new_config_hash); return
+                "new_program_info", "ProgramInfoChanged", e)),
+            }; data_offset += ProgramInfo ::
+            cairo_serialized_size(& new_program_info); return
             Ok(ConfigEvent ::
             ProgramInfoChanged(ProgramInfoChanged
-            {
-                changed_by, old_program_hash, new_program_hash,
-                old_config_hash, new_config_hash
-            }))
+            { changed_by, old_program_info, new_program_info }))
         };
         Err(format! ("Could not match any event from keys {:?}", event.keys))
     }
@@ -3659,8 +3587,7 @@ UpgradeableEvent
         new(__call, self.provider(),)
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
     fn get_program_info(& self,) -> cainome :: cairo_serde :: call :: FCall <
-    A :: Provider,
-    (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt) >
+    A :: Provider, ProgramInfo >
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
         []; let __call = starknet :: core :: types :: FunctionCall
@@ -3715,6 +3642,35 @@ UpgradeableEvent
             __calldata,
         }; cainome :: cairo_serde :: call :: FCall ::
         new(__call, self.provider(),)
+    } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
+    fn
+    add_messages_hashes_from_appchain_getcall(& self, messages_hashes : & Vec
+    :: < starknet :: core :: types :: Felt >) -> starknet :: core :: types ::
+    Call
+    {
+        use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
+        [];
+        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(messages_hashes)); starknet :: core :: types :: Call
+        {
+            to : self.address, selector : starknet :: macros :: selector!
+            ("add_messages_hashes_from_appchain"), calldata : __calldata,
+        }
+    } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
+    fn
+    add_messages_hashes_from_appchain(& self, messages_hashes : & Vec :: <
+    starknet :: core :: types :: Felt >) -> starknet :: accounts ::
+    ExecutionV1 < A >
+    {
+        use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
+        [];
+        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(messages_hashes)); let __call = starknet :: core ::
+        types :: Call
+        {
+            to : self.address, selector : starknet :: macros :: selector!
+            ("add_messages_hashes_from_appchain"), calldata : __calldata,
+        }; self.account.execute_v1(vec! [__call])
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
     fn
     cancel_message_getcall(& self, to_address : & cainome :: cairo_serde ::
@@ -3885,34 +3841,23 @@ UpgradeableEvent
             ("set_facts_registry"), calldata : __calldata,
         }; self.account.execute_v1(vec! [__call])
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
-    fn
-    set_program_info_getcall(& self, program_hash : & starknet :: core ::
-    types :: Felt, config_hash : & starknet :: core :: types :: Felt) ->
+    fn set_program_info_getcall(& self, program_info : & ProgramInfo) ->
     starknet :: core :: types :: Call
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
-        [];
-        __calldata.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(program_hash));
-        __calldata.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(config_hash)); starknet :: core :: types :: Call
+        []; __calldata.extend(ProgramInfo :: cairo_serialize(program_info));
+        starknet :: core :: types :: Call
         {
             to : self.address, selector : starknet :: macros :: selector!
             ("set_program_info"), calldata : __calldata,
         }
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
-    fn
-    set_program_info(& self, program_hash : & starknet :: core :: types ::
-    Felt, config_hash : & starknet :: core :: types :: Felt) -> starknet ::
+    fn set_program_info(& self, program_info : & ProgramInfo) -> starknet ::
     accounts :: ExecutionV1 < A >
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
-        [];
-        __calldata.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(program_hash));
-        __calldata.extend(starknet :: core :: types :: Felt ::
-        cairo_serialize(config_hash)); let __call = starknet :: core :: types
-        :: Call
+        []; __calldata.extend(ProgramInfo :: cairo_serialize(program_info));
+        let __call = starknet :: core :: types :: Call
         {
             to : self.address, selector : starknet :: macros :: selector!
             ("set_program_info"), calldata : __calldata,
@@ -4117,8 +4062,7 @@ UpgradeableEvent
         new(__call, self.provider(),)
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
     fn get_program_info(& self,) -> cainome :: cairo_serde :: call :: FCall <
-    P, (starknet :: core :: types :: Felt, starknet :: core :: types :: Felt)
-    >
+    P, ProgramInfo >
     {
         use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
         []; let __call = starknet :: core :: types :: FunctionCall

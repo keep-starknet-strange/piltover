@@ -10,7 +10,7 @@ pub mod config {
     pub mod mock;
 
     pub use component::config_cpt;
-    pub use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait};
+    pub use interface::{IConfig, IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
     pub use mock::config_mock;
 
     #[cfg(test)]

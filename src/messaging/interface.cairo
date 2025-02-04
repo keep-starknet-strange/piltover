@@ -126,6 +126,9 @@ pub trait IMessaging<T> {
     /// The appchain sequencer for testing e2e messaging can then use this function to
     /// register messages hashes that are considered as ready to be consumed. This can be done
     /// right after the block is produced, for fast and reliable messaging testing.
+    ///
+    /// This function will soon be removed in favor of a proof mocking pipeline
+    /// integrated with piltover.
     #[cfg(feature: 'messaging_test')]
     fn add_messages_hashes_from_appchain(ref self: T, messages_hashes: Span<felt252>);
 }
