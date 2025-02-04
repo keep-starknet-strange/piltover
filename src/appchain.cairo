@@ -58,6 +58,11 @@ pub mod appchain {
     #[abi(embed_v0)]
     impl StateImpl = state_cpt::StateImpl<ContractState>;
 
+    #[cfg(feature: 'messaging_test')]
+    #[abi(embed_v0)]
+    impl MessagingTestImpl =
+        messaging_cpt::MessagingTestImpl<ContractState>;
+
     #[storage]
     struct Storage {
         #[substorage(v0)]

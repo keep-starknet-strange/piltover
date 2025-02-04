@@ -41,6 +41,8 @@ mod errors {
 #[starknet::component]
 pub mod messaging_cpt {
     use core::num::traits::Zero;
+    #[cfg(feature: 'messaging_test')]
+    use piltover::messaging::IMessagingTest;
     use piltover::messaging::{
         hash, interface::IMessaging,
         types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus, Nonce},
@@ -296,8 +298,13 @@ pub mod messaging_cpt {
 
             return message_hash;
         }
+    }
 
-        #[cfg(feature: 'messaging_test')]
+    #[cfg(feature: 'messaging_test')]
+    #[embeddable_as(MessagingTestImpl)]
+    impl MessagingTest<
+        TContractState, +HasComponent<TContractState>,
+    > of IMessagingTest<ComponentState<TContractState>> {
         fn add_messages_hashes_from_appchain(
             ref self: ComponentState<TContractState>, messages_hashes: Span<felt252>,
         ) {

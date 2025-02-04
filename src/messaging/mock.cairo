@@ -7,6 +7,11 @@ pub mod messaging_mock {
     #[abi(embed_v0)]
     impl MessagingImpl = messaging_cpt::MessagingImpl<ContractState>;
 
+    #[cfg(feature: 'messaging_test')]
+    #[abi(embed_v0)]
+    impl MessagingTestImpl =
+        messaging_cpt::MessagingTestImpl<ContractState>;
+
     #[storage]
     struct Storage {
         #[substorage(v0)]

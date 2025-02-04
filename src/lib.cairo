@@ -27,6 +27,8 @@ pub mod messaging {
     pub mod types;
 
     pub use component::messaging_cpt;
+    #[cfg(feature: 'messaging_test')]
+    pub use interface::IMessagingTest;
     pub use interface::{IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait};
     pub use mock::messaging_mock;
 

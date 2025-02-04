@@ -1,6 +1,8 @@
 use core::iter::IntoIterator;
 use core::num::traits::Zero;
 use openzeppelin_testing::constants as c;
+#[cfg(feature: 'messaging_test')]
+use piltover::messaging::IMessagingTest;
 use piltover::messaging::{
     IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait, hash, messaging_cpt,
     messaging_cpt::InternalTrait as MessagingInternal,

@@ -116,7 +116,11 @@ pub trait IMessaging<T> {
         payload: Span<felt252>,
         nonce: felt252,
     ) -> MessageHash;
+}
 
+#[cfg(feature: 'messaging_test')]
+#[starknet::interface]
+pub trait IMessagingTest<T> {
     /// Manually registers messages hashes as consumable.
     ///
     /// This function is mostly used to decorrelate the messages registration from the
