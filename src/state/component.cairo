@@ -95,6 +95,10 @@ mod state_cpt {
             // If block number and state root is 0, then we assume it hasn't been initialized yet
             // and the current program output belongs to the genesis block.
             if expected_prev_block_number == 0 && prev_state_root == 0 && prev_block_hash == 0 {
+                // This is the maximum value for a felt252.
+                //
+                // See
+                // https://github.com/starkware-libs/cairo-lang/blob/a86e92bfde9c171c0856d7b46580c66e004922f3/src/starkware/starknet/solidity/StarknetState.sol#L19-L39
                 expected_prev_block_number =
                     0x800000000000011000000000000000000000000000000000000000000000000;
             }
