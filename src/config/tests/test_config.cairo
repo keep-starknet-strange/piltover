@@ -1,14 +1,13 @@
 use openzeppelin_testing::constants as c;
-use piltover::config::{
-    config_cpt, config_cpt::ProgramInfo, config_cpt::InternalTrait as ConfigInternal, IConfig,
-    IConfigDispatcherTrait, IConfigDispatcher, config_mock
-};
+use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
 use snforge_std as snf;
 use snforge_std::ContractClassTrait;
-use starknet::ContractAddress;
 
 fn deploy_mock() -> IConfigDispatcher {
-    let contract = snf::declare("config_mock").unwrap();
+    let contract = match snf::declare("config_mock").unwrap() {
+        snf::DeclareResult::Success(contract) => contract,
+        _ => core::panic_with_felt252('AlreadyDeclared not expected'),
+    };
     let calldata = array![c::OWNER().into()];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
     IConfigDispatcher { contract_address }
@@ -88,7 +87,7 @@ fn config_set_program_info_ok() {
     snf::start_cheat_caller_address(mock.contract_address, c::OWNER());
 
     // Owner sets the info.
-    let program_info = ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3, };
+    let program_info = ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3 };
     mock.set_program_info(program_info);
     assert(mock.get_program_info() == program_info, 'expect correct hashes');
 
@@ -112,7 +111,7 @@ fn config_set_program_info_unauthorized() {
     snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
     mock
         .set_program_info(
-            ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3, }
+            ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3 },
         );
 }
 

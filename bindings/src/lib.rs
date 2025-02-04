@@ -3644,6 +3644,35 @@ UpgradeableEvent
         new(__call, self.provider(),)
     } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
     fn
+    add_messages_hashes_from_appchain_getcall(& self, messages_hashes : & Vec
+    :: < starknet :: core :: types :: Felt >) -> starknet :: core :: types ::
+    Call
+    {
+        use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
+        [];
+        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(messages_hashes)); starknet :: core :: types :: Call
+        {
+            to : self.address, selector : starknet :: macros :: selector!
+            ("add_messages_hashes_from_appchain"), calldata : __calldata,
+        }
+    } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
+    fn
+    add_messages_hashes_from_appchain(& self, messages_hashes : & Vec :: <
+    starknet :: core :: types :: Felt >) -> starknet :: accounts ::
+    ExecutionV1 < A >
+    {
+        use cainome :: cairo_serde :: CairoSerde; let mut __calldata = vec!
+        [];
+        __calldata.extend(Vec :: < starknet :: core :: types :: Felt > ::
+        cairo_serialize(messages_hashes)); let __call = starknet :: core ::
+        types :: Call
+        {
+            to : self.address, selector : starknet :: macros :: selector!
+            ("add_messages_hashes_from_appchain"), calldata : __calldata,
+        }; self.account.execute_v1(vec! [__call])
+    } #[allow(clippy :: ptr_arg)] #[allow(clippy :: too_many_arguments)] pub
+    fn
     cancel_message_getcall(& self, to_address : & cainome :: cairo_serde ::
     ContractAddress, selector : & starknet :: core :: types :: Felt, payload :
     & Vec :: < starknet :: core :: types :: Felt > , nonce : & starknet ::

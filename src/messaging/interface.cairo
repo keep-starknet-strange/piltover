@@ -1,5 +1,5 @@
 use piltover::messaging::types::{
-    MessageHash, Nonce, MessageToAppchainStatus, MessageToStarknetStatus
+    MessageHash, MessageToAppchainStatus, MessageToStarknetStatus, Nonce,
 };
 //! SPDX-License-Identifier: MIT
 //!
@@ -7,7 +7,7 @@ use piltover::messaging::types::{
 use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IMessaging<T> {
+pub trait IMessaging<T> {
     /// Sends a message to the Appchain from Starknet.
     ///
     /// <https://github.com/starkware-libs/cairo-lang/blob/caba294d82eeeccc3d86a158adb8ba209bf2d8fc/src/starkware/starknet/solidity/StarknetMessaging.sol#L110>.
@@ -23,7 +23,7 @@ trait IMessaging<T> {
     ///
     /// The message hash and the updated nonce of the message.
     fn send_message_to_appchain(
-        ref self: T, to_address: ContractAddress, selector: felt252, payload: Span<felt252>
+        ref self: T, to_address: ContractAddress, selector: felt252, payload: Span<felt252>,
     ) -> (MessageHash, Nonce);
 
     /// Consumes a message received from a state update of the Appchain.
@@ -39,7 +39,7 @@ trait IMessaging<T> {
     ///
     /// Returns the hash of the consummed message.
     fn consume_message_from_appchain(
-        ref self: T, from_address: ContractAddress, payload: Span<felt252>
+        ref self: T, from_address: ContractAddress, payload: Span<felt252>,
     ) -> MessageHash;
 
     /// Checks the status of message sent to the Appchain from Starknet
@@ -116,7 +116,11 @@ trait IMessaging<T> {
         payload: Span<felt252>,
         nonce: felt252,
     ) -> MessageHash;
+}
 
+#[cfg(feature: 'messaging_test')]
+#[starknet::interface]
+pub trait IMessagingTest<T> {
     /// Manually registers messages hashes as consumable.
     ///
     /// This function is mostly used to decorrelate the messages registration from the
@@ -126,6 +130,9 @@ trait IMessaging<T> {
     /// The appchain sequencer for testing e2e messaging can then use this function to
     /// register messages hashes that are considered as ready to be consumed. This can be done
     /// right after the block is produced, for fast and reliable messaging testing.
+    ///
+    /// This function will soon be removed in favor of a proof mocking pipeline
+    /// integrated with piltover.
     #[cfg(feature: 'messaging_test')]
     fn add_messages_hashes_from_appchain(ref self: T, messages_hashes: Span<felt252>);
 }

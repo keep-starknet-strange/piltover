@@ -1,6 +1,6 @@
 #[starknet::contract]
-mod state_mock {
-    use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal, IState};
+pub mod state_mock {
+    use piltover::state::{state_cpt, state_cpt::InternalTrait as StateInternal};
 
     component!(path: state_cpt, storage: state, event: StateEvent);
 

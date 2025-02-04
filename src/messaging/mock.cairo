@@ -1,26 +1,28 @@
 #[starknet::contract]
-mod messaging_mock {
-    use piltover::messaging::{
-        messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging
-    };
-    use starknet::ContractAddress;
+pub mod messaging_mock {
+    use piltover::messaging::{messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal};
 
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
 
     #[abi(embed_v0)]
     impl MessagingImpl = messaging_cpt::MessagingImpl<ContractState>;
 
+    #[cfg(feature: 'messaging_test')]
+    #[abi(embed_v0)]
+    impl MessagingTestImpl =
+        messaging_cpt::MessagingTestImpl<ContractState>;
+
     #[storage]
     struct Storage {
         #[substorage(v0)]
-        messaging: messaging_cpt::Storage
+        messaging: messaging_cpt::Storage,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         #[flat]
-        MessagingEvent: messaging_cpt::Event
+        MessagingEvent: messaging_cpt::Event,
     }
 
     #[constructor]

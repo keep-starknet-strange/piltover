@@ -1,24 +1,24 @@
 use core::iter::IntoIterator;
-use core::poseidon::{Poseidon, PoseidonImpl, HashStateImpl, poseidon_hash_span};
+use core::poseidon::{PoseidonImpl, poseidon_hash_span};
 use core::result::ResultTrait;
 //! Appchain testing.
 //!
 use openzeppelin_testing::constants as c;
-use piltover::appchain::appchain::{Event, LogStateUpdate, LogStateTransitionFact};
-use piltover::config::{IConfig, config_cpt::ProgramInfo, IConfigDispatcherTrait, IConfigDispatcher};
-use piltover::fact_registry::{
-    IFactRegistryDispatcher, IFactRegistryDispatcherTrait, fact_registry_mock
-};
-use piltover::interface::{IAppchain, IAppchainDispatcherTrait, IAppchainDispatcher};
-use piltover::messaging::{IMessaging, IMessagingDispatcherTrait, IMessagingDispatcher};
+use piltover::appchain::appchain::{Event, LogStateTransitionFact, LogStateUpdate};
+use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
+use piltover::fact_registry::{IFactRegistryDispatcher};
+use piltover::interface::{IAppchainDispatcher, IAppchainDispatcherTrait};
+use piltover::messaging::{IMessagingDispatcher, IMessagingDispatcherTrait};
 use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 use snforge_std as snf;
 use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
-use starknet::ContractAddress;
 
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare("appchain").unwrap();
+    let contract = match snf::declare("appchain").unwrap() {
+        snf::DeclareResult::Success(contract) => contract,
+        _ => core::panic_with_felt252('AlreadyDeclared not expected'),
+    };
     let calldata = array![owner, 0, 0, 0];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -31,7 +31,10 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 fn deploy_with_owner_and_state(
     owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
 ) -> (IAppchainDispatcher, EventSpy) {
-    let contract = snf::declare("appchain").unwrap();
+    let contract = match snf::declare("appchain").unwrap() {
+        snf::DeclareResult::Success(contract) => contract,
+        _ => core::panic_with_felt252('AlreadyDeclared not expected'),
+    };
     let block_number: felt252 = block_number.into();
     let calldata = array![owner, state_root, block_number, block_hash];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
@@ -43,7 +46,10 @@ fn deploy_with_owner_and_state(
 
 /// Deploys the fact registry mock contract.
 fn deploy_fact_registry_mock() -> IFactRegistryDispatcher {
-    let contract = snf::declare("fact_registry_mock").unwrap();
+    let contract = match snf::declare("fact_registry_mock").unwrap() {
+        snf::DeclareResult::Success(contract) => contract,
+        _ => core::panic_with_felt252('AlreadyDeclared not expected'),
+    };
     let (contract_address, _) = contract.deploy(@array![]).unwrap();
     IFactRegistryDispatcher { contract_address }
 }
@@ -122,7 +128,7 @@ fn get_state_update() -> Array<felt252> {
         0,
         700754364753995129749969601657926670551784737862886653008195701294418726041,
         700754364753995129749969601657926670551784737862886653008195701294418726041,
-        0
+        0,
     ];
     felts
 }
@@ -142,18 +148,18 @@ fn snos_output_deser() {
     assert(
         output
             .initial_root == 1120029756675208924496185249815549700817638276364867982519015153297469423111,
-        'invalid prev root'
+        'invalid prev root',
     );
     assert(
         output
             .final_root == 2251620073307221877548100532273969460343974267802546890497101472079704728659,
-        'invalid new root'
+        'invalid new root',
     );
     assert(output.new_block_number == 98000, 'invalid block number');
     assert(
         output
             .new_block_hash == 1409866304326047723545512049056686384378458135319101511279962897250423318202,
-        'invalid block hash'
+        'invalid block hash',
     );
     assert(output.os_program_hash == 0, 'invalid config hash');
     assert(output.messages_to_l1.len() == 1, 'invalid msg to sn len');
@@ -174,7 +180,7 @@ fn appchain_owner_ok() {
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
     iconfig
         .set_program_info(
-            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 }
+            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 },
         );
 }
 
@@ -186,7 +192,7 @@ fn appchain_owner_only() {
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
     iconfig
         .set_program_info(
-            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 }
+            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 },
         );
 }
 
@@ -196,7 +202,7 @@ fn update_state_ok() {
         owner: c::OWNER().into(),
         state_root: 1120029756675208924496185249815549700817638276364867982519015153297469423111,
         block_number: 97999,
-        block_hash: 0
+        block_hash: 0,
     );
 
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
@@ -205,10 +211,10 @@ fn update_state_ok() {
     let fact_registry_mock = deploy_fact_registry_mock();
 
     let contract_sn = starknet::contract_address_const::<
-        993696174272377493693496825928908586134624850969
+        993696174272377493693496825928908586134624850969,
     >();
     let contract_appc = starknet::contract_address_const::<
-        3256441166037631918262930812410838598500200462657642943867372734773841898370
+        3256441166037631918262930812410838598500200462657642943867372734773841898370,
     >();
     let selector_appc =
         1285101517810983806491589552491143496277809242732141897358598292095611420389;
@@ -229,8 +235,8 @@ fn update_state_ok() {
             ProgramInfo {
                 program_hash: 0,
                 config_hash: 8868593919264901768958912247765226517850727970326290266005120699201631282,
-                snos_program_hash: 3
-            }
+                snos_program_hash: 3,
+            },
         );
     iconfig.set_facts_registry(address: fact_registry_mock.contract_address);
     // The state update contains a message to appchain, therefore, before
@@ -252,11 +258,11 @@ fn update_state_ok() {
     let expected_log_state_update = LogStateUpdate {
         state_root: 2251620073307221877548100532273969460343974267802546890497101472079704728659,
         block_number: 98000,
-        block_hash: 1409866304326047723545512049056686384378458135319101511279962897250423318202
+        block_hash: 1409866304326047723545512049056686384378458135319101511279962897250423318202,
     };
 
     let expected_state_transition_fact = LogStateTransitionFact {
-        state_transition_fact: 95851155297023584948317010611313049107061888692476024929318287712294181461009
+        state_transition_fact: 95851155297023584948317010611313049107061888692476024929318287712294181461009,
     };
     _spy
         .assert_emitted(
@@ -264,9 +270,9 @@ fn update_state_ok() {
                 (appchain.contract_address, Event::LogStateUpdate(expected_log_state_update)),
                 (
                     appchain.contract_address,
-                    Event::LogStateTransitionFact(expected_state_transition_fact)
-                )
-            ]
+                    Event::LogStateTransitionFact(expected_state_transition_fact),
+                ),
+            ],
         );
     snf::start_cheat_caller_address(appchain.contract_address, contract_sn);
     imsg.consume_message_from_appchain(contract_appc, payload_appc_to_sn);

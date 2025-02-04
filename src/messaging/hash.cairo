@@ -19,12 +19,12 @@ use starknet::ContractAddress;
 /// # Returns
 ///
 /// The hash of the message from Starknet to the Appchain.
-fn compute_message_hash_sn_to_appc(
+pub fn compute_message_hash_sn_to_appc(
     from_address: ContractAddress,
     to_address: ContractAddress,
     selector: felt252,
     payload: Span<felt252>,
-    nonce: felt252
+    nonce: felt252,
 ) -> felt252 {
     let mut hash_data = array![
         from_address.into(), to_address.into(), nonce, selector, payload.len().into(),
@@ -55,8 +55,8 @@ fn compute_message_hash_sn_to_appc(
 /// # Returns
 ///
 /// The hash of the message from the Appchain to Starknet.
-fn compute_message_hash_appc_to_sn(
-    from_address: ContractAddress, to_address: ContractAddress, payload: Span<felt252>
+pub fn compute_message_hash_appc_to_sn(
+    from_address: ContractAddress, to_address: ContractAddress, payload: Span<felt252>,
 ) -> felt252 {
     let mut hash_data: Array<felt252> = array![
         from_address.into(), to_address.into(), payload.len().into(),

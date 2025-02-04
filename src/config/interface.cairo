@@ -2,10 +2,25 @@
 //!
 //! Interface for appchain settlement contract configuration.
 use starknet::ContractAddress;
-use super::component::config_cpt::ProgramInfo;
+
+/// Information of the program verified onchain to apply the state transition.
+///
+/// In the current design, the StarknetOS (SNOS) is executed and proven first.
+/// Since the layout used by SNOS is not verifiable onchain, a bridge layout
+/// program is also executed on the proof generated from SNOS execution.
+///
+/// For this reason, the program info contains the hash of the SNOS program,
+/// additionally to the `program_hash`, which in this case is the bridge layout program hash.
+/// This ensures that the correct programs have been executed.
+#[derive(starknet::Store, Drop, Serde, Copy, PartialEq)]
+pub struct ProgramInfo {
+    pub program_hash: felt252,
+    pub config_hash: felt252,
+    pub snos_program_hash: felt252,
+}
 
 #[starknet::interface]
-trait IConfig<T> {
+pub trait IConfig<T> {
     /// Registers an operator that is in charge to push state updates.
     /// Multiple operators can be registered.
     /// # Arguments

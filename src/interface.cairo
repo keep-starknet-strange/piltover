@@ -1,10 +1,9 @@
 //! SPDX-License-Identifier: MIT
 //!
 //! Interface for appchain settlement contract.
-use starknet::ContractAddress;
 
 #[starknet::interface]
-trait IAppchain<T> {
+pub trait IAppchain<T> {
     /// Updates the state of the Appchain on Starknet,
     /// based on a proof of the StarknetOS that the state transition
     /// is valid.
@@ -26,7 +25,6 @@ trait IAppchain<T> {
         snos_output: Span<felt252>,
         program_output: Span<felt252>,
         onchain_data_hash: felt252,
-        onchain_data_size: u256
+        onchain_data_size: u256,
     );
 }
-

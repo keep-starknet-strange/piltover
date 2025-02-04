@@ -1,24 +1,24 @@
-use core::array::ArrayTrait;
 use core::iter::IntoIterator;
-use core::zeroable::Zeroable;
+use core::num::traits::Zero;
 use openzeppelin_testing::constants as c;
+#[cfg(feature: 'messaging_test')]
+use piltover::messaging::IMessagingTest;
 use piltover::messaging::{
-    messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal, IMessaging,
-    IMessagingDispatcherTrait, IMessagingDispatcher, messaging_mock,
-    messaging_cpt::{
-        Event, MessageSent, MessageCancellationStarted, MessageCanceled, MessageToStarknetReceived,
-        MessageToAppchainSealed,
-    },
-    types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus}, hash,
+    IMessaging, IMessagingDispatcher, IMessagingDispatcherTrait, hash, messaging_cpt,
+    messaging_cpt::InternalTrait as MessagingInternal,
+    messaging_cpt::{Event, MessageCanceled, MessageCancellationStarted, MessageSent},
+    messaging_mock, types::{MessageToAppchainStatus, MessageToStarknetStatus},
 };
-use piltover::snos_output::{MessageToStarknet, MessageToAppchain, deserialize_messages};
+use piltover::snos_output::{MessageToAppchain, MessageToStarknet, deserialize_messages};
 use snforge_std as snf;
 use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
-use starknet::ContractAddress;
 
 /// Deploys the mock with a specific cancellation delay.
 fn deploy_mock_with_delay(cancellation_delay_secs: u64) -> (IMessagingDispatcher, EventSpy) {
-    let contract = snf::declare("messaging_mock").unwrap();
+    let contract = match snf::declare("messaging_mock").unwrap() {
+        snf::DeclareResult::Success(contract) => contract,
+        _ => core::panic_with_felt252('AlreadyDeclared not expected'),
+    };
     let calldata = array![cancellation_delay_secs.into()];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
@@ -116,7 +116,7 @@ fn message_to_starknet_deser() {
         m
             .from_address
             .into() == 3256441166037631918262930812410838598500200462657642943867372734773841898370,
-        'invalid from'
+        'invalid from',
     );
     assert(m.to_address.into() == 993696174272377493693496825928908586134624850969, 'invalid to');
     assert(m.payload.len() == 4, 'invalid payoad len');
@@ -131,25 +131,25 @@ fn message_to_appchain_deser() {
     let m = get_message_to_appchain();
 
     assert(
-        m.from_address.into() == 993696174272377493693496825928908586134624850969, 'invalid from'
+        m.from_address.into() == 993696174272377493693496825928908586134624850969, 'invalid from',
     );
     assert(
         m
             .to_address
             .into() == 3256441166037631918262930812410838598500200462657642943867372734773841898370,
-        'invalid to'
+        'invalid to',
     );
     assert(m.nonce == 1629170, 'invalid nonce');
     assert(
         m.selector == 1285101517810983806491589552491143496277809242732141897358598292095611420389,
-        'invalid selector'
+        'invalid selector',
     );
 
     assert(m.payload.len() == 3, 'invalid payoad len');
     assert(
         (*m
             .payload[0]) == 1905350129216923298156817020930524704572804705313566176282348575247442538663,
-        'invalid payoad 0'
+        'invalid payoad 0',
     );
     assert((*m.payload[1]) == 100000000000000000, 'invalid payoad 1');
     assert((*m.payload[2]) == 0, 'invalid payoad 2');
@@ -190,7 +190,7 @@ fn sn_to_appchain_messages_ok() {
 
     // Calculate the message_hash
     let message_hash = hash::compute_message_hash_sn_to_appc(
-        from_address: from, to_address: to, :selector, payload: payload.span(), nonce: 0
+        from_address: from, to_address: to, :selector, payload: payload.span(), nonce: 0,
     );
     let is_pending_before = mock.sn_to_appchain_messages(message_hash);
     assert(is_pending_before == MessageToAppchainStatus::NotSent, 'Should not be pending before');
@@ -202,7 +202,7 @@ fn sn_to_appchain_messages_ok() {
     let is_pending_after = mock.sn_to_appchain_messages(message_hash);
     assert(
         is_pending_after == MessageToAppchainStatus::Pending(nonce),
-        'message not registered/pending'
+        'message not registered/pending',
     );
 
     let expected_event = MessageSent {
@@ -239,8 +239,8 @@ fn start_cancellation_ok() {
         .assert_emitted(
             @array![
                 (mock.contract_address, Event::MessageSent(expected_sent)),
-                (mock.contract_address, Event::MessageCancellationStarted(expected_start_cancel))
-            ]
+                (mock.contract_address, Event::MessageCancellationStarted(expected_start_cancel)),
+            ],
         );
 }
 
@@ -309,8 +309,8 @@ fn cancel_message_ok() {
             @array![
                 (mock.contract_address, Event::MessageSent(expected_sent)),
                 (mock.contract_address, Event::MessageCancellationStarted(expected_start_cancel)),
-                (mock.contract_address, Event::MessageCanceled(expected_cancel))
-            ]
+                (mock.contract_address, Event::MessageCanceled(expected_cancel)),
+            ],
         );
 }
 
@@ -383,7 +383,7 @@ fn process_messages_to_starknet_ok() {
 
     let m = get_message_to_starknet();
     let _message_hash = hash::compute_message_hash_appc_to_sn(
-        m.from_address, m.to_address, m.payload
+        m.from_address, m.to_address, m.payload,
     );
 
     let messages = array![m].span();
@@ -408,7 +408,7 @@ fn process_messages_to_appchain_ok() {
     };
 
     let _message_hash = hash::compute_message_hash_sn_to_appc(
-        m.from_address, m.to_address, m.selector, m.payload, m.nonce
+        m.from_address, m.to_address, m.selector, m.payload, m.nonce,
     );
 
     let messages = array![m].span();
@@ -437,8 +437,7 @@ fn consume_message_from_appchain_ok() {
     let to = starknet::get_contract_address();
     let payload = array![1, 2, 3].span();
 
-    let messages = array![MessageToStarknet { from_address: from, to_address: to, payload, }]
-        .span();
+    let messages = array![MessageToStarknet { from_address: from, to_address: to, payload }].span();
 
     mock.process_messages_to_starknet(messages);
 
@@ -455,8 +454,7 @@ fn appchain_to_sn_messages_ok() {
     let to = starknet::get_contract_address();
     let payload = array![1, 2, 3].span();
 
-    let messages = array![MessageToStarknet { from_address: from, to_address: to, payload, }]
-        .span();
+    let messages = array![MessageToStarknet { from_address: from, to_address: to, payload }].span();
 
     let message_hash = hash::compute_message_hash_appc_to_sn(from, to, payload);
 
