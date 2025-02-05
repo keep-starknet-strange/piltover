@@ -1,7 +1,7 @@
 use cainome::rs::abigen;
 
 abigen!(
-    Appchain,
+    AppchainContract,
     "./target/dev/piltover_appchain.contract_class.json",
     output_path("./piltover/src/bindgen.rs"),
     type_aliases {

@@ -1,10 +1,10 @@
 #[derive()]
-pub struct Appchain<A: starknet::accounts::ConnectedAccount + Sync> {
+pub struct AppchainContract<A: starknet::accounts::ConnectedAccount + Sync> {
     pub address: starknet::core::types::Felt,
     pub account: A,
     pub block_id: starknet::core::types::BlockId,
 }
-impl<A: starknet::accounts::ConnectedAccount + Sync> Appchain<A> {
+impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     pub fn new(address: starknet::core::types::Felt, account: A) -> Self {
         Self {
             address,
@@ -26,12 +26,12 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> Appchain<A> {
     }
 }
 #[derive()]
-pub struct AppchainReader<P: starknet::providers::Provider + Sync> {
+pub struct AppchainContractReader<P: starknet::providers::Provider + Sync> {
     pub address: starknet::core::types::Felt,
     pub provider: P,
     pub block_id: starknet::core::types::BlockId,
 }
-impl<P: starknet::providers::Provider + Sync> AppchainReader<P> {
+impl<P: starknet::providers::Provider + Sync> AppchainContractReader<P> {
     pub fn new(address: starknet::core::types::Felt, provider: P) -> Self {
         Self {
             address,
@@ -4596,7 +4596,7 @@ impl TryFrom<&starknet::core::types::Event> for UpgradeableEvent {
         ))
     }
 }
-impl<A: starknet::accounts::ConnectedAccount + Sync> Appchain<A> {
+impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
     pub fn appchain_to_sn_messages(
@@ -5126,7 +5126,7 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> Appchain<A> {
         self.account.execute_v1(vec![__call])
     }
 }
-impl<P: starknet::providers::Provider + Sync> AppchainReader<P> {
+impl<P: starknet::providers::Provider + Sync> AppchainContractReader<P> {
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
     pub fn appchain_to_sn_messages(
