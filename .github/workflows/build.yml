@@ -9,23 +9,27 @@ on:
 permissions: read-all
 
 jobs:
-  build_default:
+  default:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3.0.2
       - run: scarb build
 
-  build_all_features:
+  all_features:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3.0.2
       - run: scarb build --all-features
 
-  build_rs:
+  rust:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
       - run: cargo build -p piltover
