@@ -1,0 +1,8 @@
+[package]
+name = "piltover-rs"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+cainome = { git = "https://github.com/cartridge-gg/cainome", rev = "v0.4.11" }
+starknet = "0.12"

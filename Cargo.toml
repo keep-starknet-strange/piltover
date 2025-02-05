@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+
+members = [
+	"piltover-rs",
+	"bins/bindgen",
+    "bins/deployer"
+]
+
+[workspace.dependencies]
+cainome = { git = "https://github.com/cartridge-gg/cainome", rev = "v0.4.11", features = ["abigen-rs"] }
+starknet = "0.12"
+piltover-rs = { path = "piltover-rs" }

@@ -1,0 +1,7 @@
+[package]
+name = "deployer"
+edition = "2021"
+description = "Deployer tool for piltover"
+
+[dependencies]
+piltover-rs.workspace = true
