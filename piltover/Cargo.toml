@@ -5,5 +5,4 @@ version = "0.1.0"
 
 [dependencies]
 cainome.workspace = true
-cainome-cairo-serde.workspace = true
 starknet = "0.12"

@@ -1351,7 +1351,6 @@ name = "piltover"
 version = "0.1.0"
 dependencies = [
  "cainome",
- "cainome-cairo-serde",
  "starknet",
 ]
 
