@@ -2,11 +2,11 @@
 resolver = "2"
 
 members = [
-	"piltover-rs",
+	"piltover",
 	"bins/bindgen",
 ]
 
 [workspace.dependencies]
 cainome = { git = "https://github.com/cartridge-gg/cainome", rev = "v0.4.11", features = ["abigen-rs"] }
 starknet = "0.12"
-piltover-rs = { path = "piltover-rs" }
+piltover = { path = "piltover" }

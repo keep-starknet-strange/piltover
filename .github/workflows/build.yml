@@ -22,3 +22,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: asdf-vm/actions/install@v3.0.2
       - run: scarb build --all-features
+
+  build_rs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+      - run: cargo build -p piltover

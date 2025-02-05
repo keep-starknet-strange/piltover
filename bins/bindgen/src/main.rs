@@ -3,7 +3,7 @@ use cainome::rs::abigen;
 abigen!(
     Appchain,
     "./target/dev/piltover_appchain.contract_class.json",
-    output_path("./piltover-rs/src/bindgen.rs"),
+    output_path("./piltover/src/bindgen.rs"),
     type_aliases {
         piltover::messaging::component::messaging_cpt::Event as MessagingEvent;
         piltover::state::component::state_cpt::Event as StateEvent;
