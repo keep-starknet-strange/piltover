@@ -38,7 +38,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: dtolnay/rust-toolchain@nightly-2024-08-28
+      - uses: dtolnay/rust-toolchain
+        with:
+          toolchain: nightly-2024-08-28
       - uses: asdf-vm/actions/install@v3.0.2
       - name: Generate bindings
         run: bash scripts/generate_bindings.sh
