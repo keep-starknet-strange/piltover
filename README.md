@@ -36,16 +36,13 @@ scarb build
 
 ## Bindings (Rust)
 
-To build/update the bindings, first build the contract with `scarb`.
-
-Then, within the Rust project `bindings/` run:
+Bindings are updated by running the following command:
 
 ```bash
-cargo build --bin generator
+bash scripts/generate_bindings.sh
 ```
 
-This will generate the bindings into `src/lib.rs`, which can be imported in other Rust project.
-Currently some warnings are displayed, will be fixed in a future version of `cainome`.
+This will update the code for the bindings in the `piltover-rs` crate.
 
 ## Test
 

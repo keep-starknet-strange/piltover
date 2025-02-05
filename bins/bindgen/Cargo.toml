@@ -1,0 +1,9 @@
+[package]
+name = "bindgen"
+version = "0.1.0"
+edition = "2021"
+description = "Bindings generator for piltover"
+
+[dependencies]
+cainome.workspace = true
+starknet.workspace = true
