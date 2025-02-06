@@ -33,8 +33,6 @@ fn state_update_ok() {
         full_output: 0,
         messages_to_l1: array![].span(),
         messages_to_l2: array![].span(),
-        contracts: array![],
-        classes: array![],
     };
     mock.update(os_output);
 
@@ -61,8 +59,6 @@ fn genesis_state_update_ok() {
         full_output: 0,
         messages_to_l1: array![].span(),
         messages_to_l2: array![].span(),
-        contracts: array![],
-        classes: array![],
     };
     mock.update(os_output);
 
@@ -91,8 +87,6 @@ fn state_update_invalid_block_number() {
         full_output: 0,
         messages_to_l1: array![].span(),
         messages_to_l2: array![].span(),
-        contracts: array![],
-        classes: array![],
     };
 
     mock.update(os_output);
@@ -116,8 +110,6 @@ fn state_update_invalid_previous_root() {
         full_output: 0,
         messages_to_l1: array![].span(),
         messages_to_l2: array![].span(),
-        contracts: array![],
-        classes: array![],
     };
 
     mock.update(invalid_state_update);
