@@ -45,11 +45,12 @@ fn state_update_ok() {
 
 #[test]
 fn genesis_state_update_ok() {
-    let mock = deploy_mock_with_state(state_root: 0, block_number: 0, block_hash: 0);
+    let max_felt = 0x800000000000011000000000000000000000000000000000000000000000000;
+    let mock = deploy_mock_with_state(state_root: 0, block_number: max_felt, block_hash: 0);
     let os_output = StarknetOsOutput {
         initial_root: 0,
         final_root: 1,
-        prev_block_number: 0x800000000000011000000000000000000000000000000000000000000000000,
+        prev_block_number: max_felt,
         new_block_number: 0,
         prev_block_hash: 0,
         new_block_hash: 1,
@@ -77,7 +78,7 @@ fn state_update_invalid_block_number() {
     let os_output = StarknetOsOutput {
         initial_root: 1,
         final_root: 2,
-        prev_block_number: 1,
+        prev_block_number: 5,
         new_block_number: 'invalid_block_number',
         prev_block_hash: 1,
         new_block_hash: 2,
