@@ -9,13 +9,15 @@ mod errors {
     pub const INVALID_PREVIOUS_BLOCK_NUMBER: felt252 = 'State: invalid prev block num';
 }
 
+const MAX_FELT: felt252 = 0x800000000000011000000000000000000000000000000000000000000000000;
+
 /// State component.
 #[starknet::component]
 pub mod state_cpt {
     use piltover::snos_output::StarknetOsOutput;
     use piltover::state::interface::IState;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use super::errors;
+    use super::{MAX_FELT, errors};
 
     type StateRoot = felt252;
     type BlockNumber = felt252;
@@ -39,9 +41,13 @@ pub mod state_cpt {
         fn update(ref self: ComponentState<TContractState>, program_output: StarknetOsOutput) {
             self.check_prev_block_number(@program_output);
 
-            // Check the blockNumber first as the error is less ambiguous then
-            // INVALID_PREVIOUS_ROOT.
-            self.block_number.write(self.block_number.read() + 1);
+            // The storage is already initialized at 0. For the block 0, where the
+            // previous block number is the maximum value for a felt252, we need to
+            // skip the increment.
+            if program_output.prev_block_number != MAX_FELT {
+                self.block_number.write(self.block_number.read() + 1);
+            }
+
             assert(
                 self.block_number.read() == program_output.new_block_number,
                 errors::INVALID_BLOCK_NUMBER,
@@ -99,8 +105,7 @@ pub mod state_cpt {
                 //
                 // See
                 // https://github.com/starkware-libs/cairo-lang/blob/a86e92bfde9c171c0856d7b46580c66e004922f3/src/starkware/starknet/solidity/StarknetState.sol#L19-L39
-                expected_prev_block_number =
-                    0x800000000000011000000000000000000000000000000000000000000000000;
+                expected_prev_block_number = MAX_FELT;
             }
 
             assert(
