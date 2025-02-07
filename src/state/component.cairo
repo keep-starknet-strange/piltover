@@ -9,15 +9,13 @@ mod errors {
     pub const INVALID_PREVIOUS_BLOCK_NUMBER: felt252 = 'State: invalid prev block num';
 }
 
-const MAX_FELT: felt252 = 0x800000000000011000000000000000000000000000000000000000000000000;
-
 /// State component.
 #[starknet::component]
 pub mod state_cpt {
     use piltover::snos_output::StarknetOsOutput;
     use piltover::state::interface::IState;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use super::{MAX_FELT, errors};
+    use super::errors;
 
     type StateRoot = felt252;
     type BlockNumber = felt252;
@@ -39,20 +37,12 @@ pub mod state_cpt {
         TContractState, +HasComponent<TContractState>,
     > of IState<ComponentState<TContractState>> {
         fn update(ref self: ComponentState<TContractState>, program_output: StarknetOsOutput) {
-            self.check_prev_block_number(@program_output);
-
-            // The storage is already initialized at 0. For the block 0, where the
-            // previous block number is the maximum value for a felt252, we need to
-            // skip the increment.
-            if program_output.prev_block_number != MAX_FELT {
-                self.block_number.write(self.block_number.read() + 1);
-            }
-
             assert(
-                self.block_number.read() == program_output.new_block_number,
+                self.block_number.read() == program_output.prev_block_number,
                 errors::INVALID_BLOCK_NUMBER,
             );
 
+            self.block_number.write(program_output.new_block_number);
             self.block_hash.write(program_output.new_block_hash);
 
             assert(
@@ -87,31 +77,6 @@ pub mod state_cpt {
             self.state_root.write(state_root);
             self.block_number.write(block_number);
             self.block_hash.write(block_hash);
-        }
-
-        ///  Validates that the previous block number that appears in the proof is the
-        /// current block number in the state.
-        fn check_prev_block_number(
-            self: @ComponentState<TContractState>, program_output: @StarknetOsOutput,
-        ) {
-            let mut expected_prev_block_number: felt252 = self.block_number.read();
-            let prev_state_root: felt252 = self.state_root.read();
-            let prev_block_hash: felt252 = self.block_hash.read();
-
-            // If block number and state root is 0, then we assume it hasn't been initialized yet
-            // and the current program output belongs to the genesis block.
-            if expected_prev_block_number == 0 && prev_state_root == 0 && prev_block_hash == 0 {
-                // This is the maximum value for a felt252.
-                //
-                // See
-                // https://github.com/starkware-libs/cairo-lang/blob/a86e92bfde9c171c0856d7b46580c66e004922f3/src/starkware/starknet/solidity/StarknetState.sol#L19-L39
-                expected_prev_block_number = MAX_FELT;
-            }
-
-            assert(
-                expected_prev_block_number == *program_output.prev_block_number,
-                errors::INVALID_PREVIOUS_BLOCK_NUMBER,
-            );
         }
     }
 }
