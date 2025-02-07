@@ -115,6 +115,9 @@ pub mod appchain {
     /// # Arguments
     ///
     /// * `address` - The contract address of the owner.
+    /// * `state_root` - The state root of the contract.
+    /// * `block_number` - The block number of the contract.
+    /// * `block_hash` - The block hash of the contract.
     #[constructor]
     fn constructor(
         ref self: ContractState,
