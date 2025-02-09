@@ -87,7 +87,12 @@ fn config_set_program_info_ok() {
     snf::start_cheat_caller_address(mock.contract_address, c::OWNER());
 
     // Owner sets the info.
-    let program_info = ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3 };
+    let program_info = ProgramInfo {
+        bootloader_program_hash: 0x1,
+        snos_config_hash: 0x2,
+        snos_program_hash: 0x3,
+        layout_bridge_program_hash: 0x4,
+    };
     mock.set_program_info(program_info);
     assert(mock.get_program_info() == program_info, 'expect correct hashes');
 
@@ -96,7 +101,10 @@ fn config_set_program_info_ok() {
     // Operator can also set the program info.
     snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
     let program_info = ProgramInfo {
-        program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33,
+        bootloader_program_hash: 0x11,
+        snos_config_hash: 0x22,
+        snos_program_hash: 0x33,
+        layout_bridge_program_hash: 0x44,
     };
     mock.set_program_info(program_info);
 
@@ -111,7 +119,12 @@ fn config_set_program_info_unauthorized() {
     snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR());
     mock
         .set_program_info(
-            ProgramInfo { program_hash: 0x1, config_hash: 0x2, snos_program_hash: 0x3 },
+            ProgramInfo {
+                bootloader_program_hash: 0x1,
+                snos_config_hash: 0x2,
+                snos_program_hash: 0x3,
+                layout_bridge_program_hash: 0x4,
+            },
         );
 }
 

@@ -5,9 +5,13 @@
 mod errors {
     pub const INVALID_ADDRESS: felt252 = 'Config: invalid address';
     pub const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
+    pub const SNOS_INVALID_OUTPUT_HASH: felt252 = 'snos: invalid output hash';
+    pub const SNOS_INVALID_PROGRAM_HASH: felt252 = 'snos: invalid program hash';
     pub const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     pub const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
     pub const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
+    pub const NO_FACT_REGISTERED: felt252 = 'no fact registered';
+    pub const LAYOUT_BRIDGE_INVALID_PROGRAM_HASH: felt252 = 'lb: invalid program hash';
 }
 
 /// Appchain settlement contract on starknet.
@@ -148,13 +152,27 @@ pub mod appchain {
             // StarknetOS (SNOS) proof is wrapped in bootloader so 3rd element is the program hash
             // of bootloaded program, in our case SNOS.
             let snos_program_hash = snos_output.at(2);
-            assert!(program_info.snos_program_hash == *snos_program_hash);
+            assert(
+                program_info.snos_program_hash == *snos_program_hash,
+                errors::SNOS_INVALID_PROGRAM_HASH,
+            );
+
+            // Layout bridge program is also bootloaded, and the 3rd element is the hash of the
+            // output of the program that has been bootloaded.
+            let layout_bridge_program_hash = program_output.at(2);
+            assert(
+                program_info.layout_bridge_program_hash == *layout_bridge_program_hash,
+                errors::LAYOUT_BRIDGE_INVALID_PROGRAM_HASH,
+            );
 
             let snos_output_hash = poseidon_hash_span(snos_output);
             // Layout bridge program is also bootloaded, and the 5th element is the hash of the
             // output of the program that has been layout-bridged.
             let snos_output_hash_in_bridge_output = program_output.at(4);
-            assert!(snos_output_hash == *snos_output_hash_in_bridge_output);
+            assert(
+                snos_output_hash == *snos_output_hash_in_bridge_output,
+                errors::SNOS_INVALID_OUTPUT_HASH,
+            );
 
             let output_hash = poseidon_hash_span(program_output);
 
@@ -169,17 +187,23 @@ pub mod appchain {
             );
 
             assert(
-                program_output_struct.starknet_os_config_hash == program_info.config_hash,
+                program_output_struct.starknet_os_config_hash == program_info.snos_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH,
             );
 
-            let fact = poseidon_hash_span(array![program_info.program_hash, output_hash].span());
-            assert!(
-                *IFactRegistryDispatcher { contract_address: self.config.get_facts_registry() }
-                    .get_all_verifications_for_fact_hash(fact)
-                    .at(0)
-                    .security_bits > 50,
+            let fact = poseidon_hash_span(
+                array![program_info.bootloader_program_hash, output_hash].span(),
             );
+            let verifications = IFactRegistryDispatcher {
+                contract_address: self.config.get_facts_registry(),
+            }
+                .get_all_verifications_for_fact_hash(fact);
+
+            if verifications.len() == 0 {
+                core::panic_with_felt252(errors::NO_FACT_REGISTERED)
+            };
+
+            assert!(*verifications.at(0).security_bits > 50);
 
             self.emit(LogStateTransitionFact { state_transition_fact });
 

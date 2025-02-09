@@ -809,9 +809,10 @@ impl OwnershipTransferred {
 }
 #[derive()]
 pub struct ProgramInfo {
-    pub program_hash: starknet::core::types::Felt,
-    pub config_hash: starknet::core::types::Felt,
+    pub bootloader_program_hash: starknet::core::types::Felt,
+    pub snos_config_hash: starknet::core::types::Felt,
     pub snos_program_hash: starknet::core::types::Felt,
+    pub layout_bridge_program_hash: starknet::core::types::Felt,
 }
 impl cainome::cairo_serde::CairoSerde for ProgramInfo {
     type RustType = Self;
@@ -819,21 +820,27 @@ impl cainome::cairo_serde::CairoSerde for ProgramInfo {
     #[inline]
     fn cairo_serialized_size(__rust: &Self::RustType) -> usize {
         let mut __size = 0;
-        __size += starknet::core::types::Felt::cairo_serialized_size(&__rust.program_hash);
-        __size += starknet::core::types::Felt::cairo_serialized_size(&__rust.config_hash);
+        __size +=
+            starknet::core::types::Felt::cairo_serialized_size(&__rust.bootloader_program_hash);
+        __size += starknet::core::types::Felt::cairo_serialized_size(&__rust.snos_config_hash);
         __size += starknet::core::types::Felt::cairo_serialized_size(&__rust.snos_program_hash);
+        __size +=
+            starknet::core::types::Felt::cairo_serialized_size(&__rust.layout_bridge_program_hash);
         __size
     }
     fn cairo_serialize(__rust: &Self::RustType) -> Vec<starknet::core::types::Felt> {
         let mut __out: Vec<starknet::core::types::Felt> = vec![];
         __out.extend(starknet::core::types::Felt::cairo_serialize(
-            &__rust.program_hash,
+            &__rust.bootloader_program_hash,
         ));
         __out.extend(starknet::core::types::Felt::cairo_serialize(
-            &__rust.config_hash,
+            &__rust.snos_config_hash,
         ));
         __out.extend(starknet::core::types::Felt::cairo_serialize(
             &__rust.snos_program_hash,
+        ));
+        __out.extend(starknet::core::types::Felt::cairo_serialize(
+            &__rust.layout_bridge_program_hash,
         ));
         __out
     }
@@ -842,16 +849,21 @@ impl cainome::cairo_serde::CairoSerde for ProgramInfo {
         __offset: usize,
     ) -> cainome::cairo_serde::Result<Self::RustType> {
         let mut __offset = __offset;
-        let program_hash = starknet::core::types::Felt::cairo_deserialize(__felts, __offset)?;
-        __offset += starknet::core::types::Felt::cairo_serialized_size(&program_hash);
-        let config_hash = starknet::core::types::Felt::cairo_deserialize(__felts, __offset)?;
-        __offset += starknet::core::types::Felt::cairo_serialized_size(&config_hash);
+        let bootloader_program_hash =
+            starknet::core::types::Felt::cairo_deserialize(__felts, __offset)?;
+        __offset += starknet::core::types::Felt::cairo_serialized_size(&bootloader_program_hash);
+        let snos_config_hash = starknet::core::types::Felt::cairo_deserialize(__felts, __offset)?;
+        __offset += starknet::core::types::Felt::cairo_serialized_size(&snos_config_hash);
         let snos_program_hash = starknet::core::types::Felt::cairo_deserialize(__felts, __offset)?;
         __offset += starknet::core::types::Felt::cairo_serialized_size(&snos_program_hash);
+        let layout_bridge_program_hash =
+            starknet::core::types::Felt::cairo_deserialize(__felts, __offset)?;
+        __offset += starknet::core::types::Felt::cairo_serialized_size(&layout_bridge_program_hash);
         Ok(ProgramInfo {
-            program_hash,
-            config_hash,
+            bootloader_program_hash,
+            snos_config_hash,
             snos_program_hash,
+            layout_bridge_program_hash,
         })
     }
 }
