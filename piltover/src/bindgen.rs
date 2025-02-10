@@ -4965,7 +4965,7 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     pub fn update_state_getcall(
         &self,
         snos_output: &Vec<starknet::core::types::Felt>,
-        program_output: &Vec<starknet::core::types::Felt>,
+        layout_bridge_output: &Vec<starknet::core::types::Felt>,
         onchain_data_hash: &starknet::core::types::Felt,
         onchain_data_size: &cainome::cairo_serde::U256,
     ) -> starknet::core::types::Call {
@@ -4975,7 +4975,7 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
             snos_output,
         ));
         __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
-            program_output,
+            layout_bridge_output,
         ));
         __calldata.extend(starknet::core::types::Felt::cairo_serialize(
             onchain_data_hash,
@@ -4994,7 +4994,7 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     pub fn update_state(
         &self,
         snos_output: &Vec<starknet::core::types::Felt>,
-        program_output: &Vec<starknet::core::types::Felt>,
+        layout_bridge_output: &Vec<starknet::core::types::Felt>,
         onchain_data_hash: &starknet::core::types::Felt,
         onchain_data_size: &cainome::cairo_serde::U256,
     ) -> starknet::accounts::ExecutionV1<A> {
@@ -5004,7 +5004,7 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
             snos_output,
         ));
         __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
-            program_output,
+            layout_bridge_output,
         ));
         __calldata.extend(starknet::core::types::Felt::cairo_serialize(
             onchain_data_hash,
