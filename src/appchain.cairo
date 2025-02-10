@@ -140,7 +140,7 @@ pub mod appchain {
         fn update_state(
             ref self: ContractState,
             snos_output: Span<felt252>,
-            program_output: Span<felt252>,
+            layout_bridge_output: Span<felt252>,
             onchain_data_hash: felt252,
             onchain_data_size: u256,
         ) {
@@ -159,7 +159,7 @@ pub mod appchain {
 
             // Layout bridge program is also bootloaded, and the 3rd element is the hash of the
             // output of the program that has been bootloaded.
-            let layout_bridge_program_hash = program_output.at(2);
+            let layout_bridge_program_hash = layout_bridge_output.at(2);
             assert(
                 program_info.layout_bridge_program_hash == *layout_bridge_program_hash,
                 errors::LAYOUT_BRIDGE_INVALID_PROGRAM_HASH,
@@ -168,13 +168,13 @@ pub mod appchain {
             let snos_output_hash = poseidon_hash_span(snos_output);
             // Layout bridge program is also bootloaded, and the 5th element is the hash of the
             // output of the program that has been layout-bridged.
-            let snos_output_hash_in_bridge_output = program_output.at(4);
+            let snos_output_hash_in_bridge_output = layout_bridge_output.at(4);
             assert(
                 snos_output_hash == *snos_output_hash_in_bridge_output,
                 errors::SNOS_INVALID_OUTPUT_HASH,
             );
 
-            let output_hash = poseidon_hash_span(program_output);
+            let output_hash = poseidon_hash_span(layout_bridge_output);
 
             let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(ref snos_output_iter);
@@ -183,7 +183,7 @@ pub mod appchain {
                 onchain_data_hash, onchain_data_size,
             };
             let state_transition_fact: u256 = encode_fact_with_onchain_data(
-                program_output, data_availability_fact,
+                layout_bridge_output, data_availability_fact,
             );
 
             assert(
