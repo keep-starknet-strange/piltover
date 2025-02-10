@@ -9,14 +9,22 @@ use starknet::ContractAddress;
 /// Since the layout used by SNOS is not verifiable onchain, a bridge layout
 /// program is also executed on the proof generated from SNOS execution.
 ///
-/// For this reason, the program info contains the hash of the SNOS program,
-/// additionally to the `program_hash`, which in this case is the bridge layout program hash.
+/// Since the Layout Bridge program is bootloaded, the bootloader program hash
+/// is also included in the program info, as the fact registered in the
+/// facts registry is computed from the Layout Bridge program hash and its output.
+///
 /// This ensures that the correct programs have been executed.
 #[derive(starknet::Store, Drop, Serde, Copy, PartialEq)]
 pub struct ProgramInfo {
-    pub program_hash: felt252,
-    pub config_hash: felt252,
+    /// The hash of the bootloader program that bootloads the Layout Bridge program.
+    pub bootloader_program_hash: felt252,
+    /// The hash of the SNOS config:
+    /// https://github.com/starkware-libs/cairo-lang/blob/a86e92bfde9c171c0856d7b46580c66e004922f3/src/starkware/starknet/core/os/os_config/os_config.cairo#L1-L39
+    pub snos_config_hash: felt252,
+    /// The hash of the SNOS program.
     pub snos_program_hash: felt252,
+    /// The hash of the Layout Bridge program.
+    pub layout_bridge_program_hash: felt252,
 }
 
 #[starknet::interface]

@@ -56,11 +56,12 @@ fn deploy_fact_registry_mock() -> IFactRegistryDispatcher {
 
 /// State update taken from mainnet:
 /// <https://etherscan.io/tx/0xc1351dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
+/// The output has some extra value to bootload the SNOS output.
 fn get_state_update() -> Array<felt252> {
     let felts = array![
         1,
         2,
-        3, //We add these three values to match the orginal way that snos output is sent to piltover
+        'snos_hash',
         1120029756675208924496185249815549700817638276364867982519015153297469423111,
         2251620073307221877548100532273969460343974267802546890497101472079704728659,
         97999,
@@ -136,7 +137,11 @@ fn get_state_update() -> Array<felt252> {
 fn get_output() -> Span<felt252> {
     let snos_output = get_state_update();
     let snos_output_hash = poseidon_hash_span(snos_output.span());
-    let felts = array![1, 2, 3, 4, snos_output_hash];
+    // The output here represents the output of the Layout Bridge program,
+    // which is bootloaded.
+    // In the output of the bootloaded layout bridge program, the 5th element
+    // is the hash of the SNOS output.
+    let felts = array![1, 2, 'layout_bridge_hash', 4, snos_output_hash];
     felts.span()
 }
 
@@ -180,7 +185,12 @@ fn appchain_owner_ok() {
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
     iconfig
         .set_program_info(
-            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 },
+            ProgramInfo {
+                bootloader_program_hash: 0x11,
+                snos_config_hash: 0x22,
+                snos_program_hash: 0x33,
+                layout_bridge_program_hash: 0x44,
+            },
         );
 }
 
@@ -192,7 +202,12 @@ fn appchain_owner_only() {
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
     iconfig
         .set_program_info(
-            ProgramInfo { program_hash: 0x11, config_hash: 0x22, snos_program_hash: 0x33 },
+            ProgramInfo {
+                bootloader_program_hash: 0x11,
+                snos_config_hash: 0x22,
+                snos_program_hash: 0x33,
+                layout_bridge_program_hash: 0x44,
+            },
         );
 }
 
@@ -233,9 +248,10 @@ fn update_state_ok() {
     iconfig
         .set_program_info(
             ProgramInfo {
-                program_hash: 0,
-                config_hash: 8868593919264901768958912247765226517850727970326290266005120699201631282,
-                snos_program_hash: 3,
+                bootloader_program_hash: 'bootloader_hash',
+                snos_config_hash: 8868593919264901768958912247765226517850727970326290266005120699201631282,
+                snos_program_hash: 'snos_hash',
+                layout_bridge_program_hash: 'layout_bridge_hash',
             },
         );
     iconfig.set_facts_registry(address: fact_registry_mock.contract_address);
@@ -262,8 +278,9 @@ fn update_state_ok() {
     };
 
     let expected_state_transition_fact = LogStateTransitionFact {
-        state_transition_fact: 95851155297023584948317010611313049107061888692476024929318287712294181461009,
+        state_transition_fact: 31477686913899968564679552005675621349383989346891303076150786735414603281126,
     };
+
     _spy
         .assert_emitted(
             @array![
