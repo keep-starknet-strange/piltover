@@ -7,6 +7,6 @@ members = [
 ]
 
 [workspace.dependencies]
-cainome = { git = "https://github.com/cartridge-gg/cainome", tag = "v0.4.12", features = ["abigen-rs"] }
+cainome = { version = "0.5.0", features = ["abigen-rs"] }
 starknet = "0.12"
 piltover = { path = "piltover" }
