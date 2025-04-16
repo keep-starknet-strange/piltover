@@ -8,5 +8,5 @@ members = [
 
 [workspace.dependencies]
 cainome = { version = "0.6.0", features = ["abigen-rs"] }
-starknet = "0.12"
+starknet = "0.14.0"
 piltover = { path = "piltover" }
