@@ -4609,6 +4609,34 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     }
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
+    pub fn owner(
+        &self,
+    ) -> cainome::cairo_serde::call::FCall<A::Provider, cainome::cairo_serde::ContractAddress> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::FunctionCall {
+            contract_address: self.address,
+            entry_point_selector: starknet::macros::selector!("owner"),
+            calldata: __calldata,
+        };
+        cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn pending_owner(
+        &self,
+    ) -> cainome::cairo_serde::call::FCall<A::Provider, cainome::cairo_serde::ContractAddress> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::FunctionCall {
+            contract_address: self.address,
+            entry_point_selector: starknet::macros::selector!("pending_owner"),
+            calldata: __calldata,
+        };
+        cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
     pub fn sn_to_appchain_messages(
         &self,
         message_hash: &starknet::core::types::Felt,
@@ -4622,6 +4650,29 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
             calldata: __calldata,
         };
         cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn accept_ownership_getcall(&self) -> starknet::core::types::Call {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("accept_ownership"),
+            calldata: __calldata,
+        }
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn accept_ownership(&self) -> starknet::accounts::ExecutionV3<A> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("accept_ownership"),
+            calldata: __calldata,
+        };
+        self.account.execute_v3(vec![__call])
     }
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
@@ -4740,6 +4791,29 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         let __call = starknet::core::types::Call {
             to: self.address,
             selector: starknet::macros::selector!("register_operator"),
+            calldata: __calldata,
+        };
+        self.account.execute_v3(vec![__call])
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn renounce_ownership_getcall(&self) -> starknet::core::types::Call {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("renounce_ownership"),
+            calldata: __calldata,
+        }
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn renounce_ownership(&self) -> starknet::accounts::ExecutionV3<A> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("renounce_ownership"),
             calldata: __calldata,
         };
         self.account.execute_v3(vec![__call])
@@ -4896,6 +4970,41 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         let __call = starknet::core::types::Call {
             to: self.address,
             selector: starknet::macros::selector!("start_message_cancellation"),
+            calldata: __calldata,
+        };
+        self.account.execute_v3(vec![__call])
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn transfer_ownership_getcall(
+        &self,
+        new_owner: &cainome::cairo_serde::ContractAddress,
+    ) -> starknet::core::types::Call {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        __calldata.extend(cainome::cairo_serde::ContractAddress::cairo_serialize(
+            new_owner,
+        ));
+        starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("transfer_ownership"),
+            calldata: __calldata,
+        }
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn transfer_ownership(
+        &self,
+        new_owner: &cainome::cairo_serde::ContractAddress,
+    ) -> starknet::accounts::ExecutionV3<A> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        __calldata.extend(cainome::cairo_serde::ContractAddress::cairo_serialize(
+            new_owner,
+        ));
+        let __call = starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("transfer_ownership"),
             calldata: __calldata,
         };
         self.account.execute_v3(vec![__call])
@@ -5133,6 +5242,34 @@ impl<P: starknet::providers::Provider + Sync> AppchainContractReader<P> {
         let __call = starknet::core::types::FunctionCall {
             contract_address: self.address,
             entry_point_selector: starknet::macros::selector!("is_operator"),
+            calldata: __calldata,
+        };
+        cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn owner(
+        &self,
+    ) -> cainome::cairo_serde::call::FCall<P, cainome::cairo_serde::ContractAddress> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::FunctionCall {
+            contract_address: self.address,
+            entry_point_selector: starknet::macros::selector!("owner"),
+            calldata: __calldata,
+        };
+        cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn pending_owner(
+        &self,
+    ) -> cainome::cairo_serde::call::FCall<P, cainome::cairo_serde::ContractAddress> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::FunctionCall {
+            contract_address: self.address,
+            entry_point_selector: starknet::macros::selector!("pending_owner"),
             calldata: __calldata,
         };
         cainome::cairo_serde::call::FCall::new(__call, self.provider())
