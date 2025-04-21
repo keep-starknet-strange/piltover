@@ -62,6 +62,9 @@ pub mod appchain {
     #[abi(embed_v0)]
     impl StateImpl = state_cpt::StateImpl<ContractState>;
 
+    #[abi(embed_v0)]
+    impl OwnableImpl = ownable_cpt::OwnableTwoStepImpl<ContractState>;
+
     #[cfg(feature: 'messaging_test')]
     #[abi(embed_v0)]
     impl MessagingTestImpl =
