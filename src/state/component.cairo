@@ -66,7 +66,8 @@ pub mod state_cpt {
             ref self: ComponentState<TContractState>, snos_output: Span<felt252>, from_index: u64,
         ) {
             let mut new_length = snos_output.len();
-            for i in from_index..new_length.into() {
+            let final_index = from_index + new_length.into();
+            for i in from_index..final_index {
                 let storage_pointer = self.snos_output.at(i);
                 storage_pointer.write(*snos_output[i.try_into().unwrap()]);
             }
