@@ -19,4 +19,17 @@ pub trait IState<T> {
     ///
     /// The state root, the block number and the block hash.
     fn get_state(self: @T) -> (felt252, felt252, felt252);
+
+    /// Stores the SNOS output.
+    ///
+    /// # Arguments
+    ///
+    /// * `snos_output` - The SNOS output.
+    fn store_snos_output(ref self: T, snos_output: Span<felt252>, from_index: u64);
+
+    /// Gets the SNOS output.
+    ///
+    /// # Returns
+    ///
+    fn get_snos_output(self: @T, till_index: u64) -> Array<felt252>;
 }

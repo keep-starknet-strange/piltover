@@ -27,4 +27,13 @@ pub trait IAppchain<T> {
         onchain_data_hash: felt252,
         onchain_data_size: u256,
     );
+
+    fn update_state_with_added_snos_output(
+        ref self: T,
+        snos_output: Span<felt252>,
+        from_index: u64,
+        layout_bridge_output: Span<felt252>,
+        onchain_data_hash: felt252,
+        onchain_data_size: u256,
+    );
 }

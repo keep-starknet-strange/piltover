@@ -39,7 +39,7 @@ pub mod appchain {
     use piltover::messaging::{messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal};
     use piltover::snos_output::deserialize_os_output;
     use piltover::state::{IState, state_cpt, state_cpt::InternalTrait as StateInternal};
-    use starknet::storage::{StoragePointerReadAccess};
+    use starknet::storage::StoragePointerReadAccess;
     use starknet::{ClassHash, ContractAddress};
     use super::errors;
 
@@ -228,6 +228,33 @@ pub mod appchain {
                         block_number: self.state.block_number.read(),
                         block_hash: self.state.block_hash.read(),
                     },
+                );
+        }
+
+        fn update_state_with_added_snos_output(
+            ref self: ContractState,
+            snos_output: Span<felt252>,
+            from_index: u64,
+            layout_bridge_output: Span<felt252>,
+            onchain_data_hash: felt252,
+            onchain_data_size: u256,
+        ) {
+            let mut snos_output_stored = array![];
+            if from_index > 0 {
+                snos_output_stored = self.state.get_snos_output(from_index - 1);
+                for i in 0..snos_output_stored.len() {
+                    snos_output_stored.append(*snos_output.at(i));
+                };
+            } else {
+                snos_output_stored = snos_output.into();
+            }
+
+            self
+                .update_state(
+                    snos_output_stored.span(),
+                    layout_bridge_output,
+                    onchain_data_hash,
+                    onchain_data_size,
                 );
         }
     }

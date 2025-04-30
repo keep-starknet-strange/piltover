@@ -14,7 +14,11 @@ mod errors {
 pub mod state_cpt {
     use piltover::snos_output::StarknetOsOutput;
     use piltover::state::interface::IState;
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::storage::{
+        MutableVecTrait, StorableStoragePointerReadAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess, Vec, VecTrait,
+    };
+    // use starknet::storage::*;
     use super::errors;
 
     type StateRoot = felt252;
@@ -26,6 +30,7 @@ pub mod state_cpt {
         pub state_root: StateRoot,
         pub block_number: BlockNumber,
         pub block_hash: BlockHash,
+        pub snos_output: Vec<felt252>,
     }
 
     #[event]
@@ -55,6 +60,27 @@ pub mod state_cpt {
 
         fn get_state(self: @ComponentState<TContractState>) -> (StateRoot, BlockNumber, BlockHash) {
             (self.state_root.read(), self.block_number.read(), self.block_hash.read())
+        }
+
+        fn store_snos_output(
+            ref self: ComponentState<TContractState>, snos_output: Span<felt252>, from_index: u64,
+        ) {
+            let mut new_length = snos_output.len();
+            for i in from_index..new_length.into() {
+                let storage_pointer = self.snos_output.at(i);
+                storage_pointer.write(*snos_output[i.try_into().unwrap()]);
+            }
+        }
+
+        fn get_snos_output(
+            self: @ComponentState<TContractState>, till_index: u64,
+        ) -> Array<felt252> {
+            let mut output = array![];
+            for i in 0..till_index {
+                let value = self.snos_output.at(i).read();
+                output.append(value);
+            };
+            output
         }
     }
 
