@@ -44,7 +44,10 @@ pub mod state {
     pub mod mock;
 
     pub use component::state_cpt;
-    pub use interface::{IState, IStateDispatcher, IStateDispatcherTrait};
+    pub use interface::{
+        IState, IStateDispatcher, IStateDispatcherTrait, IStateUpdater, IStateUpdaterDispatcher,
+        IStateUpdaterDispatcherTrait,
+    };
     pub use mock::state_mock;
 
     #[cfg(test)]

@@ -7,6 +7,9 @@ pub mod state_mock {
     #[abi(embed_v0)]
     impl StateImpl = state_cpt::StateImpl<ContractState>;
 
+    #[abi(embed_v0)]
+    impl StateUpdaterImpl = state_cpt::StateUpdaterImpl<ContractState>;
+
     #[storage]
     struct Storage {
         #[substorage(v0)]
