@@ -7,14 +7,16 @@ use openzeppelin::access::ownable::interface::{
 //! Appchain testing.
 //!
 use openzeppelin_testing::constants as c;
+use piltover::appchain::appchain::{Event, LogStateTransitionFact, LogStateUpdate};
 use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
-use piltover::fact_registry::IFactRegistryDispatcher;
-use piltover::interface::IAppchainDispatcher;
+use piltover::fact_registry::{IFactRegistryDispatcher};
+use piltover::interface::{IAppchainDispatcher, IAppchainDispatcherTrait};
+use piltover::messaging::{IMessagingDispatcher, IMessagingDispatcherTrait};
 #[cfg(feature: 'update_state_test')]
 use piltover::state::interface::{IStateTestDispatcher, IStateTestDispatcherTrait};
 use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, EventSpy};
+use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
     let contract = match snf::declare("appchain").unwrap() {
@@ -30,15 +32,12 @@ fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
 }
 
 /// Deploys the appchain contract.
-fn deploy_with_owner_and_state(
-    owner: felt252, state_root: felt252, block_number: felt252, block_hash: felt252,
-) -> (IAppchainDispatcher, EventSpy) {
+fn deploy_with_owner_and_state(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
     let contract = match snf::declare("appchain").unwrap() {
         snf::DeclareResult::Success(contract) => contract,
         _ => core::panic_with_felt252('AlreadyDeclared not expected'),
     };
-    let block_number: felt252 = block_number.into();
-    let calldata = array![owner, state_root, block_number, block_hash];
+    let calldata = array![owner];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
     let mut spy = snf::spy_events();
@@ -234,12 +233,7 @@ fn appchain_owner_only() {
 #[cfg(feature: 'update_state_test')]
 #[test]
 fn update_state_ok() {
-    let (appchain, mut _spy) = deploy_with_owner_and_state(
-        owner: c::OWNER().into(),
-        state_root: 1120029756675208924496185249815549700817638276364867982519015153297469423111,
-        block_number: 97999,
-        block_hash: 0,
-    );
+    let (appchain, mut _spy) = deploy_with_owner_and_state(owner: c::OWNER().into());
 
     let istate = IStateTestDispatcher { contract_address: appchain.contract_address };
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
