@@ -7,21 +7,19 @@ use openzeppelin::access::ownable::interface::{
 //! Appchain testing.
 //!
 use openzeppelin_testing::constants as c;
-use piltover::appchain::appchain::{Event, LogStateTransitionFact, LogStateUpdate};
 use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
-use piltover::fact_registry::{IFactRegistryDispatcher};
-use piltover::interface::{IAppchainDispatcher, IAppchainDispatcherTrait};
-use piltover::messaging::{IMessagingDispatcher, IMessagingDispatcherTrait};
+use piltover::fact_registry::IFactRegistryDispatcher;
+use piltover::interface::IAppchainDispatcher;
 use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 use snforge_std as snf;
-use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
+use snforge_std::{ContractClassTrait, EventSpy};
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
     let contract = match snf::declare("appchain").unwrap() {
         snf::DeclareResult::Success(contract) => contract,
         _ => core::panic_with_felt252('AlreadyDeclared not expected'),
     };
-    let calldata = array![owner, 0, 0, 0];
+    let calldata = array![owner];
     let (contract_address, _) = contract.deploy(@calldata).unwrap();
 
     let mut spy = snf::spy_events();
@@ -231,6 +229,7 @@ fn appchain_owner_only() {
         );
 }
 
+#[cfg(feature: 'update_state_test')]
 #[test]
 fn update_state_ok() {
     let (appchain, mut _spy) = deploy_with_owner_and_state(

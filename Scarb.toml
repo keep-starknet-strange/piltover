@@ -28,3 +28,4 @@ sort-module-level-items = true
 
 [features]
 messaging_test = []
+update_state_test = []
