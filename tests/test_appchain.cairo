@@ -12,9 +12,9 @@ use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
 use piltover::fact_registry::{IFactRegistryDispatcher};
 use piltover::interface::{IAppchainDispatcher, IAppchainDispatcherTrait};
 use piltover::messaging::{IMessagingDispatcher, IMessagingDispatcherTrait};
+use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 #[cfg(feature: 'update_state_test')]
 use piltover::state::interface::{IStateTestDispatcher, IStateTestDispatcherTrait};
-use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 use snforge_std as snf;
 use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
 /// Deploys the appchain contract.
@@ -56,7 +56,7 @@ fn deploy_fact_registry_mock() -> IFactRegistryDispatcher {
 }
 
 /// State update taken from mainnet:
-/// <https://etherscan.io/tx/0xc11dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
+/// <https://etherscan.io/tx/0xc1351dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
 /// The output has some extra value to bootload the SNOS output.
 fn get_state_update() -> Array<felt252> {
     let felts = array![
