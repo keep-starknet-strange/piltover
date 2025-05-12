@@ -15,5 +15,11 @@ pub trait IState<T> {
 
 #[starknet::interface]
 pub trait IStateUpdater<T> {
+    /// Validates that the 'blockNumber' and the previous root are consistent with the
+    /// current state and updates the state.
+    ///
+    /// # Arguments
+    ///
+    /// * `program_output` - The StarknetOS state update output.
     fn update(ref self: T, program_output: StarknetOsOutput);
 }
