@@ -1,6 +1,8 @@
 use core::result::ResultTrait;
 use piltover::snos_output::StarknetOsOutput;
-use piltover::state::{IStateDispatcher, IStateDispatcherTrait};
+use piltover::state::{
+    IStateDispatcher, IStateDispatcherTrait, IStateUpdaterDispatcher, IStateUpdaterDispatcherTrait,
+};
 use snforge_std as snf;
 use snforge_std::ContractClassTrait;
 
@@ -34,7 +36,8 @@ fn state_update_ok() {
         messages_to_l1: array![].span(),
         messages_to_l2: array![].span(),
     };
-    mock.update(os_output);
+    let updater = IStateUpdaterDispatcher { contract_address: mock.contract_address };
+    updater.update(os_output);
 
     let (state_root, block_number, block_hash) = mock.get_state();
 
@@ -61,7 +64,8 @@ fn genesis_state_update_ok() {
         messages_to_l1: array![].span(),
         messages_to_l2: array![].span(),
     };
-    mock.update(os_output);
+    let updater = IStateUpdaterDispatcher { contract_address: mock.contract_address };
+    updater.update(os_output);
 
     let (state_root, block_number, block_hash) = mock.get_state();
 
@@ -90,7 +94,8 @@ fn state_update_invalid_block_number() {
         messages_to_l2: array![].span(),
     };
 
-    mock.update(os_output);
+    let updater = IStateUpdaterDispatcher { contract_address: mock.contract_address };
+    updater.update(os_output);
 }
 
 #[test]
@@ -113,5 +118,6 @@ fn state_update_invalid_previous_root() {
         messages_to_l2: array![].span(),
     };
 
-    mock.update(invalid_state_update);
+    let updater = IStateUpdaterDispatcher { contract_address: mock.contract_address };
+    updater.update(invalid_state_update);
 }

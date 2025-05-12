@@ -13,7 +13,7 @@ mod errors {
 #[starknet::component]
 pub mod state_cpt {
     use piltover::snos_output::StarknetOsOutput;
-    use piltover::state::interface::IState;
+    use piltover::state::interface::{IState, IStateUpdater};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use super::errors;
 
@@ -36,6 +36,15 @@ pub mod state_cpt {
     impl State<
         TContractState, +HasComponent<TContractState>,
     > of IState<ComponentState<TContractState>> {
+        fn get_state(self: @ComponentState<TContractState>) -> (StateRoot, BlockNumber, BlockHash) {
+            (self.state_root.read(), self.block_number.read(), self.block_hash.read())
+        }
+    }
+
+    #[embeddable_as(StateUpdaterImpl)]
+    impl StateUpdater<
+        TContractState, +HasComponent<TContractState>,
+    > of IStateUpdater<ComponentState<TContractState>> {
         fn update(ref self: ComponentState<TContractState>, program_output: StarknetOsOutput) {
             assert(
                 self.block_number.read() == program_output.prev_block_number,
@@ -51,10 +60,6 @@ pub mod state_cpt {
             );
 
             self.state_root.write(program_output.final_root);
-        }
-
-        fn get_state(self: @ComponentState<TContractState>) -> (StateRoot, BlockNumber, BlockHash) {
-            (self.state_root.read(), self.block_number.read(), self.block_hash.read())
         }
     }
 
