@@ -10,6 +10,8 @@ use openzeppelin_testing::constants as c;
 use piltover::config::{IConfigDispatcher, IConfigDispatcherTrait, ProgramInfo};
 use piltover::fact_registry::IFactRegistryDispatcher;
 use piltover::interface::IAppchainDispatcher;
+#[cfg(feature: 'update_state_test')]
+use piltover::state::interface::{IStateTestDispatcher, IStateTestDispatcherTrait};
 use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 use snforge_std as snf;
 use snforge_std::{ContractClassTrait, EventSpy};
@@ -55,7 +57,7 @@ fn deploy_fact_registry_mock() -> IFactRegistryDispatcher {
 }
 
 /// State update taken from mainnet:
-/// <https://etherscan.io/tx/0xc1351dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
+/// <https://etherscan.io/tx/0xc11dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
 /// The output has some extra value to bootload the SNOS output.
 fn get_state_update() -> Array<felt252> {
     let felts = array![
@@ -239,8 +241,16 @@ fn update_state_ok() {
         block_hash: 0,
     );
 
+    let istate = IStateTestDispatcher { contract_address: appchain.contract_address };
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
     let iconfig = IConfigDispatcher { contract_address: appchain.contract_address };
+
+    istate
+        .set_state(
+            state_root: 1120029756675208924496185249815549700817638276364867982519015153297469423111,
+            block_number: 97999,
+            block_hash: 0,
+        );
 
     let fact_registry_mock = deploy_fact_registry_mock();
 

@@ -14,6 +14,8 @@ mod errors {
 pub mod state_cpt {
     use piltover::snos_output::StarknetOsOutput;
     use piltover::state::interface::IState;
+    #[cfg(feature: 'update_state_test')]
+    use piltover::state::interface::IStateTest;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use super::errors;
 
@@ -55,6 +57,21 @@ pub mod state_cpt {
 
         fn get_state(self: @ComponentState<TContractState>) -> (StateRoot, BlockNumber, BlockHash) {
             (self.state_root.read(), self.block_number.read(), self.block_hash.read())
+        }
+    }
+
+    #[cfg(feature: 'update_state_test')]
+    #[embeddable_as(StateTestImpl)]
+    impl StateTest<
+        TContractState, +HasComponent<TContractState>,
+    > of IStateTest<ComponentState<TContractState>> {
+        fn set_state(
+            ref self: ComponentState<TContractState>,
+            state_root: felt252,
+            block_number: felt252,
+            block_hash: felt252,
+        ) {
+            self.initialize(state_root, block_number, block_hash);
         }
     }
 

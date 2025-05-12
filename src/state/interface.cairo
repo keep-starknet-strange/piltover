@@ -20,3 +20,11 @@ pub trait IState<T> {
     /// The state root, the block number and the block hash.
     fn get_state(self: @T) -> (felt252, felt252, felt252);
 }
+
+#[cfg(feature: 'update_state_test')]
+#[starknet::interface]
+pub trait IStateTest<T> {
+    /// Enables initialising the state of the contract at an arbitrary block
+    #[cfg(feature: 'update_state_test')]
+    fn set_state(ref self: T, state_root: felt252, block_number: felt252, block_hash: felt252);
+}

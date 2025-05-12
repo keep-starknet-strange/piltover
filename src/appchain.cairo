@@ -70,6 +70,11 @@ pub mod appchain {
     impl MessagingTestImpl =
         messaging_cpt::MessagingTestImpl<ContractState>;
 
+    #[cfg(feature: 'update_state_test')]
+    #[abi(embed_v0)]
+    impl StateTestImpl =
+        state_cpt::StateTestImpl<ContractState>;
+
     #[storage]
     struct Storage {
         #[substorage(v0)]
@@ -137,26 +142,6 @@ pub mod appchain {
             3618502788666131213697322783095070105623107215331596699973092056135872020480;
         self.state.initialize(0, initial_block_number, 0);
     }
-
-    #[cfg(feature: 'update_state_test')]
-    #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        owner: ContractAddress,
-        state_root: felt252,
-        block_number: felt252,
-        block_hash: felt252,
-    ) {
-        self.ownable.initializer(owner);
-        self.messaging.initialize(CANCELLATION_DELAY_SECS);
-        // The prev block number for 0th block in the snos
-        //  as "0x800000000000011000000000000000000000000000000000000000000000000"
-        // which is 3618502788666131213697322783095070105623107215331596699973092056135872020480 in
-        // felt252
-        let initial_block_number: felt252 =
-            3618502788666131213697322783095070105623107215331596699973092056135872020480;
-    }
-
 
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
