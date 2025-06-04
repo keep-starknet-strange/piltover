@@ -244,9 +244,9 @@ pub mod messaging_cpt {
                 _ => assert(false, errors::NO_MESSAGE_TO_CANCEL),
             };
 
-            // If the message has not been cancelled yet, process the cancellation request.
+            // If the cancellation has not been requested yet, process the cancellation request.
             // This avoids re-processing the cancellation request if the message is cancelled
-            // multiple times.
+            // multiple times, which would result in the waiting period to be reset.
             if self.sn_to_appc_cancellations.read(message_hash).is_zero() {
                 self.sn_to_appc_cancellations.write(message_hash, starknet::get_block_timestamp());
 

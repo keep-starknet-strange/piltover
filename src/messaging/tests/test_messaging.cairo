@@ -227,7 +227,7 @@ fn start_cancellation_ok() {
     let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
     assert(message_hash == message_hash_cancel, 'invalid message hash');
 
-    // Voluntarily cancel the message again, to ensure the cancellation is not processed twice.
+    // Voluntarily start the cancellation again, to ensure the request is not processed twice.
     let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
     assert(message_hash == message_hash_cancel, 'invalid message hash');
 
@@ -243,8 +243,8 @@ fn start_cancellation_ok() {
         .assert_emitted(
             @array![
                 (mock.contract_address, Event::MessageSent(expected_sent)),
-                // Only one cancellation event is expected, as the message is already being
-                // cancelled.
+                // Only one cancellation started event is expected, as the message is already in its
+                // cancellation process.
                 (mock.contract_address, Event::MessageCancellationStarted(expected_start_cancel)),
             ],
         );
