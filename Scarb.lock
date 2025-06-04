@@ -2,6 +2,12 @@
 version = 1
 
 [[package]]
+name = "integrity"
+version = "2.0.0"
+source = "registry+https://scarbs.xyz/"
+checksum = "sha256:f5e91cd5280bc0c02cfb12ce1a521e25064956dd12f3e38fca3d841c538723a0"
+
+[[package]]
 name = "openzeppelin"
 version = "0.20.0"
 source = "registry+https://scarbs.xyz/"
@@ -132,6 +138,7 @@ checksum = "sha256:44f32d242af1e43982decc49c563e613a9b67ade552f5c3d5cde504e92f74
 name = "piltover"
 version = "0.1.0"
 dependencies = [
+ "integrity",
  "openzeppelin",
  "openzeppelin_testing",
  "snforge_std",
