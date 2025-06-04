@@ -7,6 +7,7 @@ mod errors {
     pub const INVALID_BLOCK_NUMBER: felt252 = 'State: invalid block number';
     pub const INVALID_PREVIOUS_ROOT: felt252 = 'State: invalid previous root';
     pub const INVALID_PREVIOUS_BLOCK_NUMBER: felt252 = 'State: invalid prev block num';
+    pub const INVALID_PREVIOUS_BLOCK_HASH: felt252 = 'State: invalid prev block hash';
 }
 
 /// State component.
@@ -50,6 +51,32 @@ pub mod state_cpt {
                 self.block_number.read() == program_output.prev_block_number,
                 errors::INVALID_BLOCK_NUMBER,
             );
+
+            assert(
+                self.block_hash.read() == program_output.prev_block_hash,
+                errors::INVALID_PREVIOUS_BLOCK_HASH,
+            );
+
+            // fetl252 doesn't support PartialOrd, convert to u256 required to ensure
+            // the new block number is greater than the current block number for a valid state
+            // transition.
+            let block_number_u256: u256 = self.block_number.read().into();
+            let new_block_number_u256: u256 = program_output.new_block_number.into();
+            let max_felt = 0x800000000000011000000000000000000000000000000000000000000000000;
+
+            // For the first block, the contract is initialized with a genesis state, which
+            // is a special case where the block number is set to the maximum felt value.
+            if self.block_number.read() == max_felt {
+                // Ensure the new block number is greater than or equal to 0 to be compatible
+                // with the current and future SNOS implementations (where several blocks may be
+                // processed in one execution, and it may apply to the genesis block).
+                assert(new_block_number_u256 >= 0, errors::INVALID_BLOCK_NUMBER);
+            } else {
+                // In all other cases, the new block number must be greater than the current block
+                // number. Same here, there is no direct assumption of the block number being
+                // incremented by 1, event if it is the case in the current SNOS implementation.
+                assert(new_block_number_u256 > block_number_u256, errors::INVALID_BLOCK_NUMBER);
+            }
 
             self.block_number.write(program_output.new_block_number);
             self.block_hash.write(program_output.new_block_hash);

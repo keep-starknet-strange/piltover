@@ -237,7 +237,7 @@ fn update_state_ok() {
         owner: c::OWNER().into(),
         state_root: 1120029756675208924496185249815549700817638276364867982519015153297469423111,
         block_number: 97999,
-        block_hash: 0,
+        block_hash: 531367489267323329537005801734709408229779133529698992357325410316912085961,
     );
 
     let imsg = IMessagingDispatcher { contract_address: appchain.contract_address };
