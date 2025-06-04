@@ -1,9 +1,14 @@
+//! Code related to mock the fact registry capabilities
+//! required for appchain.cairo to successfuly use integrity
+//! in a mocked environment.
+
 #[derive(Drop, Serde)]
 pub struct VerificationListElement {
     pub verification_hash: felt252,
     pub security_bits: u32,
     pub verifier_config: VerifierConfiguration,
 }
+
 #[derive(Drop, Serde)]
 pub struct VerifierConfiguration {
     pub layout: felt252,
@@ -19,34 +24,10 @@ pub trait IFactRegistry<T> {
     ) -> Array<VerificationListElement>;
 }
 
-#[derive(Copy, Drop, starknet::Store, Serde)]
-pub struct IFactRegistryContract {
-    pub contract_address: starknet::ContractAddress,
-}
-
-impl ISmartProofDispatcherImpl of IFactRegistry<IFactRegistryContract> {
-    fn get_all_verifications_for_fact_hash(
-        self: @IFactRegistryContract, fact: felt252,
-    ) -> Array<VerificationListElement> {
-        let mut __calldata__ = array![fact];
-
-        let mut __dispatcher_return_data__ = starknet::syscalls::call_contract_syscall(
-            *self.contract_address,
-            selector!("get_all_verifications_for_fact_hash"),
-            core::array::ArrayTrait::span(@__calldata__),
-        );
-        let mut __dispatcher_return_data__ = starknet::SyscallResultTrait::unwrap_syscall(
-            __dispatcher_return_data__,
-        );
-        core::option::OptionTrait::expect(
-            core::serde::Serde::<
-                Array<VerificationListElement>,
-            >::deserialize(ref __dispatcher_return_data__),
-            'Returned data too short',
-        )
-    }
-}
-
+/// Integrity utils used in appchain.cairo uses `get_all_verifications_for_fact_hash` under the
+/// hood.
+/// We then mock the behavior of this function defined here:
+/// <https://github.com/HerodotusDev/integrity/blob/f3beacec88cd225a88945649627f3c3ea2232077/src/lib_utils.cairo#L59>
 #[starknet::contract]
 pub mod fact_registry_mock {
     #[storage]

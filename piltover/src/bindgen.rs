@@ -4735,8 +4735,6 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
             calldata: __calldata,
         };
         self.account.execute_v3(vec![__call])
-<<<<<<< HEAD
-=======
     }
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
@@ -4772,7 +4770,6 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
             calldata: __calldata,
         };
         self.account.execute_v3(vec![__call])
->>>>>>> starknet/main
     }
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
