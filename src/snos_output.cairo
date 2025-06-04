@@ -94,14 +94,13 @@ pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOut
     let header = read_segment(ref input_iter, HEADER_SIZE);
     let use_kzg_da = header[USE_KZG_DA_OFFSET];
     let full_output = header[FULL_OUTPUT_OFFSET];
+
     if use_kzg_da.is_non_zero() {
-        let kzg_segment = read_segment(ref input_iter, 2);
-        let n_blobs: usize = (*kzg_segment.at(KZG_N_BLOBS_OFFSET))
-            .try_into()
-            .expect('Invalid n_blobs');
-        let _ = read_segment(ref input_iter, 2 * 2 * n_blobs);
+        panic!("KZG DA is not supported yet");
     }
+
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
+
     StarknetOsOutput {
         initial_root: *header[PREVIOUS_MERKLE_UPDATE_OFFSET],
         final_root: *header[NEW_MERKLE_UPDATE_OFFSET],
