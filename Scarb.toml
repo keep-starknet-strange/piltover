@@ -6,6 +6,7 @@ edition = "2024_07"
 [dependencies]
 starknet = "2.9.2"
 openzeppelin = "0.20.0"
+integrity = "2.0.0"
 
 [dev-dependencies]
 starknet = "2.9.2"
