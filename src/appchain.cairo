@@ -19,6 +19,7 @@ mod errors {
 pub mod appchain {
     use core::iter::IntoIterator;
     use core::poseidon::{PoseidonImpl, poseidon_hash_span};
+    use integrity::Integrity;
     use openzeppelin::access::ownable::{
         OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
     };
@@ -34,7 +35,6 @@ pub mod appchain {
         DataAvailabilityFact, encode_fact_with_onchain_data,
     };
     use piltover::config::{IConfig, config_cpt, config_cpt::InternalTrait as ConfigInternal};
-    use piltover::fact_registry::{IFactRegistryDispatcher, IFactRegistryDispatcherTrait};
     use piltover::interface::IAppchain;
     use piltover::messaging::{messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal};
     use piltover::snos_output::deserialize_os_output;
@@ -45,6 +45,9 @@ pub mod appchain {
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
+
+    /// The minimum security bits required for a fact to be considered valid.
+    const MIN_SECURITY_BITS: u32 = 50;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: upgradeable_cpt, storage: upgradeable, event: UpgradeableEvent);
@@ -197,16 +200,13 @@ pub mod appchain {
             let fact = poseidon_hash_span(
                 array![program_info.bootloader_program_hash, output_hash].span(),
             );
-            let verifications = IFactRegistryDispatcher {
-                contract_address: self.config.get_facts_registry(),
-            }
-                .get_all_verifications_for_fact_hash(fact);
 
-            if verifications.len() == 0 {
-                core::panic_with_felt252(errors::NO_FACT_REGISTERED)
-            };
+            let integrity = Integrity::from_address(self.config.get_facts_registry());
 
-            assert!(*verifications.at(0).security_bits > 50);
+            assert(
+                integrity.is_fact_hash_valid_with_security(fact, MIN_SECURITY_BITS),
+                errors::NO_FACT_REGISTERED,
+            );
 
             self.emit(LogStateTransitionFact { state_transition_fact });
 
