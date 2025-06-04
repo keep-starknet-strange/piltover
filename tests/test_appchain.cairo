@@ -1,6 +1,9 @@
 use core::iter::IntoIterator;
 use core::poseidon::{PoseidonImpl, poseidon_hash_span};
 use core::result::ResultTrait;
+use openzeppelin::access::ownable::interface::{
+    IOwnableTwoStepDispatcher, IOwnableTwoStepDispatcherTrait,
+};
 //! Appchain testing.
 //!
 use openzeppelin_testing::constants as c;
@@ -12,7 +15,6 @@ use piltover::messaging::{IMessagingDispatcher, IMessagingDispatcherTrait};
 use piltover::snos_output::{StarknetOsOutput, deserialize_os_output};
 use snforge_std as snf;
 use snforge_std::{ContractClassTrait, EventSpy, EventSpyAssertionsTrait};
-
 /// Deploys the appchain contract.
 fn deploy_with_owner(owner: felt252) -> (IAppchainDispatcher, EventSpy) {
     let contract = match snf::declare("appchain").unwrap() {
@@ -174,6 +176,24 @@ fn snos_output_deser() {
 #[test]
 fn constructor_ok() {
     let (_appchain, _spy) = deploy_with_owner(c::OWNER().into());
+}
+
+#[test]
+fn two_step_ownership_transfer_ok() {
+    let (appchain, _spy) = deploy_with_owner(c::OWNER().into());
+
+    snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
+    let iownable = IOwnableTwoStepDispatcher { contract_address: appchain.contract_address };
+    iownable.transfer_ownership(c::NEW_OWNER());
+
+    assert(iownable.pending_owner() == c::NEW_OWNER(), 'invalid pending owner');
+    assert(iownable.owner() == c::OWNER(), 'owner changed without accepting');
+
+    snf::start_cheat_caller_address(appchain.contract_address, c::NEW_OWNER());
+    iownable.accept_ownership();
+
+    assert(iownable.owner() == c::NEW_OWNER(), 'owner not updated');
+    assert(iownable.pending_owner() == c::ZERO(), 'pending owner not reset');
 }
 
 #[test]
