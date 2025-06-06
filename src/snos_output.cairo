@@ -88,20 +88,23 @@ fn read_segment(ref input_iter: SpanIter<felt252>, segment_length: usize) -> Arr
 }
 
 /// Custom deserialization function, inspired by
-/// https://github.com/starkware-libs/cairo-lang/blob/8e11b8cc65ae1d0959328b1b4a40b92df8b58595/src/starkware/starknet/core/aggregator/output_parser.py
+/// https://github.com/starkware-libs/cairo-lang/blob/8e11b8cc65ae1d0959328b1b4a40b92df8b58595/src/starkware/starknet/core/aggregator/output_parser.py.
+///
+/// This deserialization function is expecting a bootloaded Starknet OS output, where the first
+/// three elements of the input are part of the bootloader header.
 pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOutput {
+    // Skip the bootloader header, which is not relevant for the SNOS output.
     let _ = read_segment(ref input_iter, 3);
     let header = read_segment(ref input_iter, HEADER_SIZE);
     let use_kzg_da = header[USE_KZG_DA_OFFSET];
     let full_output = header[FULL_OUTPUT_OFFSET];
+
     if use_kzg_da.is_non_zero() {
-        let kzg_segment = read_segment(ref input_iter, 2);
-        let n_blobs: usize = (*kzg_segment.at(KZG_N_BLOBS_OFFSET))
-            .try_into()
-            .expect('Invalid n_blobs');
-        let _ = read_segment(ref input_iter, 2 * 2 * n_blobs);
+        panic!("KZG DA is not supported yet");
     }
+
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
+
     StarknetOsOutput {
         initial_root: *header[PREVIOUS_MERKLE_UPDATE_OFFSET],
         final_root: *header[NEW_MERKLE_UPDATE_OFFSET],
@@ -175,4 +178,147 @@ fn deserialize_messages_to_l2(ref input_iter: SpanIter<felt252>) -> Array<Messag
         messages_to_appchain.append(message_to_appchain);
     };
     return messages_to_appchain;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic(expected: "KZG DA is not supported yet")]
+    fn test_deserialize_os_output_kzg_failure() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append('7');
+        input.append('8');
+        // use_kzg_da.
+        input.append(1);
+        // full_output.
+        input.append(0);
+        // messages_to_l1.
+        input.append(0);
+        // messages_to_l2.
+        input.append(0);
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter);
+    }
+
+    #[test]
+    fn test_deserialize_os_output_no_messages() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append('7');
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(0);
+        // messages_to_l1.
+        input.append(0);
+        // messages_to_l2.
+        input.append(0);
+
+        let mut input_iter = input.span().into_iter();
+        let os_output = deserialize_os_output(ref input_iter);
+
+        assert(os_output.initial_root == '1', 'initial_root mismatch');
+        assert(os_output.final_root == '2', 'final_root mismatch');
+        assert(os_output.prev_block_number == '3', 'prev_block_number mismatch');
+        assert(os_output.new_block_number == '4', 'new_block_number mismatch');
+        assert(os_output.prev_block_hash == '5', 'prev_block_hash mismatch');
+        assert(os_output.new_block_hash == '6', 'new_block_hash mismatch');
+        assert(os_output.os_program_hash == '7', 'os_program_hash mismatch');
+        assert(os_output.starknet_os_config_hash == '8', 'snos config hash mismatch');
+        assert(os_output.use_kzg_da == 0, 'use_kzg_da mismatch');
+        assert(os_output.full_output == 0, 'full_output mismatch');
+        assert(os_output.messages_to_l1.len() == 0, 'messages_to_l1 should be empty');
+        assert(os_output.messages_to_l2.len() == 0, 'messages_to_l2 should be empty');
+    }
+
+    #[test]
+    fn test_deserialize_os_output_with_messages() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append('7');
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(0);
+
+        // Add 1 message to L1 (segment length).
+        input.append(5);
+        // L1 message header.
+        input.append('from_l1');
+        input.append('to_l1');
+        // Payload size and content.
+        input.append(2);
+        input.append('payload1');
+        input.append('payload2');
+
+        // Add 1 message to L2 (segment length).
+        input.append(7);
+        // L2 message header.
+        input.append('from_l2');
+        input.append('to_l2');
+        input.append('nonce');
+        input.append('selector');
+        // Payload size and content.
+        input.append(2);
+        input.append('payload3');
+        input.append('payload4');
+
+        let mut input_iter = input.span().into_iter();
+        let os_output = deserialize_os_output(ref input_iter);
+
+        assert(os_output.messages_to_l1.len() == 1, 'should have 1 L1 message');
+        assert(os_output.messages_to_l2.len() == 1, 'should have 1 L2 message');
+
+        let l1_msg = os_output.messages_to_l1.at(0);
+        assert((*l1_msg.from_address).into() == 'from_l1', 'L1 from_address mismatch');
+        assert((*l1_msg.to_address).into() == 'to_l1', 'L1 to_address mismatch');
+        assert((*l1_msg.payload).len() == 2, 'L1 payload length mismatch');
+        assert(*(*l1_msg.payload).at(0) == 'payload1', 'L1 payload[0] mismatch');
+        assert(*(*l1_msg.payload).at(1) == 'payload2', 'L1 payload[1] mismatch');
+
+        let l2_msg = os_output.messages_to_l2.at(0);
+        assert((*l2_msg.from_address).into() == 'from_l2', 'L2 from_address mismatch');
+        assert((*l2_msg.to_address).into() == 'to_l2', 'L2 to_address mismatch');
+        assert(*l2_msg.nonce == 'nonce', 'L2 nonce mismatch');
+        assert(*l2_msg.selector == 'selector', 'L2 selector mismatch');
+        assert((*l2_msg.payload).len() == 2, 'L2 payload length mismatch');
+        assert(*(*l2_msg.payload).at(0) == 'payload3', 'L2 payload[0] mismatch');
+        assert(*(*l2_msg.payload).at(1) == 'payload4', 'L2 payload[1] mismatch');
+    }
 }
