@@ -288,10 +288,8 @@ fn update_state_ok() {
     // and the message to appchain as sealed.
     let snos_output = get_state_update();
     let output = get_output();
-    let onchain_data_hash = 0x0;
-    let onchain_data_size: u256 = 0;
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER());
-    appchain.update_state(snos_output.span(), output, onchain_data_hash, onchain_data_size);
+    appchain.update_state(snos_output.span(), output);
 
     let expected_log_state_update = LogStateUpdate {
         state_root: 2251620073307221877548100532273969460343974267802546890497101472079704728659,

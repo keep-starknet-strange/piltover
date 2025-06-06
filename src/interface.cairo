@@ -18,13 +18,5 @@ pub trait IAppchain<T> {
     ///
     /// * `snos_output` - The StarknetOS state update output (bootloaded).
     /// * `layout_bridge_program_output` - The layout bridge proof output (bootloaded).
-    /// * `onchain_data_hash` - The hash of the onchain data.
-    /// * `onchain_data_size` - The size of the onchain data.
-    fn update_state(
-        ref self: T,
-        snos_output: Span<felt252>,
-        layout_bridge_output: Span<felt252>,
-        onchain_data_hash: felt252,
-        onchain_data_size: u256,
-    );
+    fn update_state(ref self: T, snos_output: Span<felt252>, layout_bridge_output: Span<felt252>);
 }

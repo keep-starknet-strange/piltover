@@ -147,8 +147,6 @@ pub mod appchain {
             ref self: ContractState,
             snos_output: Span<felt252>,
             layout_bridge_output: Span<felt252>,
-            onchain_data_hash: felt252,
-            onchain_data_size: u256,
         ) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
@@ -185,8 +183,11 @@ pub mod appchain {
             let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(ref snos_output_iter);
 
+            // Those values are currently not being used. They are enforced to 0 here
+            // instead of being passed as arguments to avoid operator manipulation
+            // until their usage is better defined.
             let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash, onchain_data_size,
+                onchain_data_hash: 0, onchain_data_size: 0,
             };
             let state_transition_fact: u256 = encode_fact_with_onchain_data(
                 layout_bridge_output, data_availability_fact,
