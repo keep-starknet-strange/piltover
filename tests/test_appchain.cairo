@@ -73,7 +73,9 @@ fn get_state_update() -> Array<felt252> {
         0,
         8868593919264901768958912247765226517850727970326290266005120699201631282,
         0,
-        1,
+        // Voluntary modified to 0, since piltover doesn't support full output.
+        // And on Ethereum, if it is not full output, it is KZG, which is not supported yet.
+        0,
         7,
         3256441166037631918262930812410838598500200462657642943867372734773841898370,
         993696174272377493693496825928908586134624850969,
@@ -298,7 +300,7 @@ fn update_state_ok() {
     };
 
     let expected_state_transition_fact = LogStateTransitionFact {
-        state_transition_fact: 31477686913899968564679552005675621349383989346891303076150786735414603281126,
+        state_transition_fact: 100815254313171169974683324947370719439503452568693633377690664314729969842445,
     };
 
     _spy

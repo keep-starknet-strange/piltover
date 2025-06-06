@@ -103,6 +103,10 @@ pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOut
         panic!("KZG DA is not supported yet");
     }
 
+    if full_output.is_non_zero() {
+        panic!("Full output is not supported");
+    }
+
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
 
     StarknetOsOutput {
@@ -205,6 +209,36 @@ mod tests {
         input.append(1);
         // full_output.
         input.append(0);
+        // messages_to_l1.
+        input.append(0);
+        // messages_to_l2.
+        input.append(0);
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter);
+    }
+
+    #[test]
+    #[should_panic(expected: "Full output is not supported")]
+    fn test_deserialize_os_output_full_output_failure() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append('7');
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(1);
         // messages_to_l1.
         input.append(0);
         // messages_to_l2.
