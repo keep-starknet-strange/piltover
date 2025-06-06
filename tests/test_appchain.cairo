@@ -145,7 +145,7 @@ fn get_output() -> Span<felt252> {
     // which is bootloaded.
     // In the output of the bootloaded layout bridge program, the 5th element
     // is the hash of the SNOS output.
-    let felts = array![1, 2, 'layout_bridge_hash', 4, snos_output_hash];
+    let felts = array![1, 2, 'layout_bridge_hash', 'bootloader_hash', snos_output_hash];
     felts.span()
 }
 
@@ -298,7 +298,7 @@ fn update_state_ok() {
     };
 
     let expected_state_transition_fact = LogStateTransitionFact {
-        state_transition_fact: 100815254313171169974683324947370719439503452568693633377690664314729969842445,
+        state_transition_fact: 9569589917220687975817779475688105297421184939745602185148891360620827175731,
     };
 
     _spy

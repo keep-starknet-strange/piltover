@@ -12,6 +12,7 @@ mod errors {
     pub const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
     pub const NO_FACT_REGISTERED: felt252 = 'no fact registered';
     pub const LAYOUT_BRIDGE_INVALID_PROGRAM_HASH: felt252 = 'lb: invalid program hash';
+    pub const LAYOUT_BRIDGE_INVALID_BOOTLOADER_HASH: felt252 = 'lb: invalid bootloader hash';
 }
 
 /// Appchain settlement contract on starknet.
@@ -167,6 +168,15 @@ pub mod appchain {
             assert(
                 program_info.layout_bridge_program_hash == *layout_bridge_program_hash,
                 errors::LAYOUT_BRIDGE_INVALID_PROGRAM_HASH,
+            );
+
+            // The 4th element is the program which execution has been verified by the layout bridge
+            // (which is a verified program).
+            // It must match the bootloader hash, since the layout bridge verified the bootloaded
+            // execution of the Starknet OS program.
+            assert(
+                *layout_bridge_output.at(3) == program_info.bootloader_program_hash,
+                errors::LAYOUT_BRIDGE_INVALID_BOOTLOADER_HASH,
             );
 
             let snos_output_hash = poseidon_hash_span(snos_output);
