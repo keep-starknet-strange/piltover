@@ -67,14 +67,6 @@ pub struct MessageToAppchain {
     pub payload: Span<felt252>,
 }
 
-#[derive(Drop, Serde, Debug)]
-pub struct ContractChanges {
-    pub addr: felt252,
-    pub nonce: felt252,
-    pub class_hash: Option<felt252>,
-    pub storage_changes: Array<(felt252, felt252)>,
-}
-
 fn read_segment(ref input_iter: SpanIter<felt252>, segment_length: usize) -> Array<felt252> {
     let mut segment = array![];
     for _i in 0..segment_length {
