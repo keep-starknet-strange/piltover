@@ -7,7 +7,11 @@ pub enum MessageToAppchainStatus {
     NotSent,
     Sealed,
     Cancelled,
-    Pending: Nonce // sn->appc: The nonce > 0.
+    // sn->appc: The nonce > 0.
+    // This is not directly used by the appchain logic, but is used to track the status of the
+    // message and is retrieved when status of a message is requested while pending.
+    Pending: Nonce,
+    Cancelling,
 }
 
 #[derive(Serde, Drop, PartialEq)]

@@ -29,9 +29,11 @@ mod errors {
     pub const INVALID_MESSAGE_TO_CONSUME: felt252 = 'INVALID_MESSAGE_TO_CONSUME';
     pub const INVALID_MESSAGE_TO_SEAL: felt252 = 'INVALID_MESSAGE_TO_SEAL';
     pub const NO_MESSAGE_TO_CANCEL: felt252 = 'NO_MESSAGE_TO_CANCEL';
-    pub const CANCELLATION_NOT_REQUESTED: felt252 = 'CANCELLATION_NOT_REQUESTED';
+    pub const CANCELLATION_INVALID_TIMESTAMP: felt252 = 'CANCELLATION_INVALID_TIMESTAMP';
     pub const CANCELLATION_NOT_ALLOWED_YET: felt252 = 'CANCELLATION_NOT_ALLOWED_YET';
     pub const CANCEL_ALLOWED_TIME_OVERFLOW: felt252 = 'CANCEL_ALLOWED_TIME_OVERFLOW';
+    pub const CANCELLATION_ALREADY_REQUESTED: felt252 = 'CANCELLATION_ALREADY_REQUESTED';
+    pub const CANCELLATION_ALREADY_DONE: felt252 = 'CANCELLATION_ALREADY_DONE';
 }
 
 /// Messaging component.
@@ -241,22 +243,24 @@ pub mod messaging_cpt {
 
             match self.sn_to_appc_messages.read(message_hash) {
                 MessageToAppchainStatus::Pending(_) => {},
+                MessageToAppchainStatus::Cancelled => {
+                    core::panic_with_felt252(errors::CANCELLATION_ALREADY_DONE)
+                },
+                MessageToAppchainStatus::Cancelling => {
+                    core::panic_with_felt252(errors::CANCELLATION_ALREADY_REQUESTED)
+                },
                 _ => assert(false, errors::NO_MESSAGE_TO_CANCEL),
             };
 
-            // If the cancellation has not been requested yet, process the cancellation request.
-            // This avoids re-processing the cancellation request if the message is cancelled
-            // multiple times, which would result in the waiting period to be reset.
-            if self.sn_to_appc_cancellations.read(message_hash).is_zero() {
-                self.sn_to_appc_cancellations.write(message_hash, starknet::get_block_timestamp());
+            self.sn_to_appc_cancellations.write(message_hash, starknet::get_block_timestamp());
+            self.sn_to_appc_messages.write(message_hash, MessageToAppchainStatus::Cancelling);
 
-                self
-                    .emit(
-                        MessageCancellationStarted {
-                            message_hash, from, to: to_address, selector, payload, nonce,
-                        },
-                    );
-            }
+            self
+                .emit(
+                    MessageCancellationStarted {
+                        message_hash, from, to: to_address, selector, payload, nonce,
+                    },
+                );
 
             return message_hash;
         }
@@ -275,14 +279,12 @@ pub mod messaging_cpt {
             );
 
             assert(
-                self
-                    .sn_to_appc_messages
-                    .read(message_hash) == MessageToAppchainStatus::Pending(nonce),
+                self.sn_to_appc_messages.read(message_hash) == MessageToAppchainStatus::Cancelling,
                 errors::NO_MESSAGE_TO_CANCEL,
             );
 
             let request_time = self.sn_to_appc_cancellations.read(message_hash);
-            assert(request_time.is_non_zero(), errors::CANCELLATION_NOT_REQUESTED);
+            assert(request_time.is_non_zero(), errors::CANCELLATION_INVALID_TIMESTAMP);
 
             let cancel_allowed_time = request_time + self.cancellation_delay_secs.read();
             assert(cancel_allowed_time >= request_time, errors::CANCEL_ALLOWED_TIME_OVERFLOW);

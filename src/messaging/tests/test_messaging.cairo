@@ -227,10 +227,6 @@ fn start_cancellation_ok() {
     let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
     assert(message_hash == message_hash_cancel, 'invalid message hash');
 
-    // Voluntarily start the cancellation again, to ensure the request is not processed twice.
-    let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
-    assert(message_hash == message_hash_cancel, 'invalid message hash');
-
     let expected_sent = MessageSent {
         message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
     };
@@ -248,6 +244,25 @@ fn start_cancellation_ok() {
                 (mock.contract_address, Event::MessageCancellationStarted(expected_start_cancel)),
             ],
         );
+}
+
+#[test]
+#[should_panic(expected: ('CANCELLATION_ALREADY_REQUESTED',))]
+fn start_cancellation_already_requested() {
+    let (mock, _) = deploy_mock();
+
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
+    let selector = selector!("func1");
+    let payload = array![1, 2, 3];
+
+    snf::start_cheat_caller_address(mock.contract_address, from);
+    let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
+
+    let message_hash_cancel = mock.start_message_cancellation(to, selector, payload.span(), nonce);
+    assert(message_hash == message_hash_cancel, 'invalid message hash');
+
+    mock.start_message_cancellation(to, selector, payload.span(), nonce);
 }
 
 #[test]
@@ -273,6 +288,54 @@ fn start_cancellation_no_message_to_cancel() {
     let payload = array![1, 2, 3];
     let nonce = 1;
 
+    mock.start_message_cancellation(to, selector, payload.span(), nonce);
+}
+
+#[test]
+#[should_panic(expected: ('CANCELLATION_ALREADY_DONE',))]
+fn start_cancellation_already_done() {
+    let delay_secs = 10;
+    let (mock, mut spy) = deploy_mock_with_delay(delay_secs);
+
+    let from = c::SPENDER();
+    let to = c::RECIPIENT();
+    let selector = selector!("func1");
+    let payload = array![1, 2, 3];
+
+    snf::start_cheat_caller_address(mock.contract_address, from);
+    let (message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
+
+    // The block timestamp must not be 0 for the protocol to be valid.
+    // This can't happen on-chain, but here it must be explicitely set greater than 0.
+    snf::start_cheat_block_timestamp(mock.contract_address, 1);
+    mock.start_message_cancellation(to, selector, payload.span(), nonce);
+
+    snf::start_cheat_block_timestamp(mock.contract_address, delay_secs + 10);
+    let message_hash_cancel = mock.cancel_message(to, selector, payload.span(), nonce);
+    assert(message_hash_cancel == message_hash, 'invalid message hash');
+
+    let expected_sent = MessageSent {
+        message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
+    };
+
+    let expected_start_cancel = MessageCancellationStarted {
+        message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
+    };
+
+    let expected_cancel = MessageCanceled {
+        message_hash, from, to, selector, nonce: nonce, payload: payload.span(),
+    };
+
+    spy
+        .assert_emitted(
+            @array![
+                (mock.contract_address, Event::MessageSent(expected_sent)),
+                (mock.contract_address, Event::MessageCancellationStarted(expected_start_cancel)),
+                (mock.contract_address, Event::MessageCanceled(expected_cancel)),
+            ],
+        );
+
+    // Can't start the cancellation again since the message is already cancelled.
     mock.start_message_cancellation(to, selector, payload.span(), nonce);
 }
 
@@ -334,7 +397,7 @@ fn cancel_message_no_message_to_cancel() {
 }
 
 #[test]
-#[should_panic(expected: ('CANCELLATION_NOT_REQUESTED',))]
+#[should_panic(expected: ('CANCELLATION_INVALID_TIMESTAMP',))]
 fn cancel_message_cancellation_not_requested() {
     let delay_secs = 10;
     let (mock, _) = deploy_mock_with_delay(delay_secs);
@@ -347,7 +410,10 @@ fn cancel_message_cancellation_not_requested() {
     snf::start_cheat_caller_address(mock.contract_address, from);
     let (_message_hash, nonce) = mock.send_message_to_appchain(to, selector, payload.span());
 
-    // Don't start the cancellation.
+    // The block timestamp must not be 0 for the protocol to be valid, since the request time
+    // will be invalid.
+    snf::start_cheat_block_timestamp(mock.contract_address, 0);
+    mock.start_message_cancellation(to, selector, payload.span(), nonce);
 
     snf::start_cheat_block_timestamp(mock.contract_address, delay_secs + 10);
     mock.cancel_message(to, selector, payload.span(), nonce);
