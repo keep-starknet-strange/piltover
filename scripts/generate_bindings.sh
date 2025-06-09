@@ -1,5 +1,5 @@
 #!/bin/bash
 
 scarb build
-cargo build --bin bindgen
+cargo +nightly-2024-08-28 build --bin bindgen
 bash scripts/rust_fmt.sh --fix

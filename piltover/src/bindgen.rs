@@ -4812,8 +4812,6 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         &self,
         snos_output: &Vec<starknet::core::types::Felt>,
         layout_bridge_output: &Vec<starknet::core::types::Felt>,
-        onchain_data_hash: &starknet::core::types::Felt,
-        onchain_data_size: &cainome::cairo_serde::U256,
     ) -> starknet::core::types::Call {
         use cainome::cairo_serde::CairoSerde;
         let mut __calldata = vec![];
@@ -4822,12 +4820,6 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         ));
         __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
             layout_bridge_output,
-        ));
-        __calldata.extend(starknet::core::types::Felt::cairo_serialize(
-            onchain_data_hash,
-        ));
-        __calldata.extend(cainome::cairo_serde::U256::cairo_serialize(
-            onchain_data_size,
         ));
         starknet::core::types::Call {
             to: self.address,
@@ -4841,8 +4833,6 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         &self,
         snos_output: &Vec<starknet::core::types::Felt>,
         layout_bridge_output: &Vec<starknet::core::types::Felt>,
-        onchain_data_hash: &starknet::core::types::Felt,
-        onchain_data_size: &cainome::cairo_serde::U256,
     ) -> starknet::accounts::ExecutionV3<A> {
         use cainome::cairo_serde::CairoSerde;
         let mut __calldata = vec![];
@@ -4851,12 +4841,6 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         ));
         __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
             layout_bridge_output,
-        ));
-        __calldata.extend(starknet::core::types::Felt::cairo_serialize(
-            onchain_data_hash,
-        ));
-        __calldata.extend(cainome::cairo_serde::U256::cairo_serialize(
-            onchain_data_size,
         ));
         let __call = starknet::core::types::Call {
             to: self.address,
