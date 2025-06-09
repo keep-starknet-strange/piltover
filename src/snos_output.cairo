@@ -90,14 +90,18 @@ pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOut
     let header = read_segment(ref input_iter, HEADER_SIZE);
     let use_kzg_da = header[USE_KZG_DA_OFFSET];
     let full_output = header[FULL_OUTPUT_OFFSET];
+    let os_program_hash = header[OS_PROGRAM_HASH_OFFSET];
 
-    if use_kzg_da.is_non_zero() {
-        panic!("KZG DA is not supported yet");
-    }
+    // StarknetOS (SNOS) program is expected to be run without an aggregator program at the moment.
+    // Once aggregator program is supported, this will need to be updated for a conditional branch
+    // to verify that the aggregator program is allowed to be run (added via the configuration
+    // component).
+    assert!(os_program_hash.is_zero(), "Aggregator program is not supported yet");
 
-    if full_output.is_non_zero() {
-        panic!("Full output is not supported");
-    }
+    // Currently not supported by the appchain logic, but will be added in the future.
+    assert!(use_kzg_da.is_zero(), "KZG DA is not supported yet");
+
+    assert!(full_output.is_zero(), "Full output is not supported");
 
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
 
@@ -195,7 +199,7 @@ mod tests {
         input.append('4');
         input.append('5');
         input.append('6');
-        input.append('7');
+        input.append(0);
         input.append('8');
         // use_kzg_da.
         input.append(1);
@@ -225,12 +229,42 @@ mod tests {
         input.append('4');
         input.append('5');
         input.append('6');
-        input.append('7');
+        input.append(0);
         input.append('8');
         // use_kzg_da.
         input.append(0);
         // full_output.
         input.append(1);
+        // messages_to_l1.
+        input.append(0);
+        // messages_to_l2.
+        input.append(0);
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter);
+    }
+
+    #[test]
+    #[should_panic(expected: "Aggregator program is not supported yet")]
+    fn test_deserialize_os_output_aggregator_program_failure() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append('7');
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(0);
         // messages_to_l1.
         input.append(0);
         // messages_to_l2.
@@ -254,7 +288,7 @@ mod tests {
         input.append('4');
         input.append('5');
         input.append('6');
-        input.append('7');
+        input.append(0);
         input.append('8');
         // use_kzg_da.
         input.append(0);
@@ -274,7 +308,7 @@ mod tests {
         assert(os_output.new_block_number == '4', 'new_block_number mismatch');
         assert(os_output.prev_block_hash == '5', 'prev_block_hash mismatch');
         assert(os_output.new_block_hash == '6', 'new_block_hash mismatch');
-        assert(os_output.os_program_hash == '7', 'os_program_hash mismatch');
+        assert(os_output.os_program_hash == 0, 'os_program_hash mismatch');
         assert(os_output.starknet_os_config_hash == '8', 'snos config hash mismatch');
         assert(os_output.use_kzg_da == 0, 'use_kzg_da mismatch');
         assert(os_output.full_output == 0, 'full_output mismatch');
@@ -296,7 +330,7 @@ mod tests {
         input.append('4');
         input.append('5');
         input.append('6');
-        input.append('7');
+        input.append(0);
         input.append('8');
         // use_kzg_da.
         input.append(0);
