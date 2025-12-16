@@ -21,26 +21,25 @@ pub mod appchain {
     use core::iter::IntoIterator;
     use core::poseidon::{PoseidonImpl, poseidon_hash_span};
     use integrity::Integrity;
-    use openzeppelin::access::ownable::{
-        OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
-    };
-    use openzeppelin::security::reentrancyguard::{
-        ReentrancyGuardComponent,
-        ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl,
-    };
-    use openzeppelin::upgrades::{
-        UpgradeableComponent as upgradeable_cpt,
-        UpgradeableComponent::InternalTrait as UpgradeableInternal, interface::IUpgradeable,
-    };
+    use openzeppelin::access::ownable::OwnableComponent as ownable_cpt;
+    use openzeppelin::access::ownable::OwnableComponent::InternalTrait as OwnableInternal;
+    use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent;
+    use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent::InternalTrait as InternalReentrancyGuardImpl;
+    use openzeppelin::upgrades::UpgradeableComponent as upgradeable_cpt;
+    use openzeppelin::upgrades::UpgradeableComponent::InternalTrait as UpgradeableInternal;
+    use openzeppelin::upgrades::interface::IUpgradeable;
     use piltover::components::onchain_data_fact_tree_encoder::{
         DataAvailabilityFact, encode_fact_with_onchain_data,
     };
-    use piltover::config::{IConfig, config_cpt, config_cpt::InternalTrait as ConfigInternal};
+    use piltover::config::config_cpt::InternalTrait as ConfigInternal;
+    use piltover::config::{IConfig, config_cpt};
     use piltover::interface::IAppchain;
-    use piltover::messaging::{messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal};
+    use piltover::messaging::messaging_cpt;
+    use piltover::messaging::messaging_cpt::InternalTrait as MessagingInternal;
     use piltover::snos_output::deserialize_os_output;
-    use piltover::state::{IStateUpdater, state_cpt, state_cpt::InternalTrait as StateInternal};
-    use starknet::storage::{StoragePointerReadAccess};
+    use piltover::state::state_cpt::InternalTrait as StateInternal;
+    use piltover::state::{IStateUpdater, state_cpt};
+    use starknet::storage::StoragePointerReadAccess;
     use starknet::{ClassHash, ContractAddress};
     use super::errors;
 
@@ -191,7 +190,9 @@ pub mod appchain {
             let output_hash = poseidon_hash_span(layout_bridge_output);
 
             let mut snos_output_iter = snos_output.into_iter();
-            let program_output_struct = deserialize_os_output(ref snos_output_iter);
+            let program_output_struct = deserialize_os_output(
+                ref snos_output_iter, self.config.get_use_kzg_da(),
+            );
 
             // Those values are currently not being used. They are enforced to 0 here
             // instead of being passed as arguments to avoid operator manipulation

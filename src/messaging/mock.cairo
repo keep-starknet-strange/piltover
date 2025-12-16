@@ -1,6 +1,7 @@
 #[starknet::contract]
 pub mod messaging_mock {
-    use piltover::messaging::{messaging_cpt, messaging_cpt::InternalTrait as MessagingInternal};
+    use piltover::messaging::messaging_cpt;
+    use piltover::messaging::messaging_cpt::InternalTrait as MessagingInternal;
 
     component!(path: messaging_cpt, storage: messaging, event: MessagingEvent);
 

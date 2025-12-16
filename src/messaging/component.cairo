@@ -45,15 +45,15 @@ pub mod messaging_cpt {
     use core::num::traits::Zero;
     #[cfg(feature: 'messaging_test')]
     use piltover::messaging::IMessagingTest;
-    use piltover::messaging::{
-        hash, interface::IMessaging,
-        types::{MessageHash, MessageToAppchainStatus, MessageToStarknetStatus, Nonce},
+    use piltover::messaging::hash;
+    use piltover::messaging::interface::IMessaging;
+    use piltover::messaging::types::{
+        MessageHash, MessageToAppchainStatus, MessageToStarknetStatus, Nonce,
     };
     use piltover::snos_output::{MessageToAppchain, MessageToStarknet};
     use starknet::ContractAddress;
-    use starknet::storage::Map;
     use starknet::storage::{
-        StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
     };
     use super::errors;
@@ -63,14 +63,14 @@ pub mod messaging_cpt {
         /// Cancellation delay in seconds for message from Starknet to Appchain.
         pub cancellation_delay_secs: u64,
         /// Ledger of messages from Starknet to Appchain that are being cancelled.
-        pub sn_to_appc_cancellations: Map::<MessageHash, u64>,
+        pub sn_to_appc_cancellations: Map<MessageHash, u64>,
         /// The nonce for messages sent to the Appchain from Starknet.
         pub sn_to_appc_nonce: Nonce,
         /// Ledger of messages hashes sent from Starknet to the appchain and their status.
-        pub sn_to_appc_messages: Map::<MessageHash, MessageToAppchainStatus>,
+        pub sn_to_appc_messages: Map<MessageHash, MessageToAppchainStatus>,
         /// Ledger of messages hashes registered from the Appchain and a refcount
         /// associated to it to control messages consumption.
-        pub appc_to_sn_messages: Map::<MessageHash, felt252>,
+        pub appc_to_sn_messages: Map<MessageHash, felt252>,
     }
 
     #[event]
@@ -250,7 +250,7 @@ pub mod messaging_cpt {
                     core::panic_with_felt252(errors::CANCELLATION_ALREADY_REQUESTED)
                 },
                 _ => assert(false, errors::NO_MESSAGE_TO_CANCEL),
-            };
+            }
 
             self.sn_to_appc_cancellations.write(message_hash, starknet::get_block_timestamp());
             self.sn_to_appc_messages.write(message_hash, MessageToAppchainStatus::Cancelling);
@@ -413,7 +413,7 @@ pub mod messaging_cpt {
                         match self.sn_to_appc_messages.read(message_hash) {
                             MessageToAppchainStatus::Pending(_) => {},
                             _ => assert(false, errors::INVALID_MESSAGE_TO_SEAL),
-                        };
+                        }
 
                         // On the L1, they use the Fee in front of the message hash, not the nonce.
                         // Here, we have an enum to explicitly indicate that the message is sealed.

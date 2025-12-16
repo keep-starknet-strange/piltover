@@ -37,7 +37,7 @@ pub fn compute_message_hash_sn_to_appc(
         }
         hash_data.append((*payload[i]));
         i += 1;
-    };
+    }
 
     core::poseidon::poseidon_hash_span(hash_data.span())
 }
@@ -69,7 +69,7 @@ pub fn compute_message_hash_appc_to_sn(
         }
         hash_data.append((*payload[i]));
         i += 1;
-    };
+    }
 
     core::poseidon::poseidon_hash_span(hash_data.span())
 }

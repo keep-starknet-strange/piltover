@@ -64,7 +64,7 @@ pub fn hash_main_public_input(program_output: Span<felt252>) -> u256 {
         }
         keccak_input.append((*program_output.at(i)).into());
         i += 1;
-    };
+    }
 
     core::keccak::keccak_u256s_le_inputs(keccak_input.span())
 }

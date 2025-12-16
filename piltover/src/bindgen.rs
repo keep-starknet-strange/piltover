@@ -9,7 +9,9 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
         Self {
             address,
             account,
-            block_id: starknet::core::types::BlockId::Tag(starknet::core::types::BlockTag::Pending),
+            block_id: starknet::core::types::BlockId::Tag(
+                starknet::core::types::BlockTag::PreConfirmed,
+            ),
         }
     }
     pub fn set_contract_address(&mut self, address: starknet::core::types::Felt) {
@@ -36,7 +38,9 @@ impl<P: starknet::providers::Provider + Sync> AppchainContractReader<P> {
         Self {
             address,
             provider,
-            block_id: starknet::core::types::BlockId::Tag(starknet::core::types::BlockTag::Pending),
+            block_id: starknet::core::types::BlockId::Tag(
+                starknet::core::types::BlockTag::PreConfirmed,
+            ),
         }
     }
     pub fn set_contract_address(&mut self, address: starknet::core::types::Felt) {
@@ -4357,6 +4361,18 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     }
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
+    pub fn get_use_kzg_da(&self) -> cainome::cairo_serde::call::FCall<A::Provider, bool> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::FunctionCall {
+            contract_address: self.address,
+            entry_point_selector: starknet::macros::selector!("get_use_kzg_da"),
+            calldata: __calldata,
+        };
+        cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
     pub fn is_operator(
         &self,
         address: &cainome::cairo_serde::ContractAddress,
@@ -4695,6 +4711,31 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     }
     #[allow(clippy::ptr_arg)]
     #[allow(clippy::too_many_arguments)]
+    pub fn set_use_kzg_da_getcall(&self, use_kzg_da: &bool) -> starknet::core::types::Call {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        __calldata.extend(bool::cairo_serialize(use_kzg_da));
+        starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("set_use_kzg_da"),
+            calldata: __calldata,
+        }
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn set_use_kzg_da(&self, use_kzg_da: &bool) -> starknet::accounts::ExecutionV3<A> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        __calldata.extend(bool::cairo_serialize(use_kzg_da));
+        let __call = starknet::core::types::Call {
+            to: self.address,
+            selector: starknet::macros::selector!("set_use_kzg_da"),
+            calldata: __calldata,
+        };
+        self.account.execute_v3(vec![__call])
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
     pub fn start_message_cancellation_getcall(
         &self,
         to_address: &cainome::cairo_serde::ContractAddress,
@@ -4949,6 +4990,18 @@ impl<P: starknet::providers::Provider + Sync> AppchainContractReader<P> {
         let __call = starknet::core::types::FunctionCall {
             contract_address: self.address,
             entry_point_selector: starknet::macros::selector!("get_state"),
+            calldata: __calldata,
+        };
+        cainome::cairo_serde::call::FCall::new(__call, self.provider())
+    }
+    #[allow(clippy::ptr_arg)]
+    #[allow(clippy::too_many_arguments)]
+    pub fn get_use_kzg_da(&self) -> cainome::cairo_serde::call::FCall<P, bool> {
+        use cainome::cairo_serde::CairoSerde;
+        let mut __calldata = vec![];
+        let __call = starknet::core::types::FunctionCall {
+            contract_address: self.address,
+            entry_point_selector: starknet::macros::selector!("get_use_kzg_da"),
             calldata: __calldata,
         };
         cainome::cairo_serde::call::FCall::new(__call, self.provider())

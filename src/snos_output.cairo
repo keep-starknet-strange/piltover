@@ -1,8 +1,7 @@
 //! SNOS output related types and variables.
 //!
 use core::array::SpanIter;
-use core::iter::IntoIterator;
-use core::iter::Iterator;
+use core::iter::{IntoIterator, Iterator};
 use core::num::traits::Zero;
 use starknet::ContractAddress;
 
@@ -75,8 +74,44 @@ fn read_segment(ref input_iter: SpanIter<felt252>, segment_length: usize) -> Arr
             break;
         }
         segment.append(*(x.unwrap()));
-    };
+    }
     return segment;
+}
+
+
+/// Skips the KZG information to the messages offset.
+///
+/// This function is inspired by the Solidity implementation:
+/// https://github.com/starkware-libs/cairo-lang/blob/c382295ee557c30ee10366f7599ccf5af9992bc0/src/starkware/starknet/solidity/Output.sol#L58-L82
+///
+/// # Arguments
+/// * `input_iter` - The input iterator.
+/// * `use_kzg_da` - Whether KZG DA is used.
+///
+/// Privacy use case: When running with KZG DA enabled, the SNOS output does not contain the
+/// state diff. When performing state updates with call data, this configuration effectively
+/// replicates private DA functionality. Hence commitments and evaluations are read but not
+/// verified here, as they are not required for the private DA use case.
+///
+/// TODO: When adding alt DA support, we should verify the commitments here based on the DA type.
+/// This could be using:
+/// - An enum AltDaType (e.g., Celestia, Private, etc.)
+/// - Conditional verification logic based on the DA type
+// 1 + 1 for Point + nBlobs
+/// - For Private DA, skip verification as we do now
+pub fn deserialize_kzg_da(ref input_iter: SpanIter<felt252>) -> bool {
+    // Read KZG commitments and point evaluations for EIP-4844 blob data.
+    // This supports Starknet v0.13.1's EIP-4844 integration, which enables more efficient
+    // data availability through KZG polynomial commitments. For details, see:
+    // https://community.starknet.io/t/starknet-v0-13-1-eip4844-support-more-fee-reductions-stability-quality-of-life/112951#p-2353973-eip4844-support-1
+
+    // 1 + 1 for Point + nBlobs
+    let n_blobs_header = read_segment(ref input_iter, 1 + 1);
+    let n_blobs: usize = (*n_blobs_header[KZG_N_BLOBS_OFFSET]).try_into().expect('Invalid n_blobs');
+
+    let _commitments = read_segment(ref input_iter, 2 * n_blobs);
+    let _evaluations = read_segment(ref input_iter, 2 * n_blobs);
+    return true;
 }
 
 /// Custom deserialization function, inspired by
@@ -84,7 +119,9 @@ fn read_segment(ref input_iter: SpanIter<felt252>, segment_length: usize) -> Arr
 ///
 /// This deserialization function is expecting a bootloaded Starknet OS output, where the first
 /// three elements of the input are part of the bootloader header.
-pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOutput {
+pub fn deserialize_os_output(
+    ref input_iter: SpanIter<felt252>, use_kzg_da_enabled: bool,
+) -> StarknetOsOutput {
     // Skip the bootloader header, which is not relevant for the SNOS output.
     let _ = read_segment(ref input_iter, 3);
     let header = read_segment(ref input_iter, HEADER_SIZE);
@@ -98,11 +135,15 @@ pub fn deserialize_os_output(ref input_iter: SpanIter<felt252>) -> StarknetOsOut
     // component).
     assert!(os_program_hash.is_zero(), "Aggregator program is not supported yet");
 
-    // Currently not supported by the appchain logic, but will be added in the future.
-    assert!(use_kzg_da.is_zero(), "KZG DA is not supported yet");
+    if use_kzg_da_enabled {
+        assert!(*use_kzg_da == 1, "KZG DA is not supported yet");
+        // Skip kzg blob commitments and point evaluations
+        let _ = deserialize_kzg_da(ref input_iter);
+    } else {
+        assert!(use_kzg_da.is_zero(), "KZG DA is not supported yet");
+    }
 
     assert!(full_output.is_zero(), "Full output is not supported");
-
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
 
     StarknetOsOutput {
@@ -156,7 +197,7 @@ fn deserialize_messages_to_l1(ref input_iter: SpanIter<felt252>) -> Array<Messag
         let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
         let message_to_starknet = MessageToStarknet { from_address, to_address, payload };
         messages_to_starknet.append(message_to_starknet);
-    };
+    }
     return messages_to_starknet;
 }
 
@@ -176,7 +217,7 @@ fn deserialize_messages_to_l2(ref input_iter: SpanIter<felt252>) -> Array<Messag
             from_address, to_address, nonce: *header[2], selector: *header[3], payload,
         };
         messages_to_appchain.append(message_to_appchain);
-    };
+    }
     return messages_to_appchain;
 }
 
@@ -211,7 +252,42 @@ mod tests {
         input.append(0);
 
         let mut input_iter = input.span().into_iter();
-        let _os_output = deserialize_os_output(ref input_iter);
+        let _os_output = deserialize_os_output(ref input_iter, false);
+    }
+
+    #[test]
+    fn test_deserialize_os_output_with_kzg_da_enabled() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append(0);
+        input.append('8');
+        // use_kzg_da.
+        input.append(1);
+        // full_output.
+        input.append(0);
+
+        // point.
+        input.append(1);
+        // n_blobs.
+        input.append(0);
+
+        // messages_to_l1.
+        input.append(0);
+        // messages_to_l2.
+        input.append(0);
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter, true);
     }
 
     #[test]
@@ -241,7 +317,7 @@ mod tests {
         input.append(0);
 
         let mut input_iter = input.span().into_iter();
-        let _os_output = deserialize_os_output(ref input_iter);
+        let _os_output = deserialize_os_output(ref input_iter, false);
     }
 
     #[test]
@@ -271,7 +347,7 @@ mod tests {
         input.append(0);
 
         let mut input_iter = input.span().into_iter();
-        let _os_output = deserialize_os_output(ref input_iter);
+        let _os_output = deserialize_os_output(ref input_iter, false);
     }
 
     #[test]
@@ -300,7 +376,7 @@ mod tests {
         input.append(0);
 
         let mut input_iter = input.span().into_iter();
-        let os_output = deserialize_os_output(ref input_iter);
+        let os_output = deserialize_os_output(ref input_iter, false);
 
         assert(os_output.initial_root == '1', 'initial_root mismatch');
         assert(os_output.final_root == '2', 'final_root mismatch');
@@ -360,7 +436,84 @@ mod tests {
         input.append('payload4');
 
         let mut input_iter = input.span().into_iter();
-        let os_output = deserialize_os_output(ref input_iter);
+        let os_output = deserialize_os_output(ref input_iter, false);
+
+        assert(os_output.messages_to_l1.len() == 1, 'should have 1 L1 message');
+        assert(os_output.messages_to_l2.len() == 1, 'should have 1 L2 message');
+
+        let l1_msg = os_output.messages_to_l1.at(0);
+        assert((*l1_msg.from_address).into() == 'from_l1', 'L1 from_address mismatch');
+        assert((*l1_msg.to_address).into() == 'to_l1', 'L1 to_address mismatch');
+        assert((*l1_msg.payload).len() == 2, 'L1 payload length mismatch');
+        assert(*(*l1_msg.payload).at(0) == 'payload1', 'L1 payload[0] mismatch');
+        assert(*(*l1_msg.payload).at(1) == 'payload2', 'L1 payload[1] mismatch');
+
+        let l2_msg = os_output.messages_to_l2.at(0);
+        assert((*l2_msg.from_address).into() == 'from_l2', 'L2 from_address mismatch');
+        assert((*l2_msg.to_address).into() == 'to_l2', 'L2 to_address mismatch');
+        assert(*l2_msg.nonce == 'nonce', 'L2 nonce mismatch');
+        assert(*l2_msg.selector == 'selector', 'L2 selector mismatch');
+        assert((*l2_msg.payload).len() == 2, 'L2 payload length mismatch');
+        assert(*(*l2_msg.payload).at(0) == 'payload3', 'L2 payload[0] mismatch');
+        assert(*(*l2_msg.payload).at(1) == 'payload4', 'L2 payload[1] mismatch');
+    }
+
+    #[test]
+    fn test_deserialize_os_output_with_kzg_da_enabled_with_messages() {
+        let mut input = array![];
+        // Bootloader header.
+        input.append(0);
+        input.append(0);
+        input.append(0);
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append(0);
+        input.append('8');
+        // use_kzg_da.
+        input.append(1);
+        // full_output.
+        input.append(0);
+
+        // point.
+        input.append(1);
+        // n_blobs.
+        input.append(1);
+        // commitments.
+        input.append(1);
+        input.append(1);
+        // evaluations.
+        input.append(1);
+        input.append(1);
+
+        // Add 1 message to L1 (segment length).
+        input.append(5);
+        // L1 message header.
+        input.append('from_l1');
+        input.append('to_l1');
+        // Payload size and content.
+        input.append(2);
+        input.append('payload1');
+        input.append('payload2');
+
+        // Add 1 message to L2 (segment length).
+        input.append(7);
+        // L2 message header.
+        input.append('from_l2');
+        input.append('to_l2');
+        input.append('nonce');
+        input.append('selector');
+        // Payload size and content.
+        input.append(2);
+        input.append('payload3');
+        input.append('payload4');
+
+        let mut input_iter = input.span().into_iter();
+        let os_output = deserialize_os_output(ref input_iter, true);
 
         assert(os_output.messages_to_l1.len() == 1, 'should have 1 L1 message');
         assert(os_output.messages_to_l2.len() == 1, 'should have 1 L2 message');

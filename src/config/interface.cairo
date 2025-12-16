@@ -82,4 +82,18 @@ pub trait IConfig<T> {
     ///
     /// The contract address of the facts registry.
     fn get_facts_registry(self: @T) -> ContractAddress;
+
+    /// Sets if KZG DA is enabled.
+    ///
+    /// # Arguments
+    ///
+    /// * `use_kzg_da` - Whether KZG DA is enabled.
+    fn set_use_kzg_da(ref self: T, use_kzg_da: bool);
+
+    /// Gets if KZG DA is enabled.
+    ///
+    /// # Returns
+    ///
+    /// Whether KZG DA is enabled.
+    fn get_use_kzg_da(self: @T) -> bool;
 }

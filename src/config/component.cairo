@@ -15,15 +15,13 @@ mod errors {
 /// only editable by contract's owner.
 #[starknet::component]
 pub mod config_cpt {
-    use openzeppelin::access::ownable::{
-        OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
-        interface::IOwnable,
-    };
+    use openzeppelin::access::ownable::OwnableComponent as ownable_cpt;
+    use openzeppelin::access::ownable::OwnableComponent::InternalTrait as OwnableInternal;
+    use openzeppelin::access::ownable::interface::IOwnable;
     use piltover::config::interface::{IConfig, ProgramInfo};
     use starknet::ContractAddress;
-    use starknet::storage::Map;
     use starknet::storage::{
-        StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
         StoragePointerWriteAccess,
     };
     use super::errors;
@@ -36,6 +34,8 @@ pub mod config_cpt {
         pub program_info: ProgramInfo,
         /// Facts registry contract address.
         pub facts_registry: ContractAddress,
+        /// Is KZG DA enabled.
+        pub use_kzg_da: bool,
     }
 
     #[event]
@@ -98,6 +98,15 @@ pub mod config_cpt {
 
         fn get_facts_registry(self: @ComponentState<TContractState>) -> ContractAddress {
             self.facts_registry.read()
+        }
+
+        fn set_use_kzg_da(ref self: ComponentState<TContractState>, use_kzg_da: bool) {
+            self.assert_only_owner_or_operator();
+            self.use_kzg_da.write(use_kzg_da);
+        }
+
+        fn get_use_kzg_da(self: @ComponentState<TContractState>) -> bool {
+            self.use_kzg_da.read()
         }
     }
 

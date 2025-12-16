@@ -1,8 +1,7 @@
 #[starknet::contract]
 pub mod config_mock {
-    use openzeppelin::access::ownable::{
-        OwnableComponent as ownable_cpt, OwnableComponent::InternalTrait as OwnableInternal,
-    };
+    use openzeppelin::access::ownable::OwnableComponent as ownable_cpt;
+    use openzeppelin::access::ownable::OwnableComponent::InternalTrait as OwnableInternal;
     use piltover::config::config_cpt;
     use starknet::ContractAddress;
 

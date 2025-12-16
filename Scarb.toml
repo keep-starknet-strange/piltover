@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-starknet = "2.9.2"
+starknet = "2.13.1"
 openzeppelin = "0.20.0"
 integrity = "2.0.0"
 
 [dev-dependencies]
-starknet = "2.9.2"
-snforge_std = "0.34.0"
-openzeppelin_testing = "0.20.0"
+starknet = "2.13.1"
+snforge_std = "0.52.0"
+# openzeppelin_testing = "0.20.0"
 
 [scripts]
 test = "snforge test"
@@ -23,6 +23,9 @@ casm = true
 [[target.starknet-contract]]
 casm = true
 sierra = true
+
+[tool.scarb]
+allow-prebuilt-plugins = ["snforge_std"]
 
 [tool.fmt]
 sort-module-level-items = true

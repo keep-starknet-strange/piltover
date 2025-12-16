@@ -126,6 +126,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic-waker"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
+
+[[package]]
 name = "auto_impl"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -179,9 +185,15 @@ dependencies = [
 
 [[package]]
 name = "bitflags"
+<<<<<<< HEAD
 version = "2.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
+=======
+version = "2.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "812e12b5285cc515a9c72a5c1d3b6d46a19dac5acfef5265968c166106e31dd3"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 
 [[package]]
 name = "bitvec"
@@ -193,6 +205,15 @@ dependencies = [
  "radium",
  "tap",
  "wyz",
+]
+
+[[package]]
+name = "blake2"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46502ad458c9a52b69d4d4d32775c788b7a1b85e8bc9d482d92250fc0e3f8efe"
+dependencies = [
+ "digest",
 ]
 
 [[package]]
@@ -230,9 +251,15 @@ checksum = "f61dac84819c6588b558454b194026eb1f09c293b9036ae9b159e74e73ab6cf9"
 
 [[package]]
 name = "cainome"
+<<<<<<< HEAD
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c3a9993ce9d20bd56a93069f9a5b03fa9e8410e10950e72b9b3be7692fcd70c"
+=======
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f296568cda6f1f4934270a321151f9f51afa737450f67ef13a8534f2bd9afdac"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "anyhow",
  "async-trait",
@@ -249,7 +276,11 @@ dependencies = [
  "serde_json",
  "starknet",
  "starknet-types-core",
+<<<<<<< HEAD
  "thiserror 2.0.12",
+=======
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "tracing",
  "tracing-subscriber",
  "url",
@@ -257,15 +288,25 @@ dependencies = [
 
 [[package]]
 name = "cainome-cairo-serde"
+<<<<<<< HEAD
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94986d430c62ae5f07783c671f3a4fbd56e6f563c720d76e612ae7371621ad9e"
+=======
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95ae2d4c21db23c7730a85187c2e9d73fe00c123171839185fb13f31550f3240"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "num-bigint",
  "serde",
  "serde_with",
  "starknet",
+<<<<<<< HEAD
  "thiserror 2.0.12",
+=======
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -282,23 +323,39 @@ dependencies = [
 
 [[package]]
 name = "cainome-parser"
+<<<<<<< HEAD
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fffc4c67b8b5d9f45886d569edba87b45789458d6421f607c7c3c949e198d2f4"
+=======
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ffdbc6abfba9c7e91beb87fe7561f097d9f7bbda45c6ff74be3a9ff3f1a0124"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "convert_case",
  "quote",
  "serde_json",
  "starknet",
  "syn 2.0.98",
+<<<<<<< HEAD
  "thiserror 2.0.12",
+=======
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
 name = "cainome-rs"
+<<<<<<< HEAD
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c417e6cab161738793d2a443093290a62938d567573e9aac005a0587778e054b"
+=======
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93aa5c33e66b58ff6723d3e43e60fe163ac20719ea89fce921096e654b15bcd6"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "anyhow",
  "cainome-cairo-serde",
@@ -310,14 +367,24 @@ dependencies = [
  "serde_json",
  "starknet",
  "syn 2.0.98",
+<<<<<<< HEAD
  "thiserror 2.0.12",
+=======
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
 name = "cainome-rs-macro"
+<<<<<<< HEAD
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4531c64b63e6e204cea65b53e7b26d9400e42249325ebb3b0bc0b5671c2f8e4"
+=======
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d679cd9a88b9d412ed4ed30264b80f1bec6c1aa9656e238f06be560ddebb652"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "anyhow",
  "cainome-cairo-serde",
@@ -329,7 +396,11 @@ dependencies = [
  "serde_json",
  "starknet",
  "syn 2.0.98",
+<<<<<<< HEAD
  "thiserror 2.0.12",
+=======
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -751,6 +822,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "getrandom"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
+dependencies = [
+ "cfg-if",
+ "js-sys",
+ "libc",
+ "r-efi",
+ "wasip2",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gimli"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -831,18 +916,33 @@ checksum = "f2d708df4e7140240a16cd6ab0ab65c972d7433ab77819ea693fde9c43811e2a"
 
 [[package]]
 name = "hyper"
+<<<<<<< HEAD
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc2b571658e38e0c01b1fdca3bbbe93c00d3d71693ff2770043f8c29bc7d6f80"
+=======
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ab2d4f250c3d7b1c9fcdff1cece94ea4e2dfbec68614f7b87cb205f24ca9d11"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
+ "atomic-waker",
  "bytes",
  "futures-channel",
+<<<<<<< HEAD
  "futures-util",
+=======
+ "futures-core",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "http",
  "http-body",
  "httparse",
  "itoa",
  "pin-project-lite",
+<<<<<<< HEAD
+=======
+ "pin-utils",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "smallvec",
  "tokio",
  "want",
@@ -867,9 +967,15 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
+<<<<<<< HEAD
 version = "0.1.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d9b05277c7e8da2c93a568989bb6207bef0112e8d17df7a6eda4a3cf143bc5e"
+=======
+version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52e9a2a24dc5c6821e71a7030e1e14b7b632acac55c40e9d2e082c621261bb56"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -883,7 +989,11 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
+<<<<<<< HEAD
  "socket2 0.6.0",
+=======
+ "socket2 0.6.1",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "tokio",
  "tower-service",
  "tracing",
@@ -1134,9 +1244,15 @@ checksum = "469fb0b9cefa57e3ef31275ee7cacb78f2fdca44e4765491884a2b119d4eb130"
 
 [[package]]
 name = "iri-string"
+<<<<<<< HEAD
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dbc5ebe9c3a1a7a5127f920a418f7585e9e758e911d0466ed004f393b0e380b2"
+=======
+version = "0.7.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f867b9d1d896b67beb18518eda36fdb77a32ea590de864f1325b294a6d14397"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "memchr",
  "serde",
@@ -1175,11 +1291,13 @@ dependencies = [
 
 [[package]]
 name = "lambdaworks-crypto"
-version = "0.10.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbc2a4da0d9e52ccfe6306801a112e81a8fc0c76aa3e4449fefeda7fef72bb34"
+checksum = "58b1a1c1102a5a7fbbda117b79fb3a01e033459c738a3c1642269603484fd1c1"
 dependencies = [
  "lambdaworks-math",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
  "serde",
  "sha2",
  "sha3",
@@ -1187,10 +1305,14 @@ dependencies = [
 
 [[package]]
 name = "lambdaworks-math"
-version = "0.10.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1bd2632acbd9957afc5aeec07ad39f078ae38656654043bf16e046fa2730e23"
+checksum = "018a95aa873eb49896a858dee0d925c33f3978d073c64b08dd4f2c9b35a017c6"
 dependencies = [
+ "getrandom 0.2.15",
+ "num-bigint",
+ "num-traits",
+ "rand 0.8.5",
  "serde",
  "serde_json",
 ]
@@ -1203,9 +1325,15 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
+<<<<<<< HEAD
 version = "0.2.174"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1171693293099992e19cddea4e8b849964e9846f4acee11b3948bcc337be8776"
+=======
+version = "0.2.177"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 
 [[package]]
 name = "litemap"
@@ -1468,9 +1596,15 @@ dependencies = [
 
 [[package]]
 name = "quinn"
+<<<<<<< HEAD
 version = "0.11.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "626214629cda6781b6dc1d316ba307189c85ba657213ce642d9c77670f8202c8"
+=======
+version = "0.11.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e20a958963c291dc322d98411f541009df2ced7b5a4f2bd52337638cfccf20"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "bytes",
  "cfg_aliases",
@@ -1479,8 +1613,13 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
+<<<<<<< HEAD
  "socket2 0.5.8",
  "thiserror 2.0.12",
+=======
+ "socket2 0.6.1",
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "tokio",
  "tracing",
  "web-time",
@@ -1488,12 +1627,21 @@ dependencies = [
 
 [[package]]
 name = "quinn-proto"
+<<<<<<< HEAD
 version = "0.11.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49df843a9161c85bb8aae55f101bc0bac8bcafd637a620d9122fd7e0b2f7422e"
 dependencies = [
  "bytes",
  "getrandom 0.3.3",
+=======
+version = "0.11.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1906b49b0c3bc04b5fe5d86a77925ae6524a19b816ae38ce1e426255f1d8a31"
+dependencies = [
+ "bytes",
+ "getrandom 0.3.4",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "lru-slab",
  "rand 0.9.2",
  "ring",
@@ -1501,7 +1649,11 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "slab",
+<<<<<<< HEAD
  "thiserror 2.0.12",
+=======
+ "thiserror 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
  "tinyvec",
  "tracing",
  "web-time",
@@ -1509,16 +1661,28 @@ dependencies = [
 
 [[package]]
 name = "quinn-udp"
+<<<<<<< HEAD
 version = "0.5.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fcebb1209ee276352ef14ff8732e24cc2b02bbac986cd74a4c81bcb2f9881970"
+=======
+version = "0.5.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "addec6a0dcad8a8d96a771f815f0eaf55f9d1805756410b39f5fa81332574cbd"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
+<<<<<<< HEAD
  "socket2 0.5.8",
  "tracing",
  "windows-sys 0.59.0",
+=======
+ "socket2 0.6.1",
+ "tracing",
+ "windows-sys 0.60.2",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -1598,7 +1762,11 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 dependencies = [
+<<<<<<< HEAD
  "getrandom 0.3.3",
+=======
+ "getrandom 0.3.4",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -1647,9 +1815,15 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reqwest"
+<<<<<<< HEAD
 version = "0.12.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbc931937e6ca3a06e3b6c0aa7841849b160a90351d6ab467a8b9b9959767531"
+=======
+version = "0.12.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d0946410b9f7b082a427e4ef5c8ff541a88b357bc6c637c40db3a68ac70a36f"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -1738,9 +1912,15 @@ checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
 
 [[package]]
 name = "rustls"
+<<<<<<< HEAD
 version = "0.23.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0ebcbd2f03de0fc1122ad9bb24b127a5a6cd51d72604a3f3c50ac459762b6cc"
+=======
+version = "0.23.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "533f54bc6a7d4f647e46ad909549eda97bf5afc1585190ef692b4286b198bd8f"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "once_cell",
  "ring",
@@ -1752,9 +1932,15 @@ dependencies = [
 
 [[package]]
 name = "rustls-pki-types"
+<<<<<<< HEAD
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "229a4a4c221013e7e1f1a043678c5cc39fe5171437c88fb47151a21e6f5b5c79"
+=======
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94182ad936a0c91c324cd46c6511b9510ed16af436d7b5bab34beab0afd55f7a"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "web-time",
  "zeroize",
@@ -1762,9 +1948,15 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
+<<<<<<< HEAD
 version = "0.103.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a17884ae0c1b773f1ccd2bd4a8c72f16da897310a98b0e84bf349ad5ead92fc"
+=======
+version = "0.103.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ffdfa2f5286e2247234e03f680868ac2815974dc39e00ea15adc445d0aafe52"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "ring",
  "rustls-pki-types",
@@ -1952,12 +2144,21 @@ dependencies = [
 
 [[package]]
 name = "socket2"
+<<<<<<< HEAD
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "233504af464074f9d066d7b5416c5f9b894a5862a6506e306f7b816cdd6f1807"
 dependencies = [
  "libc",
  "windows-sys 0.59.0",
+=======
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17129e116933cf371d018bb80ae557e889637989d8638274fb25622827b03881"
+dependencies = [
+ "libc",
+ "windows-sys 0.60.2",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -1974,9 +2175,15 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "starknet"
+<<<<<<< HEAD
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94e0e01a3e521a53138b774591bacb63032cfb1c4c98c93d5ce4dda96457222b"
+=======
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5ed01c14136e56dcdf21385d20c4a6fdd3509947cb56cca45fc765ef5809add"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "starknet-accounts",
  "starknet-contract",
@@ -1990,9 +2197,15 @@ dependencies = [
 
 [[package]]
 name = "starknet-accounts"
+<<<<<<< HEAD
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7961299fe73e642f1c2c6b8297cc5702740b000ce2b3956c1ab349f53654107e"
+=======
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f7c118729bcdcfa1610844047cbdb23090fb1d4172a36bb97a663be8d022d1a"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2005,9 +2218,15 @@ dependencies = [
 
 [[package]]
 name = "starknet-contract"
+<<<<<<< HEAD
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94e91bb0ec9b25b8cd0579540f66fb3eb965b43fbf65789a4bda65073aa43662"
+=======
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccb64331b72caf51c0d8b684b62012f9a771015b4cf5e52cba9bf61be8384ad3"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "serde",
  "serde_json",
@@ -2020,9 +2239,15 @@ dependencies = [
 
 [[package]]
 name = "starknet-core"
+<<<<<<< HEAD
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ebd248c1503f89d74f98bfb38119f6421ffb81b23f3404f33b268539d0c4cb6"
+=======
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efb7212226769766c1c7d79b70f9242ffbd213290a41604ecc7e78faa0ed0deb"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "base64 0.21.7",
  "crypto-bigint",
@@ -2054,9 +2279,9 @@ dependencies = [
 
 [[package]]
 name = "starknet-crypto"
-version = "0.7.4"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "039a3bad70806b494c9e6b21c5238a6c8a373d66a26071859deb0ccca6f93634"
+checksum = "1004a16c25dc6113c19d4f9d0c19ff97d85804829894bba22c0d0e9e7b249812"
 dependencies = [
  "crypto-bigint",
  "hex",
@@ -2073,18 +2298,24 @@ dependencies = [
 
 [[package]]
 name = "starknet-curve"
-version = "0.5.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcde6bd74269b8161948190ace6cf069ef20ac6e79cd2ba09b320efa7500b6de"
+checksum = "22c898ae81b6409532374cf237f1bd752d068b96c6ad500af9ebbd0d9bb712f6"
 dependencies = [
  "starknet-types-core",
 ]
 
 [[package]]
 name = "starknet-macros"
+<<<<<<< HEAD
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ebbaa813de0006d0ef21c00ed4395fa06ea4fec3ef0bdaad212aded2a1dd11f"
+=======
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d59e1eb22f4366385b132ba7016faa5a6457f1f23f896f737a06da626455e7b"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "starknet-core",
  "syn 2.0.98",
@@ -2092,9 +2323,15 @@ dependencies = [
 
 [[package]]
 name = "starknet-providers"
+<<<<<<< HEAD
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a11aa3094e646d6fe49d2cfdc49b99b42b280b170518eeb50f759d62cccbf4ae"
+=======
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15fc3d94cc008cea64e291b261e8349065424ee7491e5dd0fa9bd688818bece1"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2113,9 +2350,15 @@ dependencies = [
 
 [[package]]
 name = "starknet-signers"
+<<<<<<< HEAD
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32e60350b8a56451cd937bdea01bee50519a38611f277c06bc2bdc7eaf103a6a"
+=======
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d839b06d899ef3a0de11b1e9a91a14c118b1ed36830ec8e59d9fbc9a1e51976b"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "async-trait",
  "auto_impl",
@@ -2130,16 +2373,20 @@ dependencies = [
 
 [[package]]
 name = "starknet-types-core"
-version = "0.1.7"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa1b9e01ccb217ab6d475c5cda05dbb22c30029f7bb52b192a010a00d77a3d74"
+checksum = "90d23b1bc014ee4cce40056ab3114bcbcdc2dbc1e845bbfb1f8bd0bab63507d4"
 dependencies = [
+ "blake2",
+ "digest",
  "lambdaworks-crypto",
  "lambdaworks-math",
  "num-bigint",
  "num-integer",
  "num-traits",
+ "rand 0.9.2",
  "serde",
+ "zeroize",
 ]
 
 [[package]]
@@ -2219,11 +2466,19 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
+<<<<<<< HEAD
 version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
 dependencies = [
  "thiserror-impl 2.0.12",
+=======
+version = "2.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f63587ca0f12b72a0600bcba1d40081f830876000bb46dd2337a3051618f4fc8"
+dependencies = [
+ "thiserror-impl 2.0.17",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -2239,9 +2494,15 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
+<<<<<<< HEAD
 version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
+=======
+version = "2.0.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ff15c8ecd7de3849db632e14d18d2571fa09dfc5ed93479bc4485c7a517c913"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2310,9 +2571,15 @@ dependencies = [
 
 [[package]]
 name = "tinyvec"
+<<<<<<< HEAD
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09b3661f17e86524eccd4371ab0429194e0d7c008abb45f7a7495b1719463c71"
+=======
+version = "1.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfa5fdc3bce6191a1dbc8c02d5c8bffcf557bafa17c124c5264a458f1b0613fa"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "tinyvec_macros",
 ]
@@ -2340,9 +2607,15 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
+<<<<<<< HEAD
 version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e727b36a1a0e8b74c376ac2211e40c2c8af09fb4013c60d910495810f008e9b"
+=======
+version = "0.26.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "rustls",
  "tokio",
@@ -2604,12 +2877,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
+<<<<<<< HEAD
 name = "wasi"
 version = "0.14.2+wasi-0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
 dependencies = [
  "wit-bindgen-rt",
+=======
+name = "wasip2"
+version = "1.0.1+wasi-0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0562428422c63773dad2c345a1882263bbf4d65cf3f42e90921f787ef5ad58e7"
+dependencies = [
+ "wit-bindgen",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -2705,9 +2987,15 @@ dependencies = [
 
 [[package]]
 name = "webpki-roots"
+<<<<<<< HEAD
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e8983c3ab33d6fb807cfcdad2491c4ea8cbc8ed839181c7dfd9c67c83e261b2"
+=======
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2878ef029c47c6e8cf779119f20fcf52bde7ad42a731b2a304bc221df17571e"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 dependencies = [
  "rustls-pki-types",
 ]
@@ -2740,8 +3028,19 @@ version = "0.52.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
 dependencies = [
+<<<<<<< HEAD
  "windows-targets",
 ]
+=======
+ "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-link"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 
 [[package]]
 name = "windows-sys"
@@ -2758,7 +3057,20 @@ version = "0.59.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e38bc4d79ed67fd075bcc251a1c39b32a1776bbe92e5bef1f0bf1f8c531853b"
 dependencies = [
+<<<<<<< HEAD
  "windows-targets",
+=======
+ "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-sys"
+version = "0.60.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
+dependencies = [
+ "windows-targets 0.53.5",
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 ]
 
 [[package]]
@@ -2767,6 +3079,7 @@ version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b724f72796e036ab90c1021d4780d4d3d648aca59e491e6b98e725b84e99973"
 dependencies = [
+<<<<<<< HEAD
  "windows_aarch64_gnullvm",
  "windows_aarch64_msvc",
  "windows_i686_gnu",
@@ -2778,22 +3091,76 @@ dependencies = [
 ]
 
 [[package]]
+=======
+ "windows_aarch64_gnullvm 0.52.6",
+ "windows_aarch64_msvc 0.52.6",
+ "windows_i686_gnu 0.52.6",
+ "windows_i686_gnullvm 0.52.6",
+ "windows_i686_msvc 0.52.6",
+ "windows_x86_64_gnu 0.52.6",
+ "windows_x86_64_gnullvm 0.52.6",
+ "windows_x86_64_msvc 0.52.6",
+]
+
+[[package]]
+name = "windows-targets"
+version = "0.53.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4945f9f551b88e0d65f3db0bc25c33b8acea4d9e41163edf90dcd0b19f9069f3"
+dependencies = [
+ "windows-link",
+ "windows_aarch64_gnullvm 0.53.1",
+ "windows_aarch64_msvc 0.53.1",
+ "windows_i686_gnu 0.53.1",
+ "windows_i686_gnullvm 0.53.1",
+ "windows_i686_msvc 0.53.1",
+ "windows_x86_64_gnu 0.53.1",
+ "windows_x86_64_gnullvm 0.53.1",
+ "windows_x86_64_msvc 0.53.1",
+]
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_aarch64_gnullvm"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a4622180e7a0ec044bb555404c800bc9fd9ec262ec147edd5989ccd0c02cd3"
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "windows_aarch64_gnullvm"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9d8416fa8b42f5c947f8482c43e7d89e73a173cead56d044f6a56104a6d1b53"
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_aarch64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469"
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "windows_aarch64_msvc"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9d782e804c2f632e395708e99a94275910eb9100b2114651e04744e9b125006"
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_i686_gnu"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e9b5ad5ab802e97eb8e295ac6720e509ee4c243f69d781394014ebfe8bbfa0b"
+
+[[package]]
+name = "windows_i686_gnu"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "960e6da069d81e09becb0ca57a65220ddff016ff2d6af6a223cf372a506593a3"
 
 [[package]]
 name = "windows_i686_gnullvm"
@@ -2802,28 +3169,70 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0eee52d38c090b3caa76c563b86c3a4bd71ef1a819287c19d586d7334ae8ed66"
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "windows_i686_gnullvm"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa7359d10048f68ab8b09fa71c3daccfb0e9b559aed648a8f95469c27057180c"
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_i686_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "240948bc05c5e7c6dabba28bf89d89ffce3e303022809e73deaefe4f6ec56c66"
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "windows_i686_msvc"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e7ac75179f18232fe9c285163565a57ef8d3c89254a30685b57d83a38d326c2"
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_x86_64_gnu"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78"
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "windows_x86_64_gnu"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c3842cdd74a865a8066ab39c8a7a473c0778a3f29370b5fd6b4b9aa7df4a499"
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_x86_64_gnullvm"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d"
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "windows_x86_64_gnullvm"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ffa179e2d07eee8ad8f57493436566c7cc30ac536a3379fdf008f47f6bb7ae1"
+
+[[package]]
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+
+[[package]]
+name = "windows_x86_64_msvc"
+version = "0.53.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
 
 [[package]]
 name = "winnow"
@@ -2835,6 +3244,7 @@ dependencies = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "wit-bindgen-rt"
 version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2842,6 +3252,12 @@ checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
 dependencies = [
  "bitflags",
 ]
+=======
+name = "wit-bindgen"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
+>>>>>>> 0e0ac71 (feat: add use_kzg_da flag (and bump cairo) (#71))
 
 [[package]]
 name = "write16"
