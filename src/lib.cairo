@@ -2,6 +2,7 @@ pub mod appchain;
 pub mod fact_registry;
 pub mod interface;
 pub mod snos_output;
+pub mod piltover_input;
 
 // Components
 pub mod config {
