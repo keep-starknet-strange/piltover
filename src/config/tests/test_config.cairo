@@ -96,10 +96,7 @@ fn config_set_program_info_ok() {
     mock.set_program_info(program_info);
     assert(mock.get_program_info() == program_info, 'expect correct hashes');
 
-    mock.register_operator(c::OPERATOR);
-
-    // Operator can also set the program info.
-    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR);
+    // Owner can update the info again.
     let program_info = ProgramInfo {
         bootloader_program_hash: 0x11,
         snos_config_hash: 0x22,
@@ -107,15 +104,35 @@ fn config_set_program_info_ok() {
         layout_bridge_program_hash: 0x44,
     };
     mock.set_program_info(program_info);
-
-    assert(mock.get_program_info() == program_info, 'expect operator hashes');
+    assert(mock.get_program_info() == program_info, 'expect updated hashes');
 }
 
 #[test]
-#[should_panic(expected: ('Config: not owner or operator',))]
+#[should_panic(expected: ('Caller is not the owner',))]
 fn config_set_program_info_unauthorized() {
     let mock = deploy_mock();
 
+    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR);
+    mock
+        .set_program_info(
+            ProgramInfo {
+                bootloader_program_hash: 0x1,
+                snos_config_hash: 0x2,
+                snos_program_hash: 0x3,
+                layout_bridge_program_hash: 0x4,
+            },
+        );
+}
+
+#[test]
+#[should_panic(expected: ('Caller is not the owner',))]
+fn config_set_program_info_operator_unauthorized() {
+    let mock = deploy_mock();
+
+    snf::start_cheat_caller_address(mock.contract_address, c::OWNER);
+    mock.register_operator(c::OPERATOR);
+
+    // Even a registered operator cannot set program info.
     snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR);
     mock
         .set_program_info(
@@ -140,17 +157,13 @@ fn config_set_facts_registry_ok() {
     mock.set_facts_registry(facts_registry_address);
     assert(mock.get_facts_registry() == facts_registry_address, 'expect valid address');
 
-    mock.register_operator(c::OPERATOR);
-
-    // Operator can also set the program info.
-    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR);
+    // Owner can update the address again.
     mock.set_facts_registry(c::OTHER);
-
     assert(mock.get_facts_registry() == c::OTHER, 'expect other address');
 }
 
 #[test]
-#[should_panic(expected: ('Config: not owner or operator',))]
+#[should_panic(expected: ('Caller is not the owner',))]
 fn config_set_facts_registry_unauthorized() {
     let mock = deploy_mock();
 
@@ -159,4 +172,56 @@ fn config_set_facts_registry_unauthorized() {
     // Other is not an operator.
     snf::start_cheat_caller_address(mock.contract_address, c::OTHER);
     mock.set_facts_registry(facts_registry_address);
+}
+
+#[test]
+#[should_panic(expected: ('Caller is not the owner',))]
+fn config_set_facts_registry_operator_unauthorized() {
+    let mock = deploy_mock();
+
+    snf::start_cheat_caller_address(mock.contract_address, c::OWNER);
+    mock.register_operator(c::OPERATOR);
+
+    // Even a registered operator cannot set facts registry.
+    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR);
+    let facts_registry_address = '0x123'.try_into().unwrap();
+    mock.set_facts_registry(facts_registry_address);
+}
+
+#[test]
+fn config_set_use_kzg_da_ok() {
+    let mock = deploy_mock();
+
+    snf::start_cheat_caller_address(mock.contract_address, c::OWNER);
+
+    // Owner enables kzg da.
+    mock.set_use_kzg_da(true);
+    assert(mock.get_use_kzg_da(), 'expect kzg da enabled');
+
+    // Owner disables kzg da.
+    mock.set_use_kzg_da(false);
+    assert(!mock.get_use_kzg_da(), 'expect kzg da disabled');
+}
+
+#[test]
+#[should_panic(expected: ('Caller is not the owner',))]
+fn config_set_use_kzg_da_unauthorized() {
+    let mock = deploy_mock();
+
+    // Non-owner cannot set use_kzg_da.
+    snf::start_cheat_caller_address(mock.contract_address, c::OTHER);
+    mock.set_use_kzg_da(true);
+}
+
+#[test]
+#[should_panic(expected: ('Caller is not the owner',))]
+fn config_set_use_kzg_da_operator_unauthorized() {
+    let mock = deploy_mock();
+
+    snf::start_cheat_caller_address(mock.contract_address, c::OWNER);
+    mock.register_operator(c::OPERATOR);
+
+    // Even a registered operator cannot set use_kzg_da.
+    snf::start_cheat_caller_address(mock.contract_address, c::OPERATOR);
+    mock.set_use_kzg_da(true);
 }

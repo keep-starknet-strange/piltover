@@ -187,7 +187,7 @@ fn appchain_owner_ok() {
 }
 
 #[test]
-#[should_panic(expected: ('Config: not owner or operator',))]
+#[should_panic(expected: ('Caller is not the owner',))]
 fn appchain_owner_only() {
     let (appchain, _spy) = deploy_with_owner(c::OWNER);
 

@@ -74,7 +74,7 @@ pub mod config_cpt {
         }
 
         fn set_program_info(ref self: ComponentState<TContractState>, program_info: ProgramInfo) {
-            self.assert_only_owner_or_operator();
+            get_dep_component!(@self, Ownable).assert_only_owner();
             let old_program_info = self.program_info.read();
             self.program_info.write(program_info);
             self
@@ -92,7 +92,7 @@ pub mod config_cpt {
         }
 
         fn set_facts_registry(ref self: ComponentState<TContractState>, address: ContractAddress) {
-            self.assert_only_owner_or_operator();
+            get_dep_component!(@self, Ownable).assert_only_owner();
             self.facts_registry.write(address)
         }
 
@@ -101,7 +101,7 @@ pub mod config_cpt {
         }
 
         fn set_use_kzg_da(ref self: ComponentState<TContractState>, use_kzg_da: bool) {
-            self.assert_only_owner_or_operator();
+            get_dep_component!(@self, Ownable).assert_only_owner();
             self.use_kzg_da.write(use_kzg_da);
         }
 
