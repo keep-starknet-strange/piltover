@@ -16,7 +16,7 @@ Starknet Core Contract components in Cairo.
 
 The different tasks of the Starknet Core Contract are here mapped to what we can call an "Appchain" Core Contract.
 
-The functionalities of the core contract are split over several components. Each component is usually placed into a directory, event if it is simple. Doing so allow a good separation of additional files that may be written in the context of a component.
+The functionalities of the core contract are split over several components. Each component is usually placed into a directory, even if it is simple. Doing so allow a good separation of additional files that may be written in the context of a component.
 
 Due to a limitation of `starknet foundry`, we can't declare a contract that is defined under the `tests` directory. For this reason, `mock` contract are defined in their respective component location. This is also a good way for the component write to illustrate the minimum required to use the component.
 
