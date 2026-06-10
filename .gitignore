@@ -3,7 +3,13 @@
 
 # Scarb and Starknet Foundry
 **/target
+target-*/
 .snfoundry_cache/
+
+# Foundry
+contracts/ethereum/out/
+contracts/ethereum/cache/
+contracts/ethereum/broadcast/
 
 # Starkli
 **/account.json

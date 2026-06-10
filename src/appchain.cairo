@@ -5,22 +5,20 @@
 mod errors {
     pub const INVALID_ADDRESS: felt252 = 'Config: invalid address';
     pub const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
-    pub const SNOS_INVALID_OUTPUT_HASH: felt252 = 'snos: invalid output hash';
     pub const SNOS_INVALID_PROGRAM_HASH: felt252 = 'snos: invalid program hash';
     pub const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     pub const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
     pub const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
-    pub const NO_FACT_REGISTERED: felt252 = 'no fact registered';
-    pub const LAYOUT_BRIDGE_INVALID_PROGRAM_HASH: felt252 = 'lb: invalid program hash';
-    pub const LAYOUT_BRIDGE_INVALID_BOOTLOADER_HASH: felt252 = 'lb: invalid bootloader hash';
+    pub const NO_L1_FACT_ATTESTED: felt252 = 'no l1 fact attested';
+    pub const L1_PROGRAM_HASH_MISMATCH: felt252 = 'l1 program hash mismatch';
+    pub const L1_STATE_FACT_MISMATCH: felt252 = 'l1 state fact mismatch';
+    pub const L1_SHARP_FACT_MISMATCH: felt252 = 'l1 sharp fact mismatch';
 }
 
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
 pub mod appchain {
     use core::iter::IntoIterator;
-    use core::poseidon::{PoseidonImpl, poseidon_hash_span};
-    use integrity::Integrity;
     use openzeppelin::access::ownable::OwnableComponent as ownable_cpt;
     use openzeppelin::access::ownable::OwnableComponent::InternalTrait as OwnableInternal;
     use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent;
@@ -28,12 +26,10 @@ pub mod appchain {
     use openzeppelin::upgrades::UpgradeableComponent as upgradeable_cpt;
     use openzeppelin::upgrades::UpgradeableComponent::InternalTrait as UpgradeableInternal;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use piltover::components::onchain_data_fact_tree_encoder::{
-        DataAvailabilityFact, encode_fact_with_onchain_data,
-    };
     use piltover::config::config_cpt::InternalTrait as ConfigInternal;
     use piltover::config::{IConfig, config_cpt};
     use piltover::interface::IAppchain;
+    use piltover::l1_fact_receiver::{IL1FactReceiverDispatcher, IL1FactReceiverDispatcherTrait};
     use piltover::messaging::messaging_cpt;
     use piltover::messaging::messaging_cpt::InternalTrait as MessagingInternal;
     use piltover::snos_output::deserialize_os_output;
@@ -45,9 +41,6 @@ pub mod appchain {
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
-
-    /// The minimum security bits required for a fact to be considered valid.
-    const MIN_SECURITY_BITS: u32 = 50;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: upgradeable_cpt, storage: upgradeable, event: UpgradeableEvent);
@@ -117,7 +110,9 @@ pub mod appchain {
 
     #[derive(Drop, starknet::Event)]
     pub struct LogStateTransitionFact {
+        pub update_id: felt252,
         pub state_transition_fact: u256,
+        pub sharp_fact: u256,
     }
 
     /// Initializes the contract.
@@ -148,79 +143,64 @@ pub mod appchain {
             snos_output: Span<felt252>,
             layout_bridge_output: Span<felt252>,
         ) {
+            let _ = layout_bridge_output;
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
             let program_info = self.config.program_info.read();
 
-            // StarknetOS (SNOS) proof is wrapped in bootloader so 3rd element is the program hash
-            // of bootloaded program, in our case SNOS.
-            let snos_program_hash = snos_output.at(2);
-            assert(
-                program_info.snos_program_hash == *snos_program_hash,
-                errors::SNOS_INVALID_PROGRAM_HASH,
-            );
+            let mut bootloaded_snos_output: Array<felt252> = ArrayTrait::new();
+            bootloaded_snos_output.append(1);
+            bootloaded_snos_output.append((snos_output.len() + 2).into());
+            bootloaded_snos_output.append(program_info.snos_program_hash);
+            let mut i = 0;
+            loop {
+                if (i == snos_output.len()) {
+                    break;
+                }
+                bootloaded_snos_output.append(*snos_output.at(i));
+                i += 1;
+            }
 
-            // Layout bridge program is also bootloaded, and the 3rd element is the hash of the
-            // output of the program that has been bootloaded.
-            let layout_bridge_program_hash = layout_bridge_output.at(2);
-            assert(
-                program_info.layout_bridge_program_hash == *layout_bridge_program_hash,
-                errors::LAYOUT_BRIDGE_INVALID_PROGRAM_HASH,
-            );
-
-            // The 4th element is the program which execution has been verified by the layout bridge
-            // (which is a verified program).
-            // It must match the bootloader hash, since the layout bridge verified the bootloaded
-            // execution of the Starknet OS program.
-            assert(
-                *layout_bridge_output.at(3) == program_info.bootloader_program_hash,
-                errors::LAYOUT_BRIDGE_INVALID_BOOTLOADER_HASH,
-            );
-
-            let snos_output_hash = poseidon_hash_span(snos_output);
-            // Layout bridge program is also bootloaded, and the 5th element is the hash of the
-            // output of the program that has been layout-bridged.
-            let snos_output_hash_in_bridge_output = layout_bridge_output.at(4);
-            assert(
-                snos_output_hash == *snos_output_hash_in_bridge_output,
-                errors::SNOS_INVALID_OUTPUT_HASH,
-            );
-
-            let output_hash = poseidon_hash_span(layout_bridge_output);
-
-            let mut snos_output_iter = snos_output.into_iter();
+            let mut snos_output_iter = bootloaded_snos_output.span().into_iter();
             let program_output_struct = deserialize_os_output(
                 ref snos_output_iter, self.config.get_use_kzg_da(),
             );
 
-            // Those values are currently not being used. They are enforced to 0 here
-            // instead of being passed as arguments to avoid operator manipulation
-            // until their usage is better defined.
-            let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash: 0, onchain_data_size: 0,
-            };
-            let state_transition_fact: u256 = encode_fact_with_onchain_data(
-                layout_bridge_output, data_availability_fact,
-            );
+            let state_transition_fact: u256 = hash_main_public_input_solidity(snos_output);
 
             assert(
                 program_output_struct.starknet_os_config_hash == program_info.snos_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH,
             );
 
-            let fact = poseidon_hash_span(
-                array![program_info.bootloader_program_hash, output_hash].span(),
-            );
-
-            let integrity = Integrity::from_address(self.config.get_facts_registry());
-
+            let update_id = program_output_struct.prev_block_number;
+            let receiver = IL1FactReceiverDispatcher {
+                contract_address: self.config.get_facts_registry(),
+            };
+            let attested_fact = receiver.get_attested_fact(update_id);
+            assert(attested_fact.exists, errors::NO_L1_FACT_ATTESTED);
             assert(
-                integrity.is_fact_hash_valid_with_security(fact, MIN_SECURITY_BITS),
-                errors::NO_FACT_REGISTERED,
+                attested_fact.fact_program_hash == program_info.snos_program_hash.into(),
+                errors::L1_PROGRAM_HASH_MISMATCH,
+            );
+            assert(
+                attested_fact.state_transition_fact == state_transition_fact,
+                errors::L1_STATE_FACT_MISMATCH,
             );
 
-            self.emit(LogStateTransitionFact { state_transition_fact });
+            let expected_sharp_fact = compute_sharp_fact(
+                program_info.snos_program_hash.into(), state_transition_fact,
+            );
+
+            assert(attested_fact.sharp_fact == expected_sharp_fact, errors::L1_SHARP_FACT_MISMATCH);
+
+            self
+                .emit(
+                    LogStateTransitionFact {
+                        update_id, state_transition_fact, sharp_fact: expected_sharp_fact,
+                    },
+                );
 
             let messages_to_l1 = program_output_struct.messages_to_l1;
             let messages_to_l2 = program_output_struct.messages_to_l2;
@@ -241,6 +221,38 @@ pub mod appchain {
                         block_hash: self.state.block_hash.read(),
                     },
                 );
+        }
+    }
+
+    fn compute_sharp_fact(fact_program_hash: u256, state_transition_fact: u256) -> u256 {
+        let mut keccak_input: Array<u256> = ArrayTrait::new();
+        keccak_input.append(fact_program_hash);
+        keccak_input.append(state_transition_fact);
+        keccak_u256s_solidity_inputs(keccak_input.span())
+    }
+
+    fn hash_main_public_input_solidity(program_output: Span<felt252>) -> u256 {
+        let mut keccak_input: Array<u256> = ArrayTrait::new();
+        let mut i = 0;
+        loop {
+            if (i == program_output.len()) {
+                break;
+            }
+            keccak_input.append((*program_output.at(i)).into());
+            i += 1;
+        }
+
+        keccak_u256s_solidity_inputs(keccak_input.span())
+    }
+
+    fn keccak_u256s_solidity_inputs(input: Span<u256>) -> u256 {
+        byte_reverse_u256(core::keccak::keccak_u256s_be_inputs(input))
+    }
+
+    fn byte_reverse_u256(value: u256) -> u256 {
+        u256 {
+            low: core::integer::u128_byte_reverse(value.high),
+            high: core::integer::u128_byte_reverse(value.low),
         }
     }
 

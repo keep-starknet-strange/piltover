@@ -8,15 +8,14 @@ pub trait IAppchain<T> {
     /// based on a proof of the StarknetOS that the state transition
     /// is valid.
     ///
-    /// In the current state of the SN stack, the layout required by SNOS
-    /// is not yet supported with the starknet onchain verifier (integrity).
-    /// For this reason, two proofs are required:
-    /// - A proof for SNOS execution.
-    /// - A layout bridge proof, which uses a layout supported by the onchain verifier.
+    /// This L1-attested settlement path expects the SNOS proof to be verified
+    /// on Ethereum first. The resulting SHARP fact is relayed back to Starknet
+    /// and stored in the configured facts registry address, which is expected
+    /// to implement `IL1FactReceiver`.
     ///
     /// # Arguments
     ///
-    /// * `snos_output` - The StarknetOS state update output (bootloaded).
-    /// * `layout_bridge_program_output` - The layout bridge proof output (bootloaded).
+    /// * `snos_output` - The raw StarknetOS state update output proven on L1.
+    /// * `layout_bridge_program_output` - Unused in this settlement path.
     fn update_state(ref self: T, snos_output: Span<felt252>, layout_bridge_output: Span<felt252>);
 }
