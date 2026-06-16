@@ -8,14 +8,13 @@ pub trait IAppchain<T> {
     /// based on a proof of the StarknetOS that the state transition
     /// is valid.
     ///
-    /// This L1-attested settlement path expects the SNOS proof to be verified
-    /// on Ethereum first. The resulting SHARP fact is relayed back to Starknet
-    /// and stored in the configured facts registry address, which is expected
-    /// to implement `IL1FactReceiver`.
+    /// This settlement path expects a Keccak SHARP fact to be available in
+    /// the configured facts registry address, which is expected to implement
+    /// the Satellite fact registry interface.
     ///
     /// # Arguments
     ///
-    /// * `snos_output` - The raw StarknetOS state update output proven on L1.
+    /// * `snos_output` - The raw StarknetOS state update output.
     /// * `layout_bridge_program_output` - Unused in this settlement path.
     fn update_state(ref self: T, snos_output: Span<felt252>, layout_bridge_output: Span<felt252>);
 }

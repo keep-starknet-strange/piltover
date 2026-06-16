@@ -9,10 +9,6 @@ mod errors {
     pub const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     pub const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
     pub const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
-    pub const NO_L1_FACT_ATTESTED: felt252 = 'no l1 fact attested';
-    pub const L1_PROGRAM_HASH_MISMATCH: felt252 = 'l1 program hash mismatch';
-    pub const L1_STATE_FACT_MISMATCH: felt252 = 'l1 state fact mismatch';
-    pub const L1_SHARP_FACT_MISMATCH: felt252 = 'l1 sharp fact mismatch';
     pub const NO_FACT_REGISTERED: felt252 = 'no fact registered';
 }
 

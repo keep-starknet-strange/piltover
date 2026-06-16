@@ -26,24 +26,6 @@ Due to a limitation of `starknet foundry`, we can't declare a contract that is d
 
 - `messaging`: messaging between Appchain - Starknet.
 
-## L1-attested Appchain Settlement
-
-The repository also contains an experimental settlement path for appchains that
-verify their SHARP fact on Ethereum and relay that attestation back to Starknet.
-
-- `src/l1_fact_receiver.cairo`: Starknet L1 handler that accepts an
-  Ethereum-sent attestation and stores the fact by update id.
-- `src/appchain.cairo`: appchain settlement contract that recomputes the SNOS
-  state transition fact from raw SNOS output, checks it against the relayed
-  Ethereum attestation, and then applies the normal state/message processing.
-- `contracts/ethereum/src/PrivilyFactRelay.sol`: Ethereum relay that checks the
-  SHARP fact in an Ethereum GPS verifier and sends the fact data to the
-  Starknet receiver through Starknet core messaging.
-
-This path is intended for Privily-style L3 settlement experiments where the
-proof is verified on Ethereum first, while the appchain state and bridge logic
-remain on Starknet.
-
 ## Build
 
 To build the project, run:
@@ -74,15 +56,6 @@ Or using the script (where further tests may be added in the future):
 
 ```bash
 bash scripts/test_all_features.sh
-```
-
-## Ethereum Relay
-
-To build the Ethereum relay contract:
-
-```bash
-cd contracts/ethereum
-forge build
 ```
 
 ## Code style (cairo)
