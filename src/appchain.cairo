@@ -13,6 +13,7 @@ mod errors {
     pub const L1_PROGRAM_HASH_MISMATCH: felt252 = 'l1 program hash mismatch';
     pub const L1_STATE_FACT_MISMATCH: felt252 = 'l1 state fact mismatch';
     pub const L1_SHARP_FACT_MISMATCH: felt252 = 'l1 sharp fact mismatch';
+    pub const NO_FACT_REGISTERED: felt252 = 'no fact registered';
 }
 
 /// Appchain settlement contract on starknet.
@@ -28,8 +29,10 @@ pub mod appchain {
     use openzeppelin::upgrades::interface::IUpgradeable;
     use piltover::config::config_cpt::InternalTrait as ConfigInternal;
     use piltover::config::{IConfig, config_cpt};
+    use piltover::fact_registry_proxy::{
+        IFactRegistryProxyDispatcher, IFactRegistryProxyDispatcherTrait,
+    };
     use piltover::interface::IAppchain;
-    use piltover::l1_fact_receiver::{IL1FactReceiverDispatcher, IL1FactReceiverDispatcherTrait};
     use piltover::messaging::messaging_cpt;
     use piltover::messaging::messaging_cpt::InternalTrait as MessagingInternal;
     use piltover::snos_output::deserialize_os_output;
@@ -41,6 +44,7 @@ pub mod appchain {
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
+    const MIN_SECURITY_BITS: u32 = 50;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: upgradeable_cpt, storage: upgradeable, event: UpgradeableEvent);
@@ -175,25 +179,18 @@ pub mod appchain {
             );
 
             let update_id = program_output_struct.prev_block_number;
-            let receiver = IL1FactReceiverDispatcher {
-                contract_address: self.config.get_facts_registry(),
-            };
-            let attested_fact = receiver.get_attested_fact(update_id);
-            assert(attested_fact.exists, errors::NO_L1_FACT_ATTESTED);
-            assert(
-                attested_fact.fact_program_hash == program_info.snos_program_hash.into(),
-                errors::L1_PROGRAM_HASH_MISMATCH,
-            );
-            assert(
-                attested_fact.state_transition_fact == state_transition_fact,
-                errors::L1_STATE_FACT_MISMATCH,
-            );
-
             let expected_sharp_fact = compute_sharp_fact(
                 program_info.snos_program_hash.into(), state_transition_fact,
             );
 
-            assert(attested_fact.sharp_fact == expected_sharp_fact, errors::L1_SHARP_FACT_MISMATCH);
+            let facts_registry = IFactRegistryProxyDispatcher {
+                contract_address: self.config.get_facts_registry(),
+            };
+            assert(
+                facts_registry
+                    .is_fact_hash_valid_with_security(expected_sharp_fact, MIN_SECURITY_BITS),
+                errors::NO_FACT_REGISTERED,
+            );
 
             self
                 .emit(
