@@ -1,8 +1,8 @@
 pub mod appchain;
 pub mod fact_registry;
-pub mod fact_registry_proxy;
 pub mod interface;
 pub mod l1_fact_receiver;
+pub mod satellite;
 pub mod snos_output;
 
 // Components

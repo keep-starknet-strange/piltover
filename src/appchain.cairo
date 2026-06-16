@@ -29,12 +29,10 @@ pub mod appchain {
     use openzeppelin::upgrades::interface::IUpgradeable;
     use piltover::config::config_cpt::InternalTrait as ConfigInternal;
     use piltover::config::{IConfig, config_cpt};
-    use piltover::fact_registry_proxy::{
-        IFactRegistryProxyDispatcher, IFactRegistryProxyDispatcherTrait,
-    };
     use piltover::interface::IAppchain;
     use piltover::messaging::messaging_cpt;
     use piltover::messaging::messaging_cpt::InternalTrait as MessagingInternal;
+    use piltover::satellite::{ISatelliteDispatcher, ISatelliteDispatcherTrait};
     use piltover::snos_output::deserialize_os_output;
     use piltover::state::state_cpt::InternalTrait as StateInternal;
     use piltover::state::{IStateUpdater, state_cpt};
@@ -44,7 +42,6 @@ pub mod appchain {
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
-    const MIN_SECURITY_BITS: u32 = 50;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: upgradeable_cpt, storage: upgradeable, event: UpgradeableEvent);
@@ -183,12 +180,11 @@ pub mod appchain {
                 program_info.snos_program_hash.into(), state_transition_fact,
             );
 
-            let facts_registry = IFactRegistryProxyDispatcher {
+            let satellite = ISatelliteDispatcher {
                 contract_address: self.config.get_facts_registry(),
             };
             assert(
-                facts_registry
-                    .is_fact_hash_valid_with_security(expected_sharp_fact, MIN_SECURITY_BITS),
+                satellite.isKeccakVerifiedFactHashValid(expected_sharp_fact),
                 errors::NO_FACT_REGISTERED,
             );
 
