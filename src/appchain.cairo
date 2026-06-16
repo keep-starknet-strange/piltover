@@ -107,9 +107,7 @@ pub mod appchain {
 
     #[derive(Drop, starknet::Event)]
     pub struct LogStateTransitionFact {
-        pub update_id: felt252,
         pub state_transition_fact: u256,
-        pub sharp_fact: u256,
     }
 
     /// Initializes the contract.
@@ -171,7 +169,6 @@ pub mod appchain {
                 errors::SNOS_INVALID_CONFIG_HASH,
             );
 
-            let update_id = program_output_struct.prev_block_number;
             let expected_sharp_fact = compute_sharp_fact(
                 program_info.snos_program_hash.into(), state_transition_fact,
             );
@@ -184,12 +181,7 @@ pub mod appchain {
                 errors::NO_FACT_REGISTERED,
             );
 
-            self
-                .emit(
-                    LogStateTransitionFact {
-                        update_id, state_transition_fact, sharp_fact: expected_sharp_fact,
-                    },
-                );
+            self.emit(LogStateTransitionFact { state_transition_fact });
 
             let messages_to_l1 = program_output_struct.messages_to_l1;
             let messages_to_l2 = program_output_struct.messages_to_l2;
