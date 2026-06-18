@@ -256,7 +256,7 @@ fn update_state_ok() {
     let snos_output = get_state_update();
     let output = get_output();
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER);
-    appchain.update_state(snos_output.span(), output);
+    appchain.update_state(snos_output.span());
 
     let expected_log_state_update = LogStateUpdate {
         state_root: 2251620073307221877548100532273969460343974267802546890497101472079704728659,

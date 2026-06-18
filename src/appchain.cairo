@@ -133,12 +133,7 @@ pub mod appchain {
 
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
-        fn update_state(
-            ref self: ContractState,
-            snos_output: Span<felt252>,
-            layout_bridge_output: Span<felt252>,
-        ) {
-            let _ = layout_bridge_output;
+        fn update_state(ref self: ContractState, snos_output: Span<felt252>) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 

@@ -15,6 +15,5 @@ pub trait IAppchain<T> {
     /// # Arguments
     ///
     /// * `snos_output` - The raw StarknetOS state update output.
-    /// * `layout_bridge_program_output` - Unused in this settlement path.
-    fn update_state(ref self: T, snos_output: Span<felt252>, layout_bridge_output: Span<felt252>);
+    fn update_state(ref self: T, snos_output: Span<felt252>);
 }
