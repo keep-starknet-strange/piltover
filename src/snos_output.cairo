@@ -114,16 +114,13 @@ pub fn deserialize_kzg_da(ref input_iter: SpanIter<felt252>) -> bool {
     return true;
 }
 
-/// Custom deserialization function, inspired by
-/// https://github.com/starkware-libs/cairo-lang/blob/8e11b8cc65ae1d0959328b1b4a40b92df8b58595/src/starkware/starknet/core/aggregator/output_parser.py.
+/// Custom deserialization function, inspired by Starknet's Solidity output parser:
+/// https://github.com/starkware-libs/cairo-lang/blob/c382295ee557c30ee10366f7599ccf5af9992bc0/src/starkware/starknet/solidity/Output.sol.
 ///
-/// This deserialization function is expecting a bootloaded Starknet OS output, where the first
-/// three elements of the input are part of the bootloader header.
+/// This deserialization function expects the raw Starknet OS output.
 pub fn deserialize_os_output(
     ref input_iter: SpanIter<felt252>, use_kzg_da_enabled: bool,
 ) -> StarknetOsOutput {
-    // Skip the bootloader header, which is not relevant for the SNOS output.
-    let _ = read_segment(ref input_iter, 3);
     let header = read_segment(ref input_iter, HEADER_SIZE);
     let use_kzg_da = header[USE_KZG_DA_OFFSET];
     let full_output = header[FULL_OUTPUT_OFFSET];
@@ -143,6 +140,7 @@ pub fn deserialize_os_output(
         assert!(use_kzg_da.is_zero(), "KZG DA is not supported yet");
     }
 
+    // Match Starknet L1 core's state-update path, which rejects full output.
     assert!(full_output.is_zero(), "Full output is not supported");
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
 
@@ -229,10 +227,6 @@ mod tests {
     #[should_panic(expected: "KZG DA is not supported yet")]
     fn test_deserialize_os_output_kzg_failure() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');
@@ -258,10 +252,6 @@ mod tests {
     #[test]
     fn test_deserialize_os_output_with_kzg_da_enabled() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');
@@ -294,10 +284,6 @@ mod tests {
     #[should_panic(expected: "Full output is not supported")]
     fn test_deserialize_os_output_full_output_failure() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');
@@ -324,10 +310,6 @@ mod tests {
     #[should_panic(expected: "Aggregator program is not supported yet")]
     fn test_deserialize_os_output_aggregator_program_failure() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');
@@ -353,10 +335,6 @@ mod tests {
     #[test]
     fn test_deserialize_os_output_no_messages() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');
@@ -395,10 +373,6 @@ mod tests {
     #[test]
     fn test_deserialize_os_output_with_messages() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');
@@ -461,10 +435,6 @@ mod tests {
     #[test]
     fn test_deserialize_os_output_with_kzg_da_enabled_with_messages() {
         let mut input = array![];
-        // Bootloader header.
-        input.append(0);
-        input.append(0);
-        input.append(0);
         // SNOS output header.
         input.append('1');
         input.append('2');

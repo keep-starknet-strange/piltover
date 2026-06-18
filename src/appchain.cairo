@@ -16,6 +16,7 @@ mod errors {
 #[starknet::contract]
 pub mod appchain {
     use core::iter::IntoIterator;
+    use core::num::traits::Zero;
     use openzeppelin::access::ownable::OwnableComponent as ownable_cpt;
     use openzeppelin::access::ownable::OwnableComponent::InternalTrait as OwnableInternal;
     use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent;
@@ -138,21 +139,9 @@ pub mod appchain {
             self.config.assert_only_owner_or_operator();
 
             let program_info = self.config.program_info.read();
+            assert(!program_info.snos_program_hash.is_zero(), errors::SNOS_INVALID_PROGRAM_HASH);
 
-            let mut bootloaded_snos_output: Array<felt252> = ArrayTrait::new();
-            bootloaded_snos_output.append(1);
-            bootloaded_snos_output.append((snos_output.len() + 2).into());
-            bootloaded_snos_output.append(program_info.snos_program_hash);
-            let mut i = 0;
-            loop {
-                if (i == snos_output.len()) {
-                    break;
-                }
-                bootloaded_snos_output.append(*snos_output.at(i));
-                i += 1;
-            }
-
-            let mut snos_output_iter = bootloaded_snos_output.span().into_iter();
+            let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(
                 ref snos_output_iter, self.config.get_use_kzg_da(),
             );
@@ -229,6 +218,32 @@ pub mod appchain {
         u256 {
             low: core::integer::u128_byte_reverse(value.high),
             high: core::integer::u128_byte_reverse(value.low),
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{compute_sharp_fact, hash_main_public_input_solidity};
+
+        #[test]
+        fn test_hash_main_public_input_solidity() {
+            let input = array![1, 2];
+            assert(
+                hash_main_public_input_solidity(
+                    input.span(),
+                ) == 105409183525425523237923285454331214386340807945685310246717412709691342439136,
+                'invalid main input hash',
+            );
+        }
+
+        #[test]
+        fn test_compute_sharp_fact() {
+            assert(
+                compute_sharp_fact(
+                    0x123, 0x456,
+                ) == 66337830865122646412383461249913433419883178793073716670738764663367323841044,
+                'invalid sharp fact',
+            );
         }
     }
 

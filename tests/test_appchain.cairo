@@ -1,5 +1,4 @@
 use core::iter::IntoIterator;
-use core::poseidon::{PoseidonImpl, poseidon_hash_span};
 use core::result::ResultTrait;
 use openzeppelin::access::ownable::interface::{
     IOwnableTwoStepDispatcher, IOwnableTwoStepDispatcherTrait,
@@ -59,10 +58,8 @@ fn deploy_fact_registry_mock() -> IFactRegistryDispatcher {
 
 /// State update taken from mainnet:
 /// <https://etherscan.io/tx/0xc1351dac330d1d66f98efc99d08d360c2e9bc3d772c09d228027fcded8f02458>.
-/// The output has some extra value to bootload the SNOS output.
 fn get_state_update() -> Array<felt252> {
     let felts = array![
-        1, 2, 'snos_hash',
         1120029756675208924496185249815549700817638276364867982519015153297469423111,
         2251620073307221877548100532273969460343974267802546890497101472079704728659, 97999, 98000,
         531367489267323329537005801734709408229779133529698992357325410316912085961,
@@ -106,17 +103,6 @@ fn get_state_update() -> Array<felt252> {
         700754364753995129749969601657926670551784737862886653008195701294418726041, 0,
     ];
     felts
-}
-
-fn get_output() -> Span<felt252> {
-    let snos_output = get_state_update();
-    let snos_output_hash = poseidon_hash_span(snos_output.span());
-    // The output here represents the output of the Layout Bridge program,
-    // which is bootloaded.
-    // In the output of the bootloaded layout bridge program, the 5th element
-    // is the hash of the SNOS output.
-    let felts = array![1, 2, 'layout_bridge_hash', 'bootloader_hash', snos_output_hash];
-    felts.span()
 }
 
 #[test]
@@ -254,7 +240,6 @@ fn update_state_ok() {
     // Updating the state will register the message to starknet ready to be consumed
     // and the message to appchain as sealed.
     let snos_output = get_state_update();
-    let output = get_output();
     snf::start_cheat_caller_address(appchain.contract_address, c::OWNER);
     appchain.update_state(snos_output.span());
 
@@ -265,7 +250,7 @@ fn update_state_ok() {
     };
 
     let expected_state_transition_fact = LogStateTransitionFact {
-        state_transition_fact: 9569589917220687975817779475688105297421184939745602185148891360620827175731,
+        state_transition_fact: 10676051575222177614286870526702463713193246685853167703835931746417544592041,
     };
 
     _spy
