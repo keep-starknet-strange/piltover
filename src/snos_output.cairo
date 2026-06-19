@@ -25,6 +25,9 @@ const CONFIG_HASH_OFFSET: usize = 7;
 const USE_KZG_DA_OFFSET: usize = 8;
 const FULL_OUTPUT_OFFSET: usize = 9;
 const KZG_N_BLOBS_OFFSET: usize = 1;
+const NO_TRAILING_OUTPUT: felt252 = 'STARKNET_OUTPUT_TOO_LONG';
+const MESSAGE_TOO_SHORT: felt252 = 'MESSAGE_TOO_SHORT';
+const TRUNCATED_MESSAGE_PAYLOAD: felt252 = 'TRUNCATED_MESSAGE_PAYLOAD';
 
 #[derive(Drop, Serde, Debug)]
 pub struct StarknetOsOutput {
@@ -143,6 +146,7 @@ pub fn deserialize_os_output(
     // Match Starknet L1 core's state-update path, which rejects full output.
     assert!(full_output.is_zero(), "Full output is not supported");
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
+    assert(input_iter.next().is_none(), NO_TRAILING_OUTPUT);
 
     StarknetOsOutput {
         initial_root: *header[PREVIOUS_MERKLE_UPDATE_OFFSET],
@@ -167,10 +171,12 @@ pub fn deserialize_messages(
         .try_into()
         .expect('Invalid n_messages_to_l1');
     let messages_to_l1 = read_segment(ref input_iter, n_messages_to_l1);
+    assert(messages_to_l1.len() == n_messages_to_l1, MESSAGE_TOO_SHORT);
     let n_messages_to_l2: usize = (*(input_iter.next().unwrap()))
         .try_into()
         .expect('Invalid n_messages_to_l2');
     let mut messages_to_l2 = read_segment(ref input_iter, n_messages_to_l2);
+    assert(messages_to_l2.len() == n_messages_to_l2, MESSAGE_TOO_SHORT);
 
     let mut iter_messages_to_l1 = messages_to_l1.span().into_iter();
     let messages_to_l1 = deserialize_messages_to_l1(ref iter_messages_to_l1);
@@ -185,11 +191,13 @@ fn deserialize_messages_to_l1(ref input_iter: SpanIter<felt252>) -> Array<Messag
     let mut messages_to_starknet = array![];
     loop {
         let header = read_segment(ref input_iter, MESSAGE_TO_STARKNET_HEADER_SIZE);
-        if header.len() < MESSAGE_TO_STARKNET_HEADER_SIZE {
+        if header.len() == 0 {
             break;
         }
+        assert(header.len() == MESSAGE_TO_STARKNET_HEADER_SIZE, MESSAGE_TOO_SHORT);
         let payload_size: usize = (*header[2]).try_into().expect('Invalid payload size');
         let mut payload = read_segment(ref input_iter, payload_size);
+        assert(payload.len() == payload_size, TRUNCATED_MESSAGE_PAYLOAD);
         let payload = payload.span();
         let from_address: ContractAddress = (*header[0]).try_into().expect('Invalid from address');
         let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
@@ -203,11 +211,13 @@ fn deserialize_messages_to_l2(ref input_iter: SpanIter<felt252>) -> Array<Messag
     let mut messages_to_appchain = array![];
     loop {
         let header = read_segment(ref input_iter, MESSAGE_TO_APPCHAIN_HEADER_SIZE);
-        if header.len() < MESSAGE_TO_APPCHAIN_HEADER_SIZE {
+        if header.len() == 0 {
             break;
         }
+        assert(header.len() == MESSAGE_TO_APPCHAIN_HEADER_SIZE, MESSAGE_TOO_SHORT);
         let payload_size: usize = (*header[4]).try_into().expect('Invalid payload size');
         let mut payload = read_segment(ref input_iter, payload_size);
+        assert(payload.len() == payload_size, TRUNCATED_MESSAGE_PAYLOAD);
         let payload = payload.span();
         let from_address: ContractAddress = (*header[0]).try_into().expect('Invalid from address');
         let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
@@ -299,6 +309,93 @@ mod tests {
         input.append(1);
         // messages_to_l1.
         input.append(0);
+        // messages_to_l2.
+        input.append(0);
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter, false);
+    }
+
+    #[test]
+    #[should_panic(expected: "STARKNET_OUTPUT_TOO_LONG")]
+    fn test_deserialize_os_output_trailing_output_failure() {
+        let mut input = array![];
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append(0);
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(0);
+        // messages_to_l1.
+        input.append(0);
+        // messages_to_l2.
+        input.append(0);
+        // Unexpected trailing output.
+        input.append('extra');
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter, false);
+    }
+
+    #[test]
+    #[should_panic(expected: "MESSAGE_TOO_SHORT")]
+    fn test_deserialize_os_output_truncated_message_segment_failure() {
+        let mut input = array![];
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append(0);
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(0);
+        // messages_to_l1 segment says 5 felts but only 4 are available.
+        input.append(5);
+        input.append('from_l1');
+        input.append('to_l1');
+        input.append(2);
+        input.append('payload1');
+
+        let mut input_iter = input.span().into_iter();
+        let _os_output = deserialize_os_output(ref input_iter, false);
+    }
+
+    #[test]
+    #[should_panic(expected: "TRUNCATED_MESSAGE_PAYLOAD")]
+    fn test_deserialize_os_output_truncated_payload_failure() {
+        let mut input = array![];
+        // SNOS output header.
+        input.append('1');
+        input.append('2');
+        input.append('3');
+        input.append('4');
+        input.append('5');
+        input.append('6');
+        input.append(0);
+        input.append('8');
+        // use_kzg_da.
+        input.append(0);
+        // full_output.
+        input.append(0);
+        // messages_to_l1 segment has 5 felts, but the payload size says 3.
+        input.append(5);
+        input.append('from_l1');
+        input.append('to_l1');
+        input.append(3);
+        input.append('payload1');
+        input.append('payload2');
         // messages_to_l2.
         input.append(0);
 
