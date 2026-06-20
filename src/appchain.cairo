@@ -196,6 +196,8 @@ pub mod appchain {
         keccak_u256s_solidity_inputs(keccak_input.span())
     }
 
+    // Mirrors Solidity's `keccak256(abi.encodePacked(programOutput))` where each SNOS output
+    // felt is encoded as one uint256 word.
     fn hash_main_public_input_solidity(program_output: Span<felt252>) -> u256 {
         let mut keccak_input: Array<u256> = ArrayTrait::new();
         let mut i = 0;
