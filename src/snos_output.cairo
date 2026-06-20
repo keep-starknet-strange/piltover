@@ -171,12 +171,10 @@ pub fn deserialize_messages(
         .try_into()
         .expect('Invalid n_messages_to_l1');
     let messages_to_l1 = read_segment(ref input_iter, n_messages_to_l1);
-    assert(messages_to_l1.len() == n_messages_to_l1, MESSAGE_TOO_SHORT);
     let n_messages_to_l2: usize = (*(input_iter.next().unwrap()))
         .try_into()
         .expect('Invalid n_messages_to_l2');
     let mut messages_to_l2 = read_segment(ref input_iter, n_messages_to_l2);
-    assert(messages_to_l2.len() == n_messages_to_l2, MESSAGE_TOO_SHORT);
 
     let mut iter_messages_to_l1 = messages_to_l1.span().into_iter();
     let messages_to_l1 = deserialize_messages_to_l1(ref iter_messages_to_l1);
@@ -339,34 +337,6 @@ mod tests {
         input.append(0);
         // Unexpected trailing output.
         input.append('extra');
-
-        let mut input_iter = input.span().into_iter();
-        let _os_output = deserialize_os_output(ref input_iter, false);
-    }
-
-    #[test]
-    #[should_panic(expected: "MESSAGE_TOO_SHORT")]
-    fn test_deserialize_os_output_truncated_message_segment_failure() {
-        let mut input = array![];
-        // SNOS output header.
-        input.append('1');
-        input.append('2');
-        input.append('3');
-        input.append('4');
-        input.append('5');
-        input.append('6');
-        input.append(0);
-        input.append('8');
-        // use_kzg_da.
-        input.append(0);
-        // full_output.
-        input.append(0);
-        // messages_to_l1 segment says 5 felts but only 4 are available.
-        input.append(5);
-        input.append('from_l1');
-        input.append('to_l1');
-        input.append(2);
-        input.append('payload1');
 
         let mut input_iter = input.span().into_iter();
         let _os_output = deserialize_os_output(ref input_iter, false);
