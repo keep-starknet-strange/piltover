@@ -245,22 +245,39 @@ pub mod appchain {
         use super::{compute_sharp_fact, hash_main_public_input_solidity};
 
         #[test]
-        fn test_hash_main_public_input_solidity() {
-            let input = array![1, 2];
+        fn test_hash_main_public_input_solidity_matches_privily_snos_output() {
+            // Privily batch 519 raw SNOS output from Atlantic query 01KTQXH5CKTJDWXH1D9YAXMZ41.
+            // Reference: uint256(keccak256(abi.encodePacked(uint256[] rawSnosOutput))).
+            let input = array![
+                0x5c23d854c0b561f7f3a5847b12d1c871e5ff035adfede54a3129a437d5605b4,
+                0x232d21440e39ed325779ba5ffde7f1b7105fd53dc978d3e5ad9a1423a7e375d, 0x207, 0x208,
+                0x4c96b62902ea9f3f818f23b8cf976493a851d2896b77f6538743f0fbaece8d6,
+                0x5e75030613ac15fe487b93460a07321405e584909ceb9d835473cbc12d80e6f, 0x0,
+                0x3fedcac52921a4c9b2ce2025e223b338b5be2ecba7b83a1b592416db0be1429, 0x1, 0x0,
+                0x34c73210331cfab9d6430a106fa7052efeb810d4a2361d4fe35a92a93e84d29, 0x1,
+                0x53e74eb693b43ff217c519d279f455c5fbbf97c0b8d6e6ab,
+                0x91b34754454ee64f457c84067345168fcd3986970d35bbaa,
+                0xd53cc1142b28831cc2cfc6e79489d95, 0x4e60b2ec2f98c03914603b4136c961f9, 0x0, 0x0,
+            ];
             assert(
                 hash_main_public_input_solidity(
                     input.span(),
-                ) == 105409183525425523237923285454331214386340807945685310246717412709691342439136,
+                ) == 0x68c93d9de857dec46167404419a45959ba2436de37c5ab8ccfa9e9c745c0e7ae,
                 'invalid main input hash',
             );
         }
 
         #[test]
-        fn test_compute_sharp_fact() {
+        fn test_compute_sharp_fact_matches_privily_atlantic_l1_fact() {
+            // Same Privily query reported this program hash and SHARP fact, which was relayed
+            // on Ethereum Sepolia in tx
+            // 0x9b4032512012423d914f0a3a2c3586e15531790d5aa6e0a2ca40c1b2c31d180e.
+            // Reference: keccak256(abi.encode(programHash, stateTransitionFact)).
             assert(
                 compute_sharp_fact(
-                    0x123, 0x456,
-                ) == 66337830865122646412383461249913433419883178793073716670738764663367323841044,
+                    0x555444da05154c46b4828affa18b90c38a333e98fee633fda0af05441eceb24,
+                    0x68c93d9de857dec46167404419a45959ba2436de37c5ab8ccfa9e9c745c0e7ae,
+                ) == 0x492f4112a8deaf62b70093f596ca5426701030fd641139ced56284782bb8890c,
                 'invalid sharp fact',
             );
         }
