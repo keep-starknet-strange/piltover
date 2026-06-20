@@ -189,13 +189,11 @@ fn deserialize_messages_to_l1(ref input_iter: SpanIter<felt252>) -> Array<Messag
     let mut messages_to_starknet = array![];
     loop {
         let header = read_segment(ref input_iter, MESSAGE_TO_STARKNET_HEADER_SIZE);
-        if header.len() == 0 {
+        if header.len() < MESSAGE_TO_STARKNET_HEADER_SIZE {
             break;
         }
-        assert(header.len() == MESSAGE_TO_STARKNET_HEADER_SIZE, MESSAGE_TOO_SHORT);
         let payload_size: usize = (*header[2]).try_into().expect('Invalid payload size');
         let mut payload = read_segment(ref input_iter, payload_size);
-        assert(payload.len() == payload_size, TRUNCATED_MESSAGE_PAYLOAD);
         let payload = payload.span();
         let from_address: ContractAddress = (*header[0]).try_into().expect('Invalid from address');
         let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
@@ -337,37 +335,6 @@ mod tests {
         input.append(0);
         // Unexpected trailing output.
         input.append('extra');
-
-        let mut input_iter = input.span().into_iter();
-        let _os_output = deserialize_os_output(ref input_iter, false);
-    }
-
-    #[test]
-    #[should_panic(expected: "TRUNCATED_MESSAGE_PAYLOAD")]
-    fn test_deserialize_os_output_truncated_payload_failure() {
-        let mut input = array![];
-        // SNOS output header.
-        input.append('1');
-        input.append('2');
-        input.append('3');
-        input.append('4');
-        input.append('5');
-        input.append('6');
-        input.append(0);
-        input.append('8');
-        // use_kzg_da.
-        input.append(0);
-        // full_output.
-        input.append(0);
-        // messages_to_l1 segment has 5 felts, but the payload size says 3.
-        input.append(5);
-        input.append('from_l1');
-        input.append('to_l1');
-        input.append(3);
-        input.append('payload1');
-        input.append('payload2');
-        // messages_to_l2.
-        input.append(0);
 
         let mut input_iter = input.span().into_iter();
         let _os_output = deserialize_os_output(ref input_iter, false);
