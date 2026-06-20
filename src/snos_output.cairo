@@ -26,8 +26,6 @@ const USE_KZG_DA_OFFSET: usize = 8;
 const FULL_OUTPUT_OFFSET: usize = 9;
 const KZG_N_BLOBS_OFFSET: usize = 1;
 const NO_TRAILING_OUTPUT: felt252 = 'STARKNET_OUTPUT_TOO_LONG';
-const MESSAGE_TOO_SHORT: felt252 = 'MESSAGE_TOO_SHORT';
-const TRUNCATED_MESSAGE_PAYLOAD: felt252 = 'TRUNCATED_MESSAGE_PAYLOAD';
 
 #[derive(Drop, Serde, Debug)]
 pub struct StarknetOsOutput {
@@ -207,13 +205,11 @@ fn deserialize_messages_to_l2(ref input_iter: SpanIter<felt252>) -> Array<Messag
     let mut messages_to_appchain = array![];
     loop {
         let header = read_segment(ref input_iter, MESSAGE_TO_APPCHAIN_HEADER_SIZE);
-        if header.len() == 0 {
+        if header.len() < MESSAGE_TO_APPCHAIN_HEADER_SIZE {
             break;
         }
-        assert(header.len() == MESSAGE_TO_APPCHAIN_HEADER_SIZE, MESSAGE_TOO_SHORT);
         let payload_size: usize = (*header[4]).try_into().expect('Invalid payload size');
         let mut payload = read_segment(ref input_iter, payload_size);
-        assert(payload.len() == payload_size, TRUNCATED_MESSAGE_PAYLOAD);
         let payload = payload.span();
         let from_address: ContractAddress = (*header[0]).try_into().expect('Invalid from address');
         let to_address: ContractAddress = (*header[1]).try_into().expect('Invalid to address');
