@@ -210,10 +210,27 @@ pub mod appchain {
         keccak_u256s_solidity_inputs(keccak_input.span())
     }
 
+    // Mirrors Solidity's keccak256 over uint256 words.
+    //
+    // `keccak_u256s_be_inputs` feeds each input as a 32-byte big-endian word, matching
+    // Solidity's uint256 encoding. The returned digest, however, is a little-endian Cairo u256,
+    // so it must be byte-reversed before comparing with Ethereum/Solidity bytes32 facts.
     fn keccak_u256s_solidity_inputs(input: Span<u256>) -> u256 {
         byte_reverse_u256(core::keccak::keccak_u256s_be_inputs(input))
     }
 
+    // Converts Cairo's little-endian u256 digest into Solidity's bytes32/u256 representation.
+    //
+    // Example digest bytes in Solidity display order:
+    //   0x00010203...1c1d1e1f
+    //
+    // Cairo's little-endian u256 represents that as:
+    //   high = 0x1f1e1d1c...13121110
+    //   low  = 0x0f0e0d0c...03020100
+    //
+    // Reversing the full 32 bytes also swaps the two 128-bit limbs:
+    //   new.low  = reverse(old.high)
+    //   new.high = reverse(old.low)
     fn byte_reverse_u256(value: u256) -> u256 {
         u256 {
             low: core::integer::u128_byte_reverse(value.high),
