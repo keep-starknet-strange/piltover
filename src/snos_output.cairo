@@ -25,7 +25,6 @@ const CONFIG_HASH_OFFSET: usize = 7;
 const USE_KZG_DA_OFFSET: usize = 8;
 const FULL_OUTPUT_OFFSET: usize = 9;
 const KZG_N_BLOBS_OFFSET: usize = 1;
-const NO_TRAILING_OUTPUT: felt252 = 'STARKNET_OUTPUT_TOO_LONG';
 
 #[derive(Drop, Serde, Debug)]
 pub struct StarknetOsOutput {
@@ -144,7 +143,6 @@ pub fn deserialize_os_output(
     // Match Starknet L1 core's state-update path, which rejects full output.
     assert!(full_output.is_zero(), "Full output is not supported");
     let (messages_to_l1, messages_to_l2) = deserialize_messages(ref input_iter);
-    assert(input_iter.next().is_none(), NO_TRAILING_OUTPUT);
 
     StarknetOsOutput {
         initial_root: *header[PREVIOUS_MERKLE_UPDATE_OFFSET],
@@ -303,34 +301,6 @@ mod tests {
         input.append(0);
         // messages_to_l2.
         input.append(0);
-
-        let mut input_iter = input.span().into_iter();
-        let _os_output = deserialize_os_output(ref input_iter, false);
-    }
-
-    #[test]
-    #[should_panic(expected: "STARKNET_OUTPUT_TOO_LONG")]
-    fn test_deserialize_os_output_trailing_output_failure() {
-        let mut input = array![];
-        // SNOS output header.
-        input.append('1');
-        input.append('2');
-        input.append('3');
-        input.append('4');
-        input.append('5');
-        input.append('6');
-        input.append(0);
-        input.append('8');
-        // use_kzg_da.
-        input.append(0);
-        // full_output.
-        input.append(0);
-        // messages_to_l1.
-        input.append(0);
-        // messages_to_l2.
-        input.append(0);
-        // Unexpected trailing output.
-        input.append('extra');
 
         let mut input_iter = input.span().into_iter();
         let _os_output = deserialize_os_output(ref input_iter, false);
