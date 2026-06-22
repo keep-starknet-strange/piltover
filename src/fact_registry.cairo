@@ -30,6 +30,11 @@ pub trait IFactRegistry<T> {
 /// <https://github.com/HerodotusDev/integrity/blob/f3beacec88cd225a88945649627f3c3ea2232077/src/lib_utils.cairo#L59>
 #[starknet::contract]
 pub mod fact_registry_mock {
+    use piltover::satellite::ISatellite;
+
+    const EXPECTED_SHARP_FACT: u256 =
+        96332239816991602164545035794061837138268498262326868445489680656706208067305;
+
     #[storage]
     struct Storage {}
 
@@ -46,6 +51,13 @@ pub mod fact_registry_mock {
                 },
             };
             array![verification_list_element]
+        }
+    }
+
+    #[abi(embed_v0)]
+    impl SatelliteImplMock of ISatellite<ContractState> {
+        fn isKeccakVerifiedFactHashValid(self: @ContractState, fact_hash: u256) -> bool {
+            fact_hash == EXPECTED_SHARP_FACT
         }
     }
 }
