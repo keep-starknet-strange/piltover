@@ -4856,15 +4856,11 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     pub fn update_state_getcall(
         &self,
         snos_output: &Vec<starknet::core::types::Felt>,
-        layout_bridge_output: &Vec<starknet::core::types::Felt>,
     ) -> starknet::core::types::Call {
         use cainome::cairo_serde::CairoSerde;
         let mut __calldata = vec![];
         __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
             snos_output,
-        ));
-        __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
-            layout_bridge_output,
         ));
         starknet::core::types::Call {
             to: self.address,
@@ -4877,15 +4873,11 @@ impl<A: starknet::accounts::ConnectedAccount + Sync> AppchainContract<A> {
     pub fn update_state(
         &self,
         snos_output: &Vec<starknet::core::types::Felt>,
-        layout_bridge_output: &Vec<starknet::core::types::Felt>,
     ) -> starknet::accounts::ExecutionV3<A> {
         use cainome::cairo_serde::CairoSerde;
         let mut __calldata = vec![];
         __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
             snos_output,
-        ));
-        __calldata.extend(Vec::<starknet::core::types::Felt>::cairo_serialize(
-            layout_bridge_output,
         ));
         let __call = starknet::core::types::Call {
             to: self.address,

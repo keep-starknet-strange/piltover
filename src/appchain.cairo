@@ -5,22 +5,18 @@
 mod errors {
     pub const INVALID_ADDRESS: felt252 = 'Config: invalid address';
     pub const SNOS_INVALID_PROGRAM_OUTPUT_SIZE: felt252 = 'snos: invalid output size';
-    pub const SNOS_INVALID_OUTPUT_HASH: felt252 = 'snos: invalid output hash';
     pub const SNOS_INVALID_PROGRAM_HASH: felt252 = 'snos: invalid program hash';
     pub const SNOS_INVALID_CONFIG_HASH: felt252 = 'snos: invalid config hash';
     pub const SNOS_INVALID_MESSAGES_SEGMENTS: felt252 = 'snos: invalid messages segments';
     pub const NO_STATE_TRANSITION_PROOF: felt252 = 'no state transition proof';
     pub const NO_FACT_REGISTERED: felt252 = 'no fact registered';
-    pub const LAYOUT_BRIDGE_INVALID_PROGRAM_HASH: felt252 = 'lb: invalid program hash';
-    pub const LAYOUT_BRIDGE_INVALID_BOOTLOADER_HASH: felt252 = 'lb: invalid bootloader hash';
 }
 
 /// Appchain settlement contract on starknet.
 #[starknet::contract]
 pub mod appchain {
     use core::iter::IntoIterator;
-    use core::poseidon::{PoseidonImpl, poseidon_hash_span};
-    use integrity::Integrity;
+    use core::num::traits::Zero;
     use openzeppelin::access::ownable::OwnableComponent as ownable_cpt;
     use openzeppelin::access::ownable::OwnableComponent::InternalTrait as OwnableInternal;
     use openzeppelin::security::reentrancyguard::ReentrancyGuardComponent;
@@ -28,14 +24,12 @@ pub mod appchain {
     use openzeppelin::upgrades::UpgradeableComponent as upgradeable_cpt;
     use openzeppelin::upgrades::UpgradeableComponent::InternalTrait as UpgradeableInternal;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use piltover::components::onchain_data_fact_tree_encoder::{
-        DataAvailabilityFact, encode_fact_with_onchain_data,
-    };
     use piltover::config::config_cpt::InternalTrait as ConfigInternal;
     use piltover::config::{IConfig, config_cpt};
     use piltover::interface::IAppchain;
     use piltover::messaging::messaging_cpt;
     use piltover::messaging::messaging_cpt::InternalTrait as MessagingInternal;
+    use piltover::satellite::{ISatelliteDispatcher, ISatelliteDispatcherTrait};
     use piltover::snos_output::deserialize_os_output;
     use piltover::state::state_cpt::InternalTrait as StateInternal;
     use piltover::state::{IStateUpdater, state_cpt};
@@ -45,9 +39,6 @@ pub mod appchain {
 
     /// The default cancellation delay of 5 days.
     const CANCELLATION_DELAY_SECS: u64 = 432000;
-
-    /// The minimum security bits required for a fact to be considered valid.
-    const MIN_SECURITY_BITS: u32 = 50;
 
     component!(path: ownable_cpt, storage: ownable, event: OwnableEvent);
     component!(path: upgradeable_cpt, storage: upgradeable, event: UpgradeableEvent);
@@ -143,80 +134,34 @@ pub mod appchain {
 
     #[abi(embed_v0)]
     impl Appchain of IAppchain<ContractState> {
-        fn update_state(
-            ref self: ContractState,
-            snos_output: Span<felt252>,
-            layout_bridge_output: Span<felt252>,
-        ) {
+        fn update_state(ref self: ContractState, snos_output: Span<felt252>) {
             self.reentrancy_guard.start();
             self.config.assert_only_owner_or_operator();
 
             let program_info = self.config.program_info.read();
-
-            // StarknetOS (SNOS) proof is wrapped in bootloader so 3rd element is the program hash
-            // of bootloaded program, in our case SNOS.
-            let snos_program_hash = snos_output.at(2);
-            assert(
-                program_info.snos_program_hash == *snos_program_hash,
-                errors::SNOS_INVALID_PROGRAM_HASH,
-            );
-
-            // Layout bridge program is also bootloaded, and the 3rd element is the hash of the
-            // output of the program that has been bootloaded.
-            let layout_bridge_program_hash = layout_bridge_output.at(2);
-            assert(
-                program_info.layout_bridge_program_hash == *layout_bridge_program_hash,
-                errors::LAYOUT_BRIDGE_INVALID_PROGRAM_HASH,
-            );
-
-            // The 4th element is the program which execution has been verified by the layout bridge
-            // (which is a verified program).
-            // It must match the bootloader hash, since the layout bridge verified the bootloaded
-            // execution of the Starknet OS program.
-            assert(
-                *layout_bridge_output.at(3) == program_info.bootloader_program_hash,
-                errors::LAYOUT_BRIDGE_INVALID_BOOTLOADER_HASH,
-            );
-
-            let snos_output_hash = poseidon_hash_span(snos_output);
-            // Layout bridge program is also bootloaded, and the 5th element is the hash of the
-            // output of the program that has been layout-bridged.
-            let snos_output_hash_in_bridge_output = layout_bridge_output.at(4);
-            assert(
-                snos_output_hash == *snos_output_hash_in_bridge_output,
-                errors::SNOS_INVALID_OUTPUT_HASH,
-            );
-
-            let output_hash = poseidon_hash_span(layout_bridge_output);
+            assert(!program_info.snos_program_hash.is_zero(), errors::SNOS_INVALID_PROGRAM_HASH);
 
             let mut snos_output_iter = snos_output.into_iter();
             let program_output_struct = deserialize_os_output(
                 ref snos_output_iter, self.config.get_use_kzg_da(),
             );
 
-            // Those values are currently not being used. They are enforced to 0 here
-            // instead of being passed as arguments to avoid operator manipulation
-            // until their usage is better defined.
-            let data_availability_fact: DataAvailabilityFact = DataAvailabilityFact {
-                onchain_data_hash: 0, onchain_data_size: 0,
-            };
-            let state_transition_fact: u256 = encode_fact_with_onchain_data(
-                layout_bridge_output, data_availability_fact,
-            );
+            let state_transition_fact: u256 = hash_main_public_input_solidity(snos_output);
 
             assert(
                 program_output_struct.starknet_os_config_hash == program_info.snos_config_hash,
                 errors::SNOS_INVALID_CONFIG_HASH,
             );
 
-            let fact = poseidon_hash_span(
-                array![program_info.bootloader_program_hash, output_hash].span(),
+            let expected_sharp_fact = compute_sharp_fact(
+                program_info.snos_program_hash.into(), state_transition_fact,
             );
 
-            let integrity = Integrity::from_address(self.config.get_facts_registry());
-
+            let satellite = ISatelliteDispatcher {
+                contract_address: self.config.get_facts_registry(),
+            };
             assert(
-                integrity.is_fact_hash_valid_with_security(fact, MIN_SECURITY_BITS),
+                satellite.isKeccakVerifiedFactHashValid(expected_sharp_fact),
                 errors::NO_FACT_REGISTERED,
             );
 
@@ -241,6 +186,100 @@ pub mod appchain {
                         block_hash: self.state.block_hash.read(),
                     },
                 );
+        }
+    }
+
+    fn compute_sharp_fact(fact_program_hash: u256, state_transition_fact: u256) -> u256 {
+        let mut keccak_input: Array<u256> = ArrayTrait::new();
+        keccak_input.append(fact_program_hash);
+        keccak_input.append(state_transition_fact);
+        keccak_u256s_solidity_inputs(keccak_input.span())
+    }
+
+    // Mirrors Solidity's `keccak256(abi.encodePacked(programOutput))` where each SNOS output
+    // felt is encoded as one uint256 word.
+    fn hash_main_public_input_solidity(program_output: Span<felt252>) -> u256 {
+        let mut keccak_input: Array<u256> = ArrayTrait::new();
+        let mut i = 0;
+        loop {
+            if (i == program_output.len()) {
+                break;
+            }
+            keccak_input.append((*program_output.at(i)).into());
+            i += 1;
+        }
+
+        keccak_u256s_solidity_inputs(keccak_input.span())
+    }
+
+    // Mirrors Solidity's keccak256 over uint256 words.
+    //
+    // `keccak_u256s_be_inputs` feeds each input as a 32-byte big-endian word, matching
+    // Solidity's uint256 encoding. The returned digest, however, is a little-endian Cairo u256,
+    // so it must be byte-reversed before comparing with Ethereum/Solidity bytes32 facts.
+    fn keccak_u256s_solidity_inputs(input: Span<u256>) -> u256 {
+        byte_reverse_u256(core::keccak::keccak_u256s_be_inputs(input))
+    }
+
+    // Converts Cairo's little-endian u256 digest into Solidity's bytes32/u256 representation.
+    //
+    // Example digest bytes in Solidity display order:
+    //   0x00010203...1c1d1e1f
+    //
+    // Cairo's little-endian u256 represents that as:
+    //   high = 0x1f1e1d1c...13121110
+    //   low  = 0x0f0e0d0c...03020100
+    //
+    // Reversing the full 32 bytes also swaps the two 128-bit limbs:
+    //   new.low  = reverse(old.high)
+    //   new.high = reverse(old.low)
+    fn byte_reverse_u256(value: u256) -> u256 {
+        u256 {
+            low: core::integer::u128_byte_reverse(value.high),
+            high: core::integer::u128_byte_reverse(value.low),
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{compute_sharp_fact, hash_main_public_input_solidity};
+
+        #[test]
+        fn test_hash_main_public_input_solidity_matches_privily_snos_output() {
+            // Privily batch 519 raw SNOS output from Atlantic query 01KTQXH5CKTJDWXH1D9YAXMZ41.
+            // Reference: uint256(keccak256(abi.encodePacked(uint256[] rawSnosOutput))).
+            let input = array![
+                0x5c23d854c0b561f7f3a5847b12d1c871e5ff035adfede54a3129a437d5605b4,
+                0x232d21440e39ed325779ba5ffde7f1b7105fd53dc978d3e5ad9a1423a7e375d, 0x207, 0x208,
+                0x4c96b62902ea9f3f818f23b8cf976493a851d2896b77f6538743f0fbaece8d6,
+                0x5e75030613ac15fe487b93460a07321405e584909ceb9d835473cbc12d80e6f, 0x0,
+                0x3fedcac52921a4c9b2ce2025e223b338b5be2ecba7b83a1b592416db0be1429, 0x1, 0x0,
+                0x34c73210331cfab9d6430a106fa7052efeb810d4a2361d4fe35a92a93e84d29, 0x1,
+                0x53e74eb693b43ff217c519d279f455c5fbbf97c0b8d6e6ab,
+                0x91b34754454ee64f457c84067345168fcd3986970d35bbaa,
+                0xd53cc1142b28831cc2cfc6e79489d95, 0x4e60b2ec2f98c03914603b4136c961f9, 0x0, 0x0,
+            ];
+            assert(
+                hash_main_public_input_solidity(
+                    input.span(),
+                ) == 0x68c93d9de857dec46167404419a45959ba2436de37c5ab8ccfa9e9c745c0e7ae,
+                'invalid main input hash',
+            );
+        }
+
+        #[test]
+        fn test_compute_sharp_fact_matches_privily_atlantic_l1_fact() {
+            // Same Privily query reported this program hash and SHARP fact, which was relayed
+            // on Ethereum Sepolia in tx
+            // 0x9b4032512012423d914f0a3a2c3586e15531790d5aa6e0a2ca40c1b2c31d180e.
+            // Reference: keccak256(abi.encode(programHash, stateTransitionFact)).
+            assert(
+                compute_sharp_fact(
+                    0x555444da05154c46b4828affa18b90c38a333e98fee633fda0af05441eceb24,
+                    0x68c93d9de857dec46167404419a45959ba2436de37c5ab8ccfa9e9c745c0e7ae,
+                ) == 0x492f4112a8deaf62b70093f596ca5426701030fd641139ced56284782bb8890c,
+                'invalid sharp fact',
+            );
         }
     }
 
